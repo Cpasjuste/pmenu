@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF­8" standalone="yes"?>
+<PXML>
+  <title>Program Title</title>
+  <unique_id>123shaboo</unique_id>
+  <standalone>Yes</standalone>
+  <icon>program.png</icon>
+  <title lang='de'>Program Title in German Language</title>
+  <title lang='it'>Program Title in Italian Language</title>
+  <description>
+This is the [b]English Description[/b] of the file.
+Can use [i]multiple lines[/i] and BBCode.
+  </description>
+  <description lang='de'>The German Description</description>
+  <description lang='it'>The Italian Description</description>
+  <preview>
+<previewitem>./preview/pic1.jpg</previewitem>
+<previewitem>./preview/pic2.jpg</previewitem>
+  </preview>
+  <author name = 'EvilDragon' website='http://www.openpandora.org' />
+  <version major='1' minor='1' release='1' build='2' />
+  <exec>program.exe</exec>
+  <category>Main category
+<subcategory>Subcategory 1</subcategory>
+<subcategory>Subcategory 2</subcategory>
+  </category>
+  <category>Alternate category
+<subcategory>Alternate subcategory</subcategory>
+  </category>
+  <osversion major='1' minor='1' release='1' build='2' />
+  <association>
+<associationitem>
+<name>View this Picture</name>
+<filetype>jpg,bmp,gif</filetype>
+<parameter>­view</parameter>
+</associationitem>
+<associationitem>
+<name>Convert this Picture</name>
+<filetype>jpg,bmp,gif</filetype>
+<parameter>­convert</parameter>
+</associationitem>
+<associationitem>
+<name>Watch This Movie</name>
+<filetype>mpg,avi,wmv</filetype>
+</associationitem>
+  </association>
+  <clockspeed>600</clockspeed>
+  <background>Yes</background>
+  <startdir>../differentdir</startdir>
+</PXML>

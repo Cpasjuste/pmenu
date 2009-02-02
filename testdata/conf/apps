@@ -1,0 +1,13 @@
+
+# Open Pandora
+# Application configuration
+
+[autodiscovery]
+searchpath	/mnt/sd1/pandora/apps:/mnt/sd2/pandora/apps:./testdata/apps	# path to depth-search for PXMLs
+
+[overrides]
+searchpath	~/pxml-overrides:./testdata/apps-override
+
+[pnd]
+searchpath	/mnt/sd1/pandora/scripts:/mnt/sd2/pandora/scripts:./testdata/scripts
+default		pndrun.sh
