@@ -118,7 +118,7 @@ int gui_init_sdl()
 		return 1; 
 	} 
 
-	SDL_ShowCursor(SDL_DISABLE);
+	SDL_ShowCursor(SDL_ENABLE);
 }
 
 void gui_draw()
@@ -127,13 +127,18 @@ void gui_draw()
 
 	int i = app_list_start;
 
+	char tmpStr[256];
+
 	while (i < (app_list_start+7)) 
 	{
 		if (i < app_list_num)
 		{
+			memset(tmpStr, 0, 256);
+			strncpy(tmpStr, application->name[i], 40);
+
 			if (i == app_list_curpos)
 			{
-				message = TTF_RenderText_Solid( font, application->name[i], GREEN );
+				message = TTF_RenderText_Solid( font, tmpStr, GREEN );
 
 				/*if (access (application->icon[i], W_OK) == 0)
 				{
@@ -144,7 +149,7 @@ void gui_draw()
 			}
 			else
 			{
-				message = TTF_RenderText_Solid( font, application->name[i], WHITE );
+				message = TTF_RenderText_Solid( font, tmpStr, WHITE );
 			}
 			apply_surface( 96, ((i-app_list_start)+2)*50, message, myscreen );
 			SDL_FreeSurface( message );
@@ -172,7 +177,6 @@ int main(char *argc, char *argv[])
 	apply_surface( 0, 0, background, myscreen );
 
 	pnd_app_get_list();
-	gui_draw();
 
 	while(!gui_done)
 	{
@@ -270,11 +274,12 @@ int main(char *argc, char *argv[])
 					SDL_Quit();
 				
 					free(application);
-					gui_done = 1;
+					exit(0);
 				}
 				break;
 			}
 		}
+		gui_draw();
 	}
 	return 0;
 }
