@@ -67,14 +67,11 @@ int pnd_app_get_list(void)
 
 		while ( d )
 		{
-
-			// display the app 'as is'
-
 			printf ( "  [%i] : App: %s\n", pnd_app_count, pnd_box_get_key ( d ) );
 
-			if ( d -> app_name )
+			if ( d -> title_en )
 			{
-				strcpy(application->name[pnd_app_count], d -> app_name);
+				strcpy(application->name[pnd_app_count], d -> title_en);
 				printf ( "  [%i] : Name: %s\n", pnd_app_count, application->name[pnd_app_count]);
 			}
 			if ( d -> unique_id )
@@ -82,19 +79,21 @@ int pnd_app_get_list(void)
 				strcpy(application->id[pnd_app_count], d -> unique_id);
 				printf ( "  [%i] : Unique ID: %s\n", pnd_app_count, application->id[pnd_app_count] );
 			}
+
 			if ( d -> icon )
 			{
 				strcpy(application->icon[pnd_app_count], d -> icon);
 				printf ( "  [%i] : icon: %s\n", pnd_app_count, application->icon[pnd_app_count] );
 			}
- 			if ( d -> primary_category )
+
+ 			if ( d -> main_category )
 			{
-				strcpy(application->category[pnd_app_count], d -> primary_category);
+				strcpy(application->category[pnd_app_count], d -> main_category);
 				printf ( "  [%i] : Category: %s\n", pnd_app_count, application->category[pnd_app_count] );
  			}
-			if ( d -> exec_path )
+			if ( d -> exec )
 			{
-				strcpy(application->exec[pnd_app_count], d -> exec_path);
+				strcpy(application->exec[pnd_app_count], d -> exec);
 				printf ( "  [%i] : Executable: %s\n\n", pnd_app_count, application->exec[pnd_app_count] );
 			}
 
