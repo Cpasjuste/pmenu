@@ -24,6 +24,8 @@ const int SCREEN_BPP = 16;
 const int pnd_button_1 = 1, pnd_button_2 = 2, pnd_button_L = 4, pnd_button_R = 5, \
 	pnd_button_SELECT = 8, pnd_button_START = 9;
 
+static int scroll_count;
+
 TTF_Font *font;
 SDL_Event event;
 
@@ -37,7 +39,6 @@ SDL_Color BLUE = { 0, 0, 255 };
 SDL_Color RED = { 255, 0, 0 };
 SDL_Color GREEN = { 0, 255, 0 };
 SDL_Color GRAY = { 175, 175, 175 };
-
 
 SDL_Surface *load_image(char *filename )
 {
@@ -121,48 +122,60 @@ int gui_init_sdl()
 	SDL_ShowCursor(SDL_ENABLE);
 }
 
+void gui_scroll_text(int y, char *text)
+{
+	int i = strlen(text) * 12;
+
+	if(scroll_count < -i) scroll_count = 800;
+
+	message = TTF_RenderUTF8_Solid( font, text, WHITE );
+	SDL_Surface *new_message = SDL_DisplayFormat( message );
+	SDL_FreeSurface( message );
+
+	apply_surface( scroll_count, y, new_message, myscreen );
+	SDL_FreeSurface( new_message );
+
+	scroll_count -= 1;
+}
+
 void gui_draw()
 {
 	apply_surface( 0, 0, background, myscreen );
 
-	int i = app_list_start;
+	int i = list_start[section];
 
 	char tmpStr[256];
 
-	while (i < (app_list_start+7)) 
+	while (i < (list_start[section]+7)) 
 	{
-		if (i < app_list_num)
+		if (i < list_num[section])
 		{
 			memset(tmpStr, 0, 256);
-			strncpy(tmpStr, application->name[i], 40);
+			strncpy(tmpStr, applications[section]->name[i], 40);
 
-			if (i == app_list_curpos)
+			if (i == list_curpos[section])
 			{
 				message = TTF_RenderText_Solid( font, tmpStr, GREEN );
-
-				/*if (access (application->icon[i], W_OK) == 0)
-				{
-					preview = load_image( application->icon[i] );
-					apply_surface( 590, 260, preview, myscreen );
-					SDL_FreeSurface( preview );
-				}*/
 			}
 			else
 			{
 				message = TTF_RenderText_Solid( font, tmpStr, WHITE );
 			}
-			apply_surface( 96, ((i-app_list_start)+2)*50, message, myscreen );
+			apply_surface( 96, ((i-list_start[section])+2)*50, message, myscreen );
 			SDL_FreeSurface( message );
 
-			if (access (application->icon[i], W_OK) == 0)
+			if (access (applications[section]->icon[i], W_OK) == 0)
 			{
-				preview = load_image( application->icon[i] );
-				apply_surface( 50, ((i-app_list_start)+2)*50, preview, myscreen );
+				preview = load_image( applications[section]->icon[i] );
+				apply_surface( 50, ((i-list_start[section])+2)*50, preview, myscreen );
 				SDL_FreeSurface( preview );
 			}
 		}
 		i++;
 	}
+
+	gui_scroll_text(450, applications[section]->description[list_curpos[section]]);
+
 	SDL_Flip(myscreen);
 }
 
@@ -170,6 +183,8 @@ int main(char *argc, char *argv[])
 {
 
 	int gui_done = 0;
+	scroll_count = 800;
+	section = EMULATORS;
 
 	gui_init_sdl();
 
@@ -189,22 +204,33 @@ int main(char *argc, char *argv[])
 				case SDL_KEYDOWN:
 				if (event.key.keysym.sym == SDLK_UP)
 				{
-					if (app_list_curpos > 0) 
+					if (list_curpos[section] > 0) 
 					{
-						app_list_curpos--;
-						if (app_list_curpos < app_list_start) { app_list_start = app_list_curpos; }
+						list_curpos[section]--;
+						if (list_curpos[section] < list_start[section]) { list_start[section] = list_curpos[section]; }
 						gui_draw();
 					}
 				}
 				else if(event.key.keysym.sym == SDLK_DOWN)
 				{
-					if (app_list_curpos < (app_list_num-1)) 
+					if (list_curpos[section] < (list_num[section]-1)) 
 					{
-						app_list_curpos++;
-						if (app_list_curpos >= (app_list_start+7)) { app_list_start++; }
+						list_curpos[section]++;
+						if (list_curpos[section] >= (list_start[section]+7)) { list_start[section]++; }
 						gui_draw();
 					}
 				}
+				else if(event.key.keysym.sym == SDLK_LEFT)
+				{
+					if(section > EMULATORS) section--;
+						else section = APPLICATIONS;
+				}
+				else if(event.key.keysym.sym == SDLK_RIGHT)
+				{
+					if(section < APPLICATIONS) section++;
+						else section = EMULATORS;
+				}
+				scroll_count = 800;
 				break;
 
 				case SDL_JOYAXISMOTION:
@@ -227,19 +253,19 @@ int main(char *argc, char *argv[])
 					{
 						if(event.jaxis.value < 0) // PAD UP
 						{
-							if (app_list_curpos > 0) 
+							if (list_curpos[section] > 0) 
 							{
-								app_list_curpos--;
-								if (app_list_curpos < app_list_start) { app_list_start = app_list_curpos; }
+								list_curpos[section]--;
+								if (list_curpos[section] < list_start[section]) { list_start[section] = list_curpos[section]; }
 								gui_draw();
 							}
 						}
 						else if(event.jaxis.value > 0) // PAD DOWN
 						{
-							if (app_list_curpos < (app_list_num-1)) 
+							if (list_curpos[section] < (list_num[section]-1)) 
 							{
-								app_list_curpos++;
-								if (app_list_curpos >= (app_list_start+7)) { app_list_start++; }
+								list_curpos[section]++;
+								if (list_curpos[section] >= (list_start[section]+7)) { list_start[section]++; }
 								gui_draw();
 							}
 						}
@@ -273,7 +299,9 @@ int main(char *argc, char *argv[])
 					TTF_Quit(); 
 					SDL_Quit();
 				
-					free(application);
+					int i;
+					for(i=0; i<3; i++)
+						free(applications[i]);
 					exit(0);
 				}
 				break;

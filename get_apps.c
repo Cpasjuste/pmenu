@@ -15,6 +15,7 @@ int pnd_app_get_list(void)
 	char *configpath;
 	char *appspath;
 	char *overridespath;
+	int i;
 
 	/* attempt to sort out the config file madness */
 
@@ -57,57 +58,86 @@ int pnd_app_get_list(void)
 
 	applist = pnd_disco_search ( appspath, overridespath );
 
-	application = (PND_APP *) malloc(sizeof(PND_APP));
-	pnd_app_count = 0;
+	for(i=0; i<3; i++)
+	{
+		applications[i] = (PND_APP *) malloc(sizeof(PND_APP));
+		applications_count[i] = 0;
+	}
 
 	// list the found apps (if any)
 	if ( applist )
 	{
 		pnd_disco_t *d = pnd_box_get_head ( applist );
 
+		int tmpSection = 0;
+
 		while ( d )
 		{
-			printf ( "  [%i] : App: %s\n", pnd_app_count, pnd_box_get_key ( d ) );
-
-			if ( d -> title_en )
-			{
-				strcpy(application->name[pnd_app_count], d -> title_en);
-				printf ( "  [%i] : Name: %s\n", pnd_app_count, application->name[pnd_app_count]);
-			}
-			if ( d -> unique_id )
-			{
-				strcpy(application->id[pnd_app_count], d -> unique_id);
-				printf ( "  [%i] : Unique ID: %s\n", pnd_app_count, application->id[pnd_app_count] );
-			}
-
-			if ( d -> icon )
-			{
-				strcpy(application->icon[pnd_app_count], d -> icon);
-				printf ( "  [%i] : icon: %s\n", pnd_app_count, application->icon[pnd_app_count] );
-			}
-
  			if ( d -> main_category )
 			{
-				strcpy(application->category[pnd_app_count], d -> main_category);
-				printf ( "  [%i] : Category: %s\n", pnd_app_count, application->category[pnd_app_count] );
+				if(strcmp(d -> main_category, "emulators") == 0)
+				{
+					tmpSection = EMULATORS;
+					printf ( "  [%i] -> Emulator spotted in : %s\n", applications_count[tmpSection], pnd_box_get_key ( d ) );
+				}
+				else if(strcmp(d -> main_category, "games") == 0)
+				{
+					tmpSection = GAMES;
+					printf ( "  [%i] -> Game spotted in : %s\n", applications_count[tmpSection], pnd_box_get_key ( d ) );
+				}
+				else if(strcmp(d -> main_category, "applications") == 0)
+				{
+					tmpSection = APPLICATIONS;
+					printf ( "  [%i] -> Application spotted in : %s\n", applications_count[tmpSection], pnd_box_get_key ( d ) );
+				}
+
+				strcpy(applications[tmpSection]->category[applications_count[tmpSection]], d -> main_category);
+				printf ( "  [%i] -> Category: %s\n", applications_count[tmpSection], \
+					applications[tmpSection]->category[applications_count[tmpSection]] );
+
+				if ( d -> title_en )
+				{
+					strcpy(applications[tmpSection]->name[applications_count[tmpSection]], d -> title_en);
+					printf ( "  [%i] -> Name: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->name[applications_count[tmpSection]]);
+				}
+				if ( d -> unique_id )
+				{
+					strcpy(applications[tmpSection]->id[applications_count[tmpSection]], d -> unique_id);
+					printf ( "  [%i] -> Unique ID: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->id[applications_count[tmpSection]] );
+				}
+				if ( d -> icon )
+				{
+					strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], d -> icon);
+					printf ( "  [%i] -> icon: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->icon[applications_count[tmpSection]] );
+				}
+				if ( d -> exec )
+				{
+					strcpy(applications[tmpSection]->exec[applications_count[tmpSection]], d -> exec);
+					printf ( "  [%i] -> Executable: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->exec[applications_count[tmpSection]] );
+				}
+				if ( d -> description_en )
+				{
+					strcpy(applications[tmpSection]->description[applications_count[tmpSection]], d -> description_en);
+					printf ( "  [%i] -> Description: %s\n\n", applications_count[tmpSection], \
+						applications[tmpSection]->description[applications_count[tmpSection]] );
+				}
+				applications_count[tmpSection]++;
  			}
-			if ( d -> exec )
-			{
-				strcpy(application->exec[pnd_app_count], d -> exec);
-				printf ( "  [%i] : Executable: %s\n\n", pnd_app_count, application->exec[pnd_app_count] );
-			}
-
-			// next!
-			pnd_app_count++;
 			d = pnd_box_get_next ( d );
+		} 
 
-		} // while applist
-
-		app_list_num = pnd_app_count;
-		if (app_list_start >= app_list_num) { app_list_start = app_list_num-1; }
-		if (app_list_start < 0) { app_list_start  = 0; }
-		if (app_list_curpos >= app_list_num) { app_list_curpos = app_list_num-1; }
-		if (app_list_curpos < 0) { app_list_curpos = 0; }
+		for(i=0; i<3; i++)
+		{
+			list_num[i] = applications_count[i];
+			if (list_start[i] >= list_num[i]) { list_start[i] = list_num[i]-1; }
+			if (list_start[i] < 0) { list_start[i]  = 0; }
+			if (list_curpos[i] >= list_num[i]) { list_curpos[i] = list_num[i]-1; }
+			if (list_curpos[i] < 0) { list_curpos[i] = 0; }
+		}
 
 	}
 	else

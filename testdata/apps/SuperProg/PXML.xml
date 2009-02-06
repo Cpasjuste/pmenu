@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <PXML>
 <title>
-	<en>Program Title</en>
+	<en>SuperProg</en>
 	<de>Program Title in German Language</de>
 	<fr>Program Title in French Language</fr>
 	<it>Program Title in Italian Language</it>
@@ -41,7 +41,7 @@
 <exec>program.exe</exec>
 
 <category>
-	<main>Main category</main>
+	<main>applications</main>
 	<subcategory1>Subcategory 1</subcategory1>
 	<subcategory2>Subcategory 2</subcategory2>
 </category>
