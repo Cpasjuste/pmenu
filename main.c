@@ -29,7 +29,13 @@ static int scroll_count, alpha, alpha_up;
 const int category_icon_x[3] = { 110, 210, 310 };
 const int category_icon_y = 42;
 
+enum {MOUSE_LEFT = 1, MOUSE_RIGHT, MOUSE_MIDDLE};
+int MOUSE_X, MOUSE_Y; 
+int mouse_y_pos;
+
 TTF_Font *font;
+TTF_Font *font_big;
+
 SDL_Event event;
 
 SDL_Surface *message = NULL;
@@ -142,6 +148,13 @@ int gui_init_sdl()
 		return 1; 
 	} 
 
+	font_big = TTF_OpenFont( "data/font.ttf", 20); 
+	if( font == NULL )
+	{
+		printf("TTF_OpenFont failed : %s\n", SDL_GetError());
+		return 1; 
+	} 
+
 	SDL_ShowCursor(SDL_ENABLE);
 }
 
@@ -160,6 +173,7 @@ void gui_quit()
 {
 	SDL_FreeSurface( background );
 	TTF_CloseFont( font ); 
+	TTF_CloseFont( font_big );
 	TTF_Quit(); 
 	SDL_Quit();
 				
@@ -217,12 +231,11 @@ void gui_draw()
 					if(alpha == 102) alpha_up = 1;
 						else alpha_up = 0;
 				}
-
-				message = TTF_RenderText_Solid( font, tmpStr, GREEN );
+				message = TTF_RenderUTF8_Blended( font_big, tmpStr, GREEN );
 			}
 			else
 			{
-				message = TTF_RenderText_Solid( font, tmpStr, WHITE );
+				message = TTF_RenderUTF8_Blended( font, tmpStr, WHITE );
 			}
 			apply_surface( 96, ((i-list_start[category])+2)*50, message, myscreen );
 			SDL_FreeSurface( message );
@@ -249,6 +262,104 @@ void gui_draw()
 	SDL_Flip(myscreen);
 }
 
+int get_mouse_click(int button)
+{
+	SDL_PumpEvents();
+	switch(button)
+	{
+		case MOUSE_LEFT:
+			if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(1))
+			return 1;
+		break;
+
+		case MOUSE_MIDDLE:
+			if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(2))
+			return 1;
+		break;
+
+		case MOUSE_RIGHT:
+			if(SDL_GetMouseState(NULL, NULL)&SDL_BUTTON(3))
+			return 1;
+		break;
+	}
+	return 0;
+}
+
+void get_mouse_loc()
+{
+	SDL_PumpEvents();
+	SDL_GetMouseState(&MOUSE_X, &MOUSE_Y);
+}
+
+void set_mouse_loc(int x, int y)
+{
+	SDL_WarpMouse(x, y);
+}
+
+int mouse_is_over(int x1, int x2, int y1, int y2)
+{
+	if(MOUSE_X < x1) return 0;
+	if(MOUSE_X > x2) return 0;
+	if(MOUSE_Y < y1) return 0;
+	if(MOUSE_Y > y2) return 0;
+	return 1;
+}
+
+int mouse_is_over_center(int x, int y, int w, int h)
+{
+	if(MOUSE_X > (x + (w / 2))) return 0;
+	if(MOUSE_X < (x - (w / 2))) return 0;
+	if(MOUSE_Y > (y + (h / 2))) return 0;
+	if(MOUSE_Y < (y - (h / 2))) return 0;
+	return 1;
+}
+
+void handle_mouse()
+{
+	get_mouse_loc();
+
+	if(get_mouse_click(MOUSE_LEFT))
+	{		
+		int i;
+		for(i = 0; i < 3; i++ )
+		{
+			if(mouse_is_over_center(category_icon_x[i], 42, category_icon[i]->w, category_icon[i]->h))
+			{
+				category = i;
+				alpha = 0;
+				alpha_up = 1;
+				scroll_count = 800;
+			}
+		}
+
+		if(mouse_is_over(96, 392, 100, 440))
+		{
+			if(MOUSE_Y > (mouse_y_pos + 50))
+			{
+				if (list_curpos[category] > 0) 
+				{
+					list_curpos[category]--;
+					if (list_curpos[category] < list_start[category]) { list_start[category] = list_curpos[category]; }
+
+					mouse_y_pos += 50;
+				}			
+			}
+			if(MOUSE_Y < (mouse_y_pos - 50))
+			{
+				if (list_curpos[category] < (list_num[category]-1)) 
+				{
+					list_curpos[category]++;
+					if (list_curpos[category] >= (list_start[category]+7)) { list_start[category]++; }
+
+					mouse_y_pos -= 50;
+				}					
+			}
+			scroll_count = 800;
+		}
+	}
+	else mouse_y_pos = MOUSE_Y;
+}
+
 int main(char *argc, char *argv[])
 {
 
@@ -257,6 +368,7 @@ int main(char *argc, char *argv[])
 	category = EMULATORS;
 	alpha_up = 1;
 	alpha = 0;
+	mouse_y_pos = 40;
 
 	gui_init_sdl();
 	gui_load();
@@ -265,10 +377,11 @@ int main(char *argc, char *argv[])
 
 	while(!gui_done)
 	{
-		SDL_Delay(1);
+
+		handle_mouse();
 
 		while( SDL_PollEvent( &event ) )
-		{
+		{	
 			switch(event.type)
 			{
 				case SDL_KEYDOWN:
@@ -278,7 +391,6 @@ int main(char *argc, char *argv[])
 					{
 						list_curpos[category]--;
 						if (list_curpos[category] < list_start[category]) { list_start[category] = list_curpos[category]; }
-						gui_draw();
 					}
 				}
 				else if(event.key.keysym.sym == SDLK_DOWN)
@@ -287,7 +399,6 @@ int main(char *argc, char *argv[])
 					{
 						list_curpos[category]++;
 						if (list_curpos[category] >= (list_start[category]+7)) { list_start[category]++; }
-						gui_draw();
 					}
 				}
 				else if(event.key.keysym.sym == SDLK_LEFT)
