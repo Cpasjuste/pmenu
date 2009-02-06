@@ -10,7 +10,7 @@
 #define APPLICATIONS 2
 
 int applications_count[3], list_num[3], list_start[3], list_curpos[3], now_depth[3];
-int section;
+int category;
 
 int pnd_app_get_list(void);
 
