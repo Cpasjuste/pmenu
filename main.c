@@ -13,13 +13,14 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+#include <SDL_framerate.h>
 
 #include "main.h"
 #include "get_apps.h"
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 480;
-const int SCREEN_BPP = 32;
+const int SCREEN_BPP = 16;
 
 const int pnd_button_1 = 1, pnd_button_2 = 2, pnd_button_L = 4, pnd_button_R = 5, \
 	pnd_button_SELECT = 8, pnd_button_START = 9;
@@ -33,17 +34,28 @@ enum {MOUSE_LEFT = 1, MOUSE_RIGHT, MOUSE_MIDDLE};
 int MOUSE_X, MOUSE_Y; 
 int mouse_y_pos;
 
+char fpsText[16];
+
 TTF_Font *font;
 TTF_Font *font_big;
 
 SDL_Event event;
 
+FPSmanager sixteen;
+
 SDL_Surface *message = NULL;
 SDL_Surface *background = NULL;
 SDL_Surface *myscreen = NULL;
-SDL_Surface *preview = NULL;
+SDL_Surface *preview[3][256];
 SDL_Surface *highlight = NULL;
 SDL_Surface *category_icon[3];
+
+#define UP 0
+#define DOWN 1
+SDL_Surface *arrow[2];
+
+static int preview_x[3][256];
+static int preview_y[3][256];
 
 SDL_Color WHITE = { 255, 255, 255 };
 SDL_Color BLUE = { 0, 0, 255 };
@@ -154,36 +166,86 @@ int gui_init_sdl()
 		printf("TTF_OpenFont failed : %s\n", SDL_GetError());
 		return 1; 
 	} 
-
+	
+#ifndef PANDORA
 	SDL_ShowCursor(SDL_ENABLE);
+#else
+	SDL_ShowCursor(SDL_DISABLE);
+#endif
 }
 
 void gui_load()
 {
-	int i;
+	int i, j;
+
 	background = load_image( "data/backg.bmp" );
 	highlight = load_image_alpha( "data/highlight.bmp" );
 	
 	category_icon[EMULATORS] = load_image( "data/emulators_icon.png" );
 	category_icon[GAMES] = load_image( "data/games_icon.png" );
 	category_icon[APPLICATIONS] = load_image( "data/applications_icon.png" );
+
+	arrow[UP] =  load_image_alpha( "data/arrowup.bmp" );
+	arrow[DOWN] = load_image_alpha( "data/arrowdown.bmp" );
+
+	for(i = 0; i < 3; i++)
+	{
+		for(j = 0; j < list_num[i]; j++)
+		{
+			preview[i][j] = load_image( applications[i]->icon[j] );
+		}
+	}
 }
 
-void gui_quit()
+void gui_clean()
 {
+	int i, j;
+
+	for(i = 0; i < 3; i++)
+	{
+		SDL_FreeSurface( category_icon[i] );
+
+		for(j = 0; j < list_num[i]; j++)
+		{
+			preview[i][j] = load_image( applications[i]->icon[j] );
+		}
+	}
+
+	SDL_FreeSurface( arrow[UP] );
+	SDL_FreeSurface( arrow[DOWN] );
+	SDL_FreeSurface( highlight );
 	SDL_FreeSurface( background );
 	TTF_CloseFont( font ); 
 	TTF_CloseFont( font_big );
 	TTF_Quit(); 
 	SDL_Quit();
-				
-	int i;
-	for(i=0; i<3; i++)
+}
+
+void gui_app_exec(int n)
+{
+	pid_t childpid;
+	int status;
+
+	gui_clean();
+
+	if ((childpid = fork()) == -1)
 	{
-		SDL_FreeSurface( category_icon[i] );
-		free(applications[i]);
+		printf("Error in the fork");
 	}
-	exit(0);
+	else if (childpid == 0)
+	{
+   		if (execl("./pnd_run.sh", applications[category]->exec_path[n], "-p", applications[category]->path[n], "-e", applications[category]->exec_name[n], NULL) < 0)
+		{
+			printf("Exec failed");
+		}
+	}
+	else if (childpid != wait(&status))
+	{ 
+		printf("A signal occurred before the child exited");
+	}
+
+	gui_init_sdl();
+	gui_load();
 }
 
 void gui_scroll_text(int y, char *text)
@@ -219,16 +281,16 @@ void gui_draw()
 
 			if (i == list_curpos[category])
 			{
-				if( alpha < 170 && alpha_up == 1)
+				if( alpha < 172 && alpha_up == 1)
 				{
-					alpha += 2;
+					alpha += 4;
 					if(alpha == 168) alpha_up = 0;
 						else alpha_up = 1;
 				}
 				else if( alpha > 100 && alpha_up != 1)
 				{
-					alpha -= 2;
-					if(alpha == 102) alpha_up = 1;
+					alpha -= 4;
+					if(alpha == 100) alpha_up = 1;
 						else alpha_up = 0;
 				}
 				message = TTF_RenderUTF8_Blended( font_big, tmpStr, GREEN );
@@ -242,9 +304,9 @@ void gui_draw()
 
 			if (access (applications[category]->icon[i], W_OK) == 0)
 			{
-				preview = load_image( applications[category]->icon[i] );
-				apply_surface( 50, ((i-list_start[category])+2)*50, preview, myscreen );
-				SDL_FreeSurface( preview );
+				apply_surface( 50, ((i-list_start[category])+2)*50, preview[category][i], myscreen );
+				preview_x[category][i] = 50;
+				preview_y[category][i] = ((i-list_start[category])+2)*50;
 			}
 		}
 		i++;
@@ -257,7 +319,17 @@ void gui_draw()
 	apply_surface_center( category_icon_x[GAMES], category_icon_y, category_icon[GAMES], myscreen);
 	apply_surface_center( category_icon_x[APPLICATIONS], category_icon_y, category_icon[APPLICATIONS], myscreen);
 
+	apply_surface_center( 430, 200, arrow[UP], myscreen);
+	apply_surface_center( 430, 260, arrow[DOWN], myscreen);
+
 	gui_scroll_text(455, applications[category]->description[list_curpos[category]]);
+
+/*
+	sprintf(fpsText, "%i", SDL_getFramerate(&sixteen));
+	message = TTF_RenderUTF8_Blended( font, fpsText, WHITE );
+	apply_surface( 740, 5, message, myscreen );
+	SDL_FreeSurface( message );
+*/
 
 	SDL_Flip(myscreen);
 }
@@ -305,7 +377,7 @@ int mouse_is_over(int x1, int x2, int y1, int y2)
 	return 1;
 }
 
-int mouse_is_over_center(int x, int y, int w, int h)
+int mouse_is_over_surface_center(int x, int y, int w, int h)
 {
 	if(MOUSE_X > (x + (w / 2))) return 0;
 	if(MOUSE_X < (x - (w / 2))) return 0;
@@ -313,6 +385,17 @@ int mouse_is_over_center(int x, int y, int w, int h)
 	if(MOUSE_Y < (y - (h / 2))) return 0;
 	return 1;
 }
+
+int mouse_is_over_surface(int x, int y, int w, int h)
+{
+    if(MOUSE_X < x) return 0;
+    if(MOUSE_X > (x + w)) return 0;
+    if(MOUSE_Y < y) return 0;
+    if(MOUSE_Y > (y + h)) return 0;
+    return 1;
+}
+
+int selected_item = 0;
 
 void handle_mouse()
 {
@@ -323,7 +406,7 @@ void handle_mouse()
 		int i;
 		for(i = 0; i < 3; i++ )
 		{
-			if(mouse_is_over_center(category_icon_x[i], 42, category_icon[i]->w, category_icon[i]->h))
+			if(mouse_is_over_surface_center(category_icon_x[i], 42, category_icon[i]->w, category_icon[i]->h))
 			{
 				category = i;
 				alpha = 0;
@@ -332,8 +415,42 @@ void handle_mouse()
 			}
 		}
 
+		for(i = 0; i < list_num[category]; i++ )
+		{
+			if(mouse_is_over_surface(preview_x[category][i], preview_y[category][i], preview[category][i]->w, preview[category][i]->h))
+			{
+				if(i = selected_item) { gui_app_exec(i); SDL_Delay(60); }
+					else { list_curpos[category] = i; selected_item = i; SDL_Delay(60); }
+			}
+		}
+
+		if(mouse_is_over_surface_center(430, 200, arrow[UP]->w, arrow[UP]->h))
+		{
+
+			if (list_curpos[category] > 6)
+			{
+				list_curpos[category]-=7;
+				if (list_curpos[category] < list_start[category]) { list_start[category] = list_curpos[category]; }
+				SDL_Delay(60);
+			} 
+			else
+			{ list_curpos[category] = 0; list_start[category] = 0; SDL_Delay(60); }
+		
+		}
+		if(mouse_is_over_surface_center(430, 260, arrow[DOWN]->w, arrow[DOWN]->h))
+		{
+			if (list_curpos[category] < (list_num[category]-7)) 
+			{
+				list_curpos[category]+=7;
+				if (list_curpos[category] >= (list_start[category]+7)) { list_start[category]+=7; SDL_Delay(60); }
+				} else { list_curpos[category] = list_num[category]-1; SDL_Delay(60); }	
+		}
+
+/*
 		if(mouse_is_over(96, 392, 100, 440))
 		{
+			printf("MOUSE_Y = %i | POS_Y = %i\n", MOUSE_Y, mouse_y_pos);
+
 			if(MOUSE_Y > (mouse_y_pos + 50))
 			{
 				if (list_curpos[category] > 0) 
@@ -344,7 +461,7 @@ void handle_mouse()
 					mouse_y_pos += 50;
 				}			
 			}
-			if(MOUSE_Y < (mouse_y_pos - 50))
+			else if(MOUSE_Y < (mouse_y_pos - 50))
 			{
 				if (list_curpos[category] < (list_num[category]-1)) 
 				{
@@ -357,7 +474,9 @@ void handle_mouse()
 			scroll_count = 800;
 		}
 	}
-	else mouse_y_pos = MOUSE_Y;
+	else mouse_y_pos = MOUSE_Y; //{ set_mouse_loc(MOUSE_X, mouse_y_pos); }
+*/
+	}
 }
 
 int main(char *argc, char *argv[])
@@ -368,16 +487,18 @@ int main(char *argc, char *argv[])
 	category = EMULATORS;
 	alpha_up = 1;
 	alpha = 0;
-	mouse_y_pos = 40;
+	mouse_y_pos = 120;
+
+	pnd_app_get_list();
 
 	gui_init_sdl();
 	gui_load();
 
-	pnd_app_get_list();
+	SDL_initFramerate( &sixteen );
+	SDL_setFramerate( &sixteen, 65 );
 
 	while(!gui_done)
 	{
-
 		handle_mouse();
 
 		while( SDL_PollEvent( &event ) )
@@ -412,6 +533,10 @@ int main(char *argc, char *argv[])
 					if(category < APPLICATIONS) category++;
 						else category = EMULATORS;
 						alpha = 0; alpha_up = 1;
+				}
+				else if(event.key.keysym.sym == SDLK_RETURN)
+				{
+					gui_app_exec(list_curpos[category]);
 				}
 				scroll_count = 800;
 				break;
@@ -477,12 +602,22 @@ int main(char *argc, char *argv[])
 
 				case SDL_QUIT:
 				{
-					gui_quit();
+					gui_clean();
+
+					int i;
+					for(i=0; i<3; i++)
+					{
+						free(applications[i]);
+					}
+					exit(0);
 				}
 				break;
 			}
 		}
+
 		gui_draw();
+
+		SDL_framerateDelay( &sixteen );
 	}
 	return 0;
 }

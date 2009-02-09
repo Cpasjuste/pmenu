@@ -71,6 +71,9 @@ int pnd_app_get_list(void)
 
 		int tmpSection = 0;
 
+		char buffer [ 512 ];
+		char *s;
+
 		while ( d )
 		{
  			if ( d -> main_category )
@@ -78,17 +81,39 @@ int pnd_app_get_list(void)
 				if(strcmp(d -> main_category, "emulators") == 0)
 				{
 					tmpSection = EMULATORS;
-					printf ( "  [%i] -> Emulator spotted in : %s\n", applications_count[tmpSection], pnd_box_get_key ( d ) );
+
+					strcpy ( buffer, pnd_box_get_key ( d ) );
+					s = strstr ( buffer, PXML_FILENAME );
+					strcpy ( s, strdup(""));
+					strncpy(applications[tmpSection]->path[applications_count[tmpSection]], buffer, strlen(buffer) - 1);
+
+					printf ( "  [%i] -> Emulator spotted in : %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->path[applications_count[tmpSection]]);
+					
 				}
 				else if(strcmp(d -> main_category, "games") == 0)
 				{
 					tmpSection = GAMES;
-					printf ( "  [%i] -> Game spotted in : %s\n", applications_count[tmpSection], pnd_box_get_key ( d ) );
+
+					strcpy ( buffer, pnd_box_get_key ( d ) );
+					s = strstr ( buffer, PXML_FILENAME );
+					strcpy ( s, strdup(""));
+					strncpy(applications[tmpSection]->path[applications_count[tmpSection]], buffer, strlen(buffer) - 1);
+
+					printf ( "  [%i] -> Game spotted in : %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->path[applications_count[tmpSection]]);
 				}
 				else if(strcmp(d -> main_category, "applications") == 0)
 				{
 					tmpSection = APPLICATIONS;
-					printf ( "  [%i] -> Application spotted in : %s\n", applications_count[tmpSection], pnd_box_get_key ( d ) );
+
+					strcpy ( buffer, pnd_box_get_key ( d ) );
+					s = strstr ( buffer, PXML_FILENAME );
+					strcpy ( s, strdup(""));
+					strncpy(applications[tmpSection]->path[applications_count[tmpSection]], buffer, strlen(buffer) - 1);
+
+					printf ( "  [%i] -> Application spotted in : %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->path[applications_count[tmpSection]]);
 				}
 
 				strcpy(applications[tmpSection]->category[applications_count[tmpSection]], d -> main_category);
@@ -115,9 +140,21 @@ int pnd_app_get_list(void)
 				}
 				if ( d -> exec )
 				{
-					strcpy(applications[tmpSection]->exec[applications_count[tmpSection]], d -> exec);
-					printf ( "  [%i] -> Executable: %s\n", applications_count[tmpSection], \
-						applications[tmpSection]->exec[applications_count[tmpSection]] );
+					strcpy(applications[tmpSection]->exec_path[applications_count[tmpSection]], d -> exec);
+					printf ( "  [%i] -> Exec Path: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->exec_path[applications_count[tmpSection]] );
+
+					strcpy ( buffer, applications[tmpSection]->exec_path[applications_count[tmpSection]] );
+					s = strrchr (buffer, '/');
+					strcpy ( buffer, s);
+
+					for(i = 1; i < strlen(buffer); i++)
+					{
+						sprintf(s, "%c", buffer[i]);
+						strcat(applications[tmpSection]->exec_name[applications_count[tmpSection]], s);
+					}
+					printf ( "  [%i] -> Exec Name : %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->exec_name[applications_count[tmpSection]]);
 				}
 				if ( d -> description_en )
 				{
@@ -128,8 +165,7 @@ int pnd_app_get_list(void)
 				applications_count[tmpSection]++;
  			}
 			d = pnd_box_get_next ( d );
-		} 
-
+		}
 		for(i=0; i<3; i++)
 		{
 			list_num[i] = applications_count[i];

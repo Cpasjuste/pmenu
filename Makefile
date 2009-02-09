@@ -1,10 +1,24 @@
 NAME	  = pmenu
 
+ifndef PANDORA
 CC        = gcc
+STRIP     = strip
+else
+CC        = arm-none-linux-gnueabi-gcc
+STRIP     = arm-none-linux-gnueabi-strip
+endif
+
+ifndef PANDORA
+CFLAGS    = -Werror `sdl-config --cflags` -Iinclude
+LIBS	  = -lpnd_pc -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_gfx -lfreetype `sdl-config --libs`
+else
+CFLAGS    = -Werror `arm-none-linux-gnueabi-sdl-config --cflags` -Iinclude -DPANDORA
+LIBS	  = -lpnd_pnd -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
+
+endif
 
 LDFLAGS   = -Llib
-CFLAGS    = -Werror `sdl-config --cflags` -Iinclude
-LIBS	  = -lpnd -lSDL_image -lSDL_mixer -lSDL_ttf -lfreetype `sdl-config --libs`
+
 
 OBJECTS   = main.o get_apps.o
 
@@ -12,7 +26,7 @@ all: $(NAME)
 
 $(NAME): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $@
-	strip $(NAME)
+	$(STRIP) $(NAME)
 
 .cc.o:
 	$(CC) -c $(CFLAGS) $< -o $@
