@@ -14,9 +14,12 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <SDL_framerate.h>
+#include <SDL_rotozoom.h>
 
 #include "main.h"
 #include "get_apps.h"
+
+int gui_draw_favorites = 0;
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 480;
@@ -27,7 +30,7 @@ const int pnd_button_1 = 1, pnd_button_2 = 2, pnd_button_L = 4, pnd_button_R = 5
 
 static int scroll_count, alpha, alpha_up;
 
-const int category_icon_x[3] = { 110, 210, 310 };
+const int category_icon_x[4] = { 80, 170, 260, 350 };
 const int category_icon_y = 42;
 
 enum {MOUSE_LEFT = 1, MOUSE_RIGHT, MOUSE_MIDDLE};
@@ -35,6 +38,8 @@ int MOUSE_X, MOUSE_Y;
 int mouse_y_pos;
 
 char fpsText[16];
+
+int page[3] = {0, 0, 0};
 
 TTF_Font *font;
 TTF_Font *font_big;
@@ -48,7 +53,7 @@ SDL_Surface *background = NULL;
 SDL_Surface *myscreen = NULL;
 SDL_Surface *preview[3][256];
 SDL_Surface *highlight = NULL;
-SDL_Surface *category_icon[3];
+SDL_Surface *category_icon[4];
 
 #define UP 0
 #define DOWN 1
@@ -181,6 +186,7 @@ void gui_load()
 	background = load_image( "data/backg.bmp" );
 	highlight = load_image_alpha( "data/highlight.bmp" );
 	
+	category_icon[FAVORITES] = load_image_alpha( "data/favorites_icon.bmp" );
 	category_icon[EMULATORS] = load_image( "data/emulators_icon.png" );
 	category_icon[GAMES] = load_image( "data/games_icon.png" );
 	category_icon[APPLICATIONS] = load_image( "data/applications_icon.png" );
@@ -188,11 +194,17 @@ void gui_load()
 	arrow[UP] =  load_image_alpha( "data/arrowup.bmp" );
 	arrow[DOWN] = load_image_alpha( "data/arrowdown.bmp" );
 
-	for(i = 0; i < 3; i++)
+	for(i = EMULATORS; i < APPLICATIONS+1; i++)
 	{
 		for(j = 0; j < list_num[i]; j++)
 		{
-			preview[i][j] = load_image( applications[i]->icon[j] );
+#ifdef PANDORA
+			SDL_Surface *to_resize = load_image( applications[i]->icon[j]);
+			preview[i][j] = shrinkSurface(to_resize, 2, 2);
+			SDL_FreeSurface ( to_resize );
+#else
+			preview[i][j] = load_image( applications[i]->icon[j]);
+#endif
 		}
 	}
 }
@@ -201,10 +213,10 @@ void gui_clean()
 {
 	int i, j;
 
-	for(i = 0; i < 3; i++)
-	{
-		SDL_FreeSurface( category_icon[i] );
+	for(i = 0; i < 4; i++) SDL_FreeSurface( category_icon[i] );
 
+	for(i = EMULATORS; i < APPLICATIONS+1; i++)
+	{
 		for(j = 0; j < list_num[i]; j++)
 		{
 			preview[i][j] = load_image( applications[i]->icon[j] );
@@ -227,6 +239,8 @@ void gui_app_exec(int n)
 	int status;
 
 	gui_clean();
+
+	printf("exec = %s\n", applications[category]->exec_path[n]);
 
 	if ((childpid = fork()) == -1)
 	{
@@ -268,68 +282,77 @@ void gui_draw()
 {
 	apply_surface( 0, 0, background, myscreen );
 
-	int i = list_start[category];
-
-	char tmpStr[256];
-
-	while (i < (list_start[category]+7)) 
+	if(gui_draw_favorites)
 	{
-		if (i < list_num[category])
+		message = TTF_RenderUTF8_Blended( font_big, "Add Selected Application to Favorites ?", WHITE );
+		apply_surface( 200, 200, message, myscreen );
+		SDL_FreeSurface( message );
+	}
+	else
+	{
+		if(category != FAVORITES)
 		{
-			memset(tmpStr, 0, 256);
-			strncpy(tmpStr, applications[category]->name[i], 40);
+			int i = list_start[category];
 
-			if (i == list_curpos[category])
-			{
-				if( alpha < 172 && alpha_up == 1)
-				{
-					alpha += 4;
-					if(alpha == 168) alpha_up = 0;
-						else alpha_up = 1;
-				}
-				else if( alpha > 100 && alpha_up != 1)
-				{
-					alpha -= 4;
-					if(alpha == 100) alpha_up = 1;
-						else alpha_up = 0;
-				}
-				message = TTF_RenderUTF8_Blended( font_big, tmpStr, GREEN );
-			}
-			else
-			{
-				message = TTF_RenderUTF8_Blended( font, tmpStr, WHITE );
-			}
-			apply_surface( 96, ((i-list_start[category])+2)*50, message, myscreen );
-			SDL_FreeSurface( message );
+			char tmpStr[256];
 
-			if (access (applications[category]->icon[i], W_OK) == 0)
+			while (i < (list_start[category]+7)) 
 			{
-				apply_surface( 50, ((i-list_start[category])+2)*50, preview[category][i], myscreen );
-				preview_x[category][i] = 50;
-				preview_y[category][i] = ((i-list_start[category])+2)*50;
+				if (i < list_num[category])
+				{
+					memset(tmpStr, 0, 256);
+					strncpy(tmpStr, applications[category]->name[i], 40);
+
+					if (i == list_curpos[category])
+					{
+						message = TTF_RenderUTF8_Blended( font_big, tmpStr, GREEN );
+					}
+					else
+					{
+						message = TTF_RenderUTF8_Blended( font, tmpStr, WHITE );
+					}
+					apply_surface( 96, ((i-list_start[category])+2)*50, message, myscreen );
+					SDL_FreeSurface( message );
+
+					if (access (applications[category]->icon[i], W_OK) == 0)
+					{
+						apply_surface( 50, ((i-list_start[category])+2)*50, preview[category][i], myscreen );
+						preview_x[category][i] = 50;
+						preview_y[category][i] = ((i-list_start[category])+2)*50;
+					}
+				}
+				i++;
 			}
 		}
-		i++;
+
+		if( alpha < 172 && alpha_up == 1)
+		{
+			alpha += 4;
+			if(alpha == 168) alpha_up = 0;
+				else alpha_up = 1;
+		}
+		else if( alpha > 100 && alpha_up != 1)
+		{
+			alpha -= 4;
+			if(alpha == 100) alpha_up = 1;
+				else alpha_up = 0;
+		}
+		SDL_SetAlpha( highlight, SDL_SRCALPHA | SDL_RLEACCEL, alpha );
+		apply_surface_center( category_icon_x[category], category_icon_y, highlight, myscreen );
+
+		apply_surface_center( category_icon_x[FAVORITES], category_icon_y, category_icon[FAVORITES], myscreen);
+		apply_surface_center( category_icon_x[EMULATORS], category_icon_y, category_icon[EMULATORS], myscreen);
+		apply_surface_center( category_icon_x[GAMES], category_icon_y, category_icon[GAMES], myscreen);
+		apply_surface_center( category_icon_x[APPLICATIONS], category_icon_y, category_icon[APPLICATIONS], myscreen);
+
+		if(category != FAVORITES)
+		{
+			apply_surface_center( 360, 200, arrow[UP], myscreen);
+			apply_surface_center( 360, 260, arrow[DOWN], myscreen);
+
+			gui_scroll_text(455, applications[category]->description[list_curpos[category]]);
+		}
 	}
-
-	SDL_SetAlpha( highlight, SDL_SRCALPHA | SDL_RLEACCEL, alpha );
-	apply_surface_center( category_icon_x[category], category_icon_y, highlight, myscreen );
-
-	apply_surface_center( category_icon_x[EMULATORS], category_icon_y, category_icon[EMULATORS], myscreen);
-	apply_surface_center( category_icon_x[GAMES], category_icon_y, category_icon[GAMES], myscreen);
-	apply_surface_center( category_icon_x[APPLICATIONS], category_icon_y, category_icon[APPLICATIONS], myscreen);
-
-	apply_surface_center( 430, 200, arrow[UP], myscreen);
-	apply_surface_center( 430, 260, arrow[DOWN], myscreen);
-
-	gui_scroll_text(455, applications[category]->description[list_curpos[category]]);
-
-/*
-	sprintf(fpsText, "%i", SDL_getFramerate(&sixteen));
-	message = TTF_RenderUTF8_Blended( font, fpsText, WHITE );
-	apply_surface( 740, 5, message, myscreen );
-	SDL_FreeSurface( message );
-*/
 
 	SDL_Flip(myscreen);
 }
@@ -395,16 +418,23 @@ int mouse_is_over_surface(int x, int y, int w, int h)
     return 1;
 }
 
-int selected_item = 0;
+int mouse_hold_x = 0;
+int mouse_hold_y = 0;
+int reset_ts_pos = 1;
+int exec_app = 0;
+int exec_app_number = 0;
 
 void handle_mouse()
 {
+
 	get_mouse_loc();
 
 	if(get_mouse_click(MOUSE_LEFT))
-	{		
+	{	
+		if(reset_ts_pos) { mouse_hold_x = MOUSE_X; mouse_hold_y = MOUSE_Y; reset_ts_pos = 0; }
+
 		int i;
-		for(i = 0; i < 3; i++ )
+		for(i = 0; i < 4; i++ )
 		{
 			if(mouse_is_over_surface_center(category_icon_x[i], 42, category_icon[i]->w, category_icon[i]->h))
 			{
@@ -415,67 +445,105 @@ void handle_mouse()
 			}
 		}
 
-		for(i = 0; i < list_num[category]; i++ )
+		if(category != FAVORITES)
 		{
-			if(mouse_is_over_surface(preview_x[category][i], preview_y[category][i], preview[category][i]->w, preview[category][i]->h))
+			if(mouse_is_over(96, 392, 100, 440))
 			{
-				if(i = selected_item) { gui_app_exec(i); SDL_Delay(60); }
-					else { list_curpos[category] = i; selected_item = i; SDL_Delay(60); }
-			}
-		}
-
-		if(mouse_is_over_surface_center(430, 200, arrow[UP]->w, arrow[UP]->h))
-		{
-
-			if (list_curpos[category] > 6)
-			{
-				list_curpos[category]-=7;
-				if (list_curpos[category] < list_start[category]) { list_start[category] = list_curpos[category]; }
-				SDL_Delay(60);
-			} 
-			else
-			{ list_curpos[category] = 0; list_start[category] = 0; SDL_Delay(60); }
-		
-		}
-		if(mouse_is_over_surface_center(430, 260, arrow[DOWN]->w, arrow[DOWN]->h))
-		{
-			if (list_curpos[category] < (list_num[category]-7)) 
-			{
-				list_curpos[category]+=7;
-				if (list_curpos[category] >= (list_start[category]+7)) { list_start[category]+=7; SDL_Delay(60); }
-				} else { list_curpos[category] = list_num[category]-1; SDL_Delay(60); }	
-		}
-
-/*
-		if(mouse_is_over(96, 392, 100, 440))
-		{
-			printf("MOUSE_Y = %i | POS_Y = %i\n", MOUSE_Y, mouse_y_pos);
-
-			if(MOUSE_Y > (mouse_y_pos + 50))
-			{
-				if (list_curpos[category] > 0) 
+				if(MOUSE_Y > (mouse_hold_y + 50))
 				{
-					list_curpos[category]--;
-					if (list_curpos[category] < list_start[category]) { list_start[category] = list_curpos[category]; }
+					if (list_curpos[category] > 0) 
+					{
+						list_curpos[category]--;
+						if (list_curpos[category] < list_start[category]) { list_start[category] = list_curpos[category]; }
 
-					mouse_y_pos += 50;
+						mouse_hold_y += 50;
+					}			
+				}
+				else if(MOUSE_Y < (mouse_hold_y - 50))
+				{
+					if (list_curpos[category] < (list_num[category]-1)) 
+					{
+						list_curpos[category]++;
+						if (list_curpos[category] >= (list_start[category]+7)) { list_start[category]++; }
+
+						mouse_hold_y -= 50;
+					}					
+				}
+				scroll_count = 800;
+				SDL_Delay(60);
+			}
+
+			for(i = 0; i < 7; i++ )
+			{
+				if(preview[category][i + (page[category] * 7)] != NULL)
+				{
+					if(mouse_is_over_surface(preview_x[category][i + (page[category] * 7)], \
+						preview_y[category][i + (page[category] * 7)], \
+							200, \
+								preview[category][i + (page[category] * 7)]->h))
+					{
+						if(list_curpos[category] == i + (page[category] * 7))
+						{
+							if((mouse_hold_x + 60) <= MOUSE_X) { printf("selection screen called\n"); gui_draw_favorites = 1; }
+								else { printf("exec app called\n"); exec_app = 1; exec_app_number = (i + (page[category] * 7)); }
+							
+							SDL_Delay(120);
+							scroll_count = 800;
+							break;
+						}
+						else
+						{
+							list_curpos[category] = i + (page[category] * 7) ;
+							SDL_Delay(120);
+							scroll_count = 800;
+							break; 
+						}
+					}
+				}
+			}
+
+			if(mouse_is_over_surface_center(360, 200, arrow[UP]->w, arrow[UP]->h))
+			{
+
+				if (list_curpos[category] > 6)
+				{
+					page[category] -= 1;
+					list_curpos[category] = page[category] * 7;
+					list_start[category] = page[category] * 7;
+					scroll_count = 800;
+					SDL_Delay(120);
+				}
+				else
+				{
+					list_curpos[category] = 0;
+					list_start[category] = 0;
+					scroll_count = 800;
+					SDL_Delay(120);
 				}			
 			}
-			else if(MOUSE_Y < (mouse_y_pos - 50))
+			if(mouse_is_over_surface_center(360, 260, arrow[DOWN]->w, arrow[DOWN]->h))
 			{
-				if (list_curpos[category] < (list_num[category]-1)) 
+				if (list_curpos[category] < (list_num[category]-6))
 				{
-					list_curpos[category]++;
-					if (list_curpos[category] >= (list_start[category]+7)) { list_start[category]++; }
-
-					mouse_y_pos -= 50;
-				}					
+					page[category] += 1;
+					list_curpos[category] = page[category] * 7;
+					list_start[category] = page[category] * 7;
+					scroll_count = 800;
+					SDL_Delay(120);
+				}
+				else
+				{
+					list_curpos[category] = list_num[category]-1;
+					scroll_count = 800;
+					SDL_Delay(120);				
+				}
 			}
-			scroll_count = 800;
 		}
 	}
-	else mouse_y_pos = MOUSE_Y; //{ set_mouse_loc(MOUSE_X, mouse_y_pos); }
-*/
+	else
+	{
+		if(exec_app) { gui_app_exec(exec_app_number); exec_app = 0; }
+		reset_ts_pos = 1;
 	}
 }
 
@@ -484,7 +552,7 @@ int main(char *argc, char *argv[])
 
 	int gui_done = 0;
 	scroll_count = 800;
-	category = EMULATORS;
+	category = FAVORITES;
 	alpha_up = 1;
 	alpha = 0;
 	mouse_y_pos = 120;
@@ -499,7 +567,7 @@ int main(char *argc, char *argv[])
 
 	while(!gui_done)
 	{
-		handle_mouse();
+		if(!gui_draw_favorites) handle_mouse();
 
 		while( SDL_PollEvent( &event ) )
 		{	
@@ -524,14 +592,14 @@ int main(char *argc, char *argv[])
 				}
 				else if(event.key.keysym.sym == SDLK_LEFT)
 				{
-					if(category > EMULATORS) category--;
+					if(category > FAVORITES) category--;
 						else category = APPLICATIONS;
 						alpha = 0; alpha_up = 1;
 				}
 				else if(event.key.keysym.sym == SDLK_RIGHT)
 				{
 					if(category < APPLICATIONS) category++;
-						else category = EMULATORS;
+						else category = FAVORITES;
 						alpha = 0; alpha_up = 1;
 				}
 				else if(event.key.keysym.sym == SDLK_RETURN)
@@ -605,7 +673,7 @@ int main(char *argc, char *argv[])
 					gui_clean();
 
 					int i;
-					for(i=0; i<3; i++)
+					for(i = EMULATORS; i < APPLICATIONS+1; i++)
 					{
 						free(applications[i]);
 					}

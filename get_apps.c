@@ -58,7 +58,7 @@ int pnd_app_get_list(void)
 
 	applist = pnd_disco_search ( appspath, overridespath );
 
-	for(i=0; i<3; i++)
+	for(i = EMULATORS; i< APPLICATIONS+1; i++)
 	{
 		applications[i] = (PND_APP *) malloc(sizeof(PND_APP));
 		applications_count[i] = 0;
@@ -166,7 +166,7 @@ int pnd_app_get_list(void)
  			}
 			d = pnd_box_get_next ( d );
 		}
-		for(i=0; i<3; i++)
+		for(i= EMULATORS; i< APPLICATIONS+1; i++)
 		{
 			list_num[i] = applications_count[i];
 			if (list_start[i] >= list_num[i]) { list_start[i] = list_num[i]-1; }

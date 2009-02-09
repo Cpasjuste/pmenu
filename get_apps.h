@@ -8,6 +8,7 @@
 #define EMULATORS 0
 #define GAMES 1
 #define APPLICATIONS 2
+#define FAVORITES 3
 
 int applications_count[3], list_num[3], list_start[3], list_curpos[3], now_depth[3];
 int category;
