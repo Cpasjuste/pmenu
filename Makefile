@@ -10,10 +10,10 @@ endif
 
 ifndef PANDORA
 CFLAGS    = -Werror `sdl-config --cflags` -Iinclude
-LIBS	  = -lpnd_pc -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `sdl-config --libs` -lstdc++
+LIBS	  = -lconfig_pc -lpnd_pc -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `sdl-config --libs` -lstdc++
 else
 CFLAGS    = -Werror `arm-none-linux-gnueabi-sdl-config --cflags` -Iinclude -DPANDORA
-LIBS	  = -lpnd_pnd -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
+LIBS	  = -lconfig_pnd -lpnd_pnd -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
 
 endif
 

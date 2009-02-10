@@ -78,7 +78,7 @@ int pnd_app_get_list(void)
 		{
  			if ( d -> main_category )
 			{
-				if(strcmp(d -> main_category, "emulators") == 0)
+				if((strcasecmp(d -> main_category, "emulators") == 0) | (strcasecmp(d -> main_category, "emulator") == 0))
 				{
 					tmpSection = EMULATORS;
 
@@ -91,7 +91,7 @@ int pnd_app_get_list(void)
 						applications[tmpSection]->path[applications_count[tmpSection]]);
 					
 				}
-				else if(strcmp(d -> main_category, "games") == 0)
+				else if((strcasecmp(d -> main_category, "games") == 0) | (strcasecmp(d -> main_category, "game") == 0))
 				{
 					tmpSection = GAMES;
 
@@ -103,7 +103,7 @@ int pnd_app_get_list(void)
 					printf ( "  [%i] -> Game spotted in : %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->path[applications_count[tmpSection]]);
 				}
-				else if(strcmp(d -> main_category, "applications") == 0)
+				else if((strcasecmp(d -> main_category, "applications") == 0) | (strcasecmp(d -> main_category, "application") == 0))
 				{
 					tmpSection = APPLICATIONS;
 
