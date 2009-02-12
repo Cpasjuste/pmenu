@@ -68,6 +68,32 @@ SDL_Color RED = { 255, 0, 0 };
 SDL_Color GREEN = { 0, 255, 0 };
 SDL_Color GRAY = { 175, 175, 175 };
 
+void gui_clean()
+{
+	int i, j;
+
+	for(i = 0; i < 4; i++) 
+		if( category_icon[i] != NULL) SDL_FreeSurface( category_icon[i] );
+
+	for(i = EMULATORS; i < APPLICATIONS+1; i++)
+	{
+		for(j = 0; j < list_num[i]; j++)
+		{
+			if( preview[i][j] != NULL) SDL_FreeSurface(preview[i][j]); 
+		}
+	}
+
+	if( arrow[UP] != NULL) SDL_FreeSurface( arrow[UP] );
+	if( arrow[DOWN] != NULL) SDL_FreeSurface( arrow[DOWN] );
+	if( highlight != NULL) SDL_FreeSurface( highlight );
+	if( confirm_box != NULL) SDL_FreeSurface( confirm_box );
+	if( background != NULL) SDL_FreeSurface( background );
+	TTF_CloseFont( font ); 
+	TTF_CloseFont( font_big );
+	TTF_Quit(); 
+	SDL_Quit();
+}
+
 SDL_Surface *load_image(char *filename )
 {
 	SDL_Surface* loadedImage = NULL;
@@ -80,6 +106,13 @@ SDL_Surface *load_image(char *filename )
 		optimizedImage = SDL_DisplayFormat( loadedImage );
 		SDL_FreeSurface( loadedImage );
 	}
+	else
+	{
+		printf("Unable to load image (%s)\n", filename);
+		gui_clean();
+		exit(0);
+	}
+
 	return optimizedImage;
 }
 
@@ -98,6 +131,13 @@ SDL_Surface *load_image_alpha(char *filename )
 		optimizedImage = SDL_DisplayFormat( loadedImage );
 		SDL_FreeSurface( loadedImage );
 	}
+	else
+	{
+		printf("Unable to load image (%s)\n", filename);
+		gui_clean();
+		exit(0);
+	}
+
 	return optimizedImage;
 }
 
@@ -277,31 +317,6 @@ void gui_load()
 #endif
 		}
 	}
-}
-
-void gui_clean()
-{
-	int i, j;
-
-	for(i = 0; i < 4; i++) SDL_FreeSurface( category_icon[i] );
-
-	for(i = EMULATORS; i < APPLICATIONS+1; i++)
-	{
-		for(j = 0; j < list_num[i]; j++)
-		{
-			preview[i][j] = load_image( applications[i]->icon[j] );
-		}
-	}
-
-	SDL_FreeSurface( arrow[UP] );
-	SDL_FreeSurface( arrow[DOWN] );
-	SDL_FreeSurface( highlight );
-	SDL_FreeSurface( confirm_box );
-	SDL_FreeSurface( background );
-	TTF_CloseFont( font ); 
-	TTF_CloseFont( font_big );
-	TTF_Quit(); 
-	SDL_Quit();
 }
 
 void gui_app_exec(int n)
