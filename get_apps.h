@@ -1,7 +1,7 @@
 #ifndef __GET_APPS_H__
 #define __GET_APPS_H__
 
-#define MAXDEPTH 16
+#define MAXLIST 6
 #define MAXDIRNUM 1024
 #define MAXPATH 64
 
