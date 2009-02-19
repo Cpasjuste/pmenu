@@ -25,6 +25,8 @@ typedef struct
 	char exec_name[256][256];
 	char icon[256][256];
 	char description[256][256];
+	char preview_pic1[256][256];
+	char preview_pic2[256][256];
 } PND_APP;
 
 PND_APP *applications[3];

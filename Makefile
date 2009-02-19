@@ -10,17 +10,17 @@ endif
 
 ifndef PANDORA
 CFLAGS    = -Wall -Werror `sdl-config --cflags` -Iinclude
-LIBS	  = -lconfig_pc -lpnd_pc -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `sdl-config --libs` -lstdc++
+LIBS	  = -lconfig_pc -lpnd_pc -lsprig_pc -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `sdl-config --libs` -lstdc++
 else
 CFLAGS    = -Wall -Werror `arm-none-linux-gnueabi-sdl-config --cflags` -Iinclude -DPANDORA
-LIBS	  = -lconfig_pnd -lpnd_pnd -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
+LIBS	  = -lconfig_pnd -lpnd_pnd -lsprig_pnd -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
 
 endif
 
 LDFLAGS   = -Llib
 
 
-OBJECTS   = main.o graphics.o get_apps.o mouse.o
+OBJECTS   = main.o graphics.o fav_config.o gui_config.o get_apps.o mouse.o
 
 all: $(NAME)
 
