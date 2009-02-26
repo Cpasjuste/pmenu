@@ -9,6 +9,8 @@ extern "C" {
 // this code is for very basic PXML.xml file parsing
 
 #define PXML_FILENAME "PXML.xml" /* a specification defined name */
+#define PXML_TAGHEAD "<PXML>" /* case insensitive */
+#define PXML_TAGFOOT "</PXML>" /* case insensitive */
 
 // use this handle to interact with PXML; this hides the mechanics of parsing a PXML file so that
 // it can be upgraded with impacting applications
@@ -17,6 +19,7 @@ typedef void* pnd_pxml_handle;
 /* pxml_fetch() will return NULL on fail, otherwise a valid handle which may be further queried
  */
 pnd_pxml_handle pnd_pxml_fetch ( char *fullpath );
+pnd_pxml_handle pnd_pxml_fetch_buffer ( char *filename, char *buffer );
 void pnd_pxml_delete ( pnd_pxml_handle h );
 
 /* overrides() allow for customization of a PXML that persists; ie: An application might be sitting
@@ -35,12 +38,48 @@ signed char pnd_pxml_merge_override ( pnd_pxml_handle h, char *searchpath );
 
 /* these accessor functions will return READ ONLY char*s; do not free them or modify them.
  */
-char *pnd_pxml_get_app_name ( pnd_pxml_handle h );
-char *pnd_pxml_get_icon_path ( pnd_pxml_handle h );
+char *pnd_pxml_get_app_name_en ( pnd_pxml_handle h );
+char *pnd_pxml_get_app_name_de ( pnd_pxml_handle h );
+char *pnd_pxml_get_app_name_it ( pnd_pxml_handle h );
+char *pnd_pxml_get_app_name_fr ( pnd_pxml_handle h );
 char *pnd_pxml_get_unique_id ( pnd_pxml_handle h );
-char *pnd_pxml_get_primary_category ( pnd_pxml_handle h );
-char *pnd_pxml_get_exec_path ( pnd_pxml_handle h );
+char *pnd_pxml_get_standalone ( pnd_pxml_handle h );
+char *pnd_pxml_get_icon ( pnd_pxml_handle h );
+char *pnd_pxml_get_description_en ( pnd_pxml_handle h );
+char *pnd_pxml_get_description_de ( pnd_pxml_handle h );
+char *pnd_pxml_get_description_it ( pnd_pxml_handle h );
+char *pnd_pxml_get_description_fr ( pnd_pxml_handle h );
+char *pnd_pxml_get_previewpic1 ( pnd_pxml_handle h );
+char *pnd_pxml_get_previewpic2 ( pnd_pxml_handle h );
+char *pnd_pxml_get_author_name ( pnd_pxml_handle h );
+char *pnd_pxml_get_author_website ( pnd_pxml_handle h );
+char *pnd_pxml_get_version_major ( pnd_pxml_handle h );
+char *pnd_pxml_get_version_minor ( pnd_pxml_handle h );
+char *pnd_pxml_get_version_release ( pnd_pxml_handle h );
+char *pnd_pxml_get_version_build ( pnd_pxml_handle h );
+char *pnd_pxml_get_exec ( pnd_pxml_handle h );
+char *pnd_pxml_get_main_category ( pnd_pxml_handle h );
+char *pnd_pxml_get_subcategory1 ( pnd_pxml_handle h );
+char *pnd_pxml_get_subcategory2 ( pnd_pxml_handle h );
+char *pnd_pxml_get_altcategory ( pnd_pxml_handle h );
+char *pnd_pxml_get_altsubcategory1 ( pnd_pxml_handle h );
+char *pnd_pxml_get_altsubcategory2 ( pnd_pxml_handle h );
+char *pnd_pxml_get_osversion_major ( pnd_pxml_handle h );
+char *pnd_pxml_get_osversion_minor ( pnd_pxml_handle h );
+char *pnd_pxml_get_osversion_release ( pnd_pxml_handle h );
+char *pnd_pxml_get_osversion_build ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem1_name ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem1_filetype ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem1_parameter ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem2_name ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem2_filetype ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem2_parameter ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem3_name ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem3_filetype ( pnd_pxml_handle h );
+char *pnd_pxml_get_associationitem3_parameter ( pnd_pxml_handle h );
 char *pnd_pxml_get_clockspeed ( pnd_pxml_handle h );
+char *pnd_pxml_get_background ( pnd_pxml_handle h );
+char *pnd_pxml_get_startdir ( pnd_pxml_handle h );
 
 // for 'set' functions, pass NULL value to delete existing value without setting new one
 void pnd_pxml_set_app_name ( pnd_pxml_handle h, char *v );

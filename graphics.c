@@ -26,8 +26,8 @@ SDL_Surface *load_image(char *filename )
 	else
 	{
 		printf("Unable to load image (%s)\n", filename);
-		gui_clean();
-		exit(0);
+		//gui_clean();
+		//exit(0);
 	}
 
 	return optimizedImage;
@@ -48,8 +48,8 @@ SDL_Surface *load_image_alpha(char *filename )
 	else
 	{
 		printf("Unable to load image (%s)\n", filename);
-		gui_clean();
-		exit(0);
+		//gui_clean();
+		//exit(0);
 	}
 
 	return optimizedImage;
@@ -69,8 +69,8 @@ SDL_Surface *load_image_rgba(char *filename )
 	else
 	{
 		printf("Unable to load image (%s)\n", filename);
-		gui_clean();
-		exit(0);
+		//gui_clean();
+		//exit(0);
 	}
 
 	return optimizedImage;

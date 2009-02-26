@@ -1,0 +1,6 @@
+
+# Open Pandora
+# Desktop configuration
+
+[dotfiles]
+dotdesktoppath	./testdata/dotdesktop	# path for pndnotifyd to spit .desktop files into

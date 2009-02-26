@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<PXML>
+<title>
+	<en>x86 echo</en>
+	<de>Program Title in German Language</de>
+	<fr>Program Title in French Language</fr>
+	<it>Program Title in Italian Language</it>
+</title>
+
+<unique_id>123456x86echo</unique_id>
+
+<standalone>Yes</standalone>
+
+<exec>my_echo</exec>
+
+<category>
+	<main>Main category</main>
+	<subcategory1>Subcategory 1</subcategory1>
+	<subcategory2>Subcategory 2</subcategory2>
+</category>
+
+<clockspeed>200</clockspeed>
+
+</PXML>

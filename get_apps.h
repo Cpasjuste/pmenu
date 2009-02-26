@@ -15,13 +15,16 @@ int category;
 
 int pnd_app_get_list(void);
 
+char *run_searchpath;
+char *run_script;
+char *pndrun;
+
 typedef struct
 {
 	char name[256][256];
-	char path[256][256];
 	char id[256][256];
 	char category[256][256];
-	char exec_path[256][256];
+	char fullpath[256][256];
 	char exec_name[256][256];
 	char icon[256][256];
 	char description[256][256];

@@ -16,7 +16,7 @@
 
 TTF_Font *font, *font_big;
 SDL_Surface *message, *background, *fav_background, *app_background, *myscreen, *preview[3][256], *highlight, *category_icon[4], *confirm_box, *arrow[2];
-SDL_Surface *fav_preview[FAV_MAX];
+SDL_Surface *fav_preview[FAV_MAX], *no_icon, *app_highlight;
 int fav_preview_x[FAV_MAX], fav_preview_y[FAV_MAX];
 
 SDL_Surface *load_image(char *filename );

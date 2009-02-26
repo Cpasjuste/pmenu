@@ -73,17 +73,11 @@ int cfg_fav_read()
 							strcpy(fav->name[i], config_setting_get_string(tmp));
 							//printf("[%i] fav->name = %s\n", i, fav->name[i]);
 						}
-						tmp = config_setting_get_member(search, "path");
+						tmp = config_setting_get_member(search, "fullpath");
 						if(tmp)
 						{ 
-							strcpy(fav->path[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->path = %s\n", i, fav->path[i]);
-						}
-						tmp = config_setting_get_member(search, "exec_path");
-						if(tmp)
-						{ 
-							strcpy(fav->exec_path[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->exec_path = %s\n", i, fav->exec_path[i]);
+							strcpy(fav->fullpath[i], config_setting_get_string(tmp));
+							//printf("[%i] fav->fullpath = %s\n", i, fav->fullpath[i]);
 						}
 						tmp = config_setting_get_member(search, "exec_name");
 						if(tmp)
@@ -161,14 +155,9 @@ int cfg_fav_del( int fav_number )
 						config_setting_set_string(tmp, fav->name[i]);
 					}
 
-					tmp = config_setting_get_member(item, "path");
+					tmp = config_setting_get_member(item, "fullpath");
 					if(tmp) {
-						config_setting_set_string(tmp, fav->path[i]);
-					}
-
-					tmp = config_setting_get_member(item, "exec_path");
-					if(tmp) {
-						config_setting_set_string(tmp, fav->exec_path[i]);
+						config_setting_set_string(tmp, fav->fullpath[i]);
 					}
 
 					tmp = config_setting_get_member(item, "exec_name");
@@ -214,7 +203,7 @@ int cfg_fav_del( int fav_number )
 	return 1;
 }
 
-int cfg_fav_add(int fav_number, char *name, char *path, char *exec_path, char *exec_name, char *icon, char *description)
+int cfg_fav_add(int fav_number, char *name, char *fullpath, char *exec_name, char *icon, char *description)
 {
 	gui_clean_fav();
 	free(fav);
@@ -248,14 +237,9 @@ int cfg_fav_add(int fav_number, char *name, char *path, char *exec_path, char *e
 				config_setting_set_string(tmp, name);
 			}
 
-			tmp = config_setting_get_member(item, "path");
+			tmp = config_setting_get_member(item, "fullpath");
 			if(tmp) {
-				config_setting_set_string(tmp, path);
-			}
-
-			tmp = config_setting_get_member(item, "exec_path");
-			if(tmp) {
-				config_setting_set_string(tmp, exec_path);
+				config_setting_set_string(tmp, fullpath);
 			}
 
 			tmp = config_setting_get_member(item, "exec_name");

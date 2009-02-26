@@ -66,6 +66,7 @@ typedef enum {
   pnd_conf_conf,           // provides settings for the config system
   pnd_conf_apps,           // provides application search-path, pxml override location, etc.
   pnd_conf_startup,        // provides list of startup applications, basic shell application, etc.
+  pnd_conf_desktop,        // provides settings for the launchers
 } pnd_conf_filename_e;
 
 typedef struct {

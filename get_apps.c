@@ -7,6 +7,7 @@
 #include <pnd_apps.h>
 #include <pnd_pxml.h>
 #include <pnd_discovery.h>
+#include <pnd_locate.h>
 
 #include "get_apps.h"
 
@@ -53,6 +54,32 @@ int pnd_app_get_list(void)
 	printf ( "Apps searchpath is '%s'\n", appspath );
 	printf ( "Apps overrides searchpath is '%s'\n", overridespath );
 
+	/* find pnd runscript */
+
+	if ( apph ) {
+		run_searchpath = pnd_conf_get_as_char ( apph, PND_PNDRUN_SEARCHPATH_KEY );
+		run_script = pnd_conf_get_as_char ( apph, PND_PNDRUN_KEY );
+		pndrun = NULL;
+
+		if ( ! run_searchpath ) {
+			run_searchpath = PND_APPS_SEARCHPATH;
+			run_script = PND_PNDRUN_FILENAME;
+		}
+
+	} else {
+		run_searchpath = NULL;
+		run_script = NULL;
+		pndrun = PND_PNDRUN_DEFAULT;
+	}
+
+	if ( ! pndrun ) {
+		pndrun = pnd_locate_filename ( run_searchpath, run_script );
+	}
+
+	if ( run_searchpath ) printf ( "Locating pnd run in %s\n", run_searchpath );
+	if ( run_script ) printf ( "Locating pnd runscript as %s\n", run_script );
+	if ( pndrun ) printf ( "Default pndrun is %s\n", pndrun );
+
 	/* attempt to discover apps in the path */
 	pnd_box_handle applist;
 
@@ -71,9 +98,6 @@ int pnd_app_get_list(void)
 
 		int tmpSection = 0;
 
-		char buffer [ 512 ];
-		char *s;
-
 		while ( d )
 		{
  			if ( d -> main_category )
@@ -81,39 +105,14 @@ int pnd_app_get_list(void)
 				if((strcasecmp(d -> main_category, "emulators") == 0) | (strcasecmp(d -> main_category, "emulator") == 0))
 				{
 					tmpSection = EMULATORS;
-
-					strcpy ( buffer, pnd_box_get_key ( d ) );
-					s = strstr ( buffer, PXML_FILENAME );
-					strcpy ( s, strdup(""));
-					strncpy(applications[tmpSection]->path[applications_count[tmpSection]], buffer, strlen(buffer) - 1);
-
-					printf ( "  [%i] -> Emulator spotted in : %s\n", applications_count[tmpSection], \
-						applications[tmpSection]->path[applications_count[tmpSection]]);
-					
 				}
 				else if((strcasecmp(d -> main_category, "games") == 0) | (strcasecmp(d -> main_category, "game") == 0))
 				{
 					tmpSection = GAMES;
-
-					strcpy ( buffer, pnd_box_get_key ( d ) );
-					s = strstr ( buffer, PXML_FILENAME );
-					strcpy ( s, strdup(""));
-					strncpy(applications[tmpSection]->path[applications_count[tmpSection]], buffer, strlen(buffer) - 1);
-
-					printf ( "  [%i] -> Game spotted in : %s\n", applications_count[tmpSection], \
-						applications[tmpSection]->path[applications_count[tmpSection]]);
 				}
 				else if((strcasecmp(d -> main_category, "applications") == 0) | (strcasecmp(d -> main_category, "application") == 0))
 				{
 					tmpSection = APPLICATIONS;
-
-					strcpy ( buffer, pnd_box_get_key ( d ) );
-					s = strstr ( buffer, PXML_FILENAME );
-					strcpy ( s, strdup(""));
-					strncpy(applications[tmpSection]->path[applications_count[tmpSection]], buffer, strlen(buffer) - 1);
-
-					printf ( "  [%i] -> Application spotted in : %s\n", applications_count[tmpSection], \
-						applications[tmpSection]->path[applications_count[tmpSection]]);
 				}
 
 				strcpy(applications[tmpSection]->category[applications_count[tmpSection]], d -> main_category);
@@ -132,36 +131,48 @@ int pnd_app_get_list(void)
 					printf ( "  [%i] -> Unique ID: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->id[applications_count[tmpSection]] );
 				}
+				if ( d -> path_to_object )
+				{
+					strcpy(applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> path_to_object);
+					printf ( "  [%i] -> fullpath: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->fullpath[applications_count[tmpSection]] );
+				}
 				if ( d -> icon )
 				{
-					strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], d -> icon);
+					sprintf(applications[tmpSection]->icon[applications_count[tmpSection]], "%s%s", d -> path_to_object, d -> icon);
 					printf ( "  [%i] -> icon: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->icon[applications_count[tmpSection]] );
+
 				}
 				if ( d -> exec )
 				{
-					strcpy(applications[tmpSection]->exec_path[applications_count[tmpSection]], d -> exec);
-					printf ( "  [%i] -> Exec Path: %s\n", applications_count[tmpSection], \
-						applications[tmpSection]->exec_path[applications_count[tmpSection]] );
-
-					strcpy ( buffer, applications[tmpSection]->exec_path[applications_count[tmpSection]] );
-					s = strrchr (buffer, '/');
-					strcpy ( buffer, s);
-
-					for(i = 1; i < strlen(buffer); i++)
-					{
-						sprintf(s, "%c", buffer[i]);
-						strcat(applications[tmpSection]->exec_name[applications_count[tmpSection]], s);
-					}
+					strcpy(applications[tmpSection]->exec_name[applications_count[tmpSection]], d -> exec );
 					printf ( "  [%i] -> Exec Name : %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->exec_name[applications_count[tmpSection]]);
 				}
-				if ( d -> description_en )
+
+				pnd_pxml_handle pxmlh;
+				pxmlh = pnd_pxml_fetch ( pnd_box_get_key ( d ) );
+				if ( ! pxmlh )
 				{
-					strcpy(applications[tmpSection]->description[applications_count[tmpSection]], d -> description_en);
+					return ( 0 ); 
+				}
+				if ( pnd_is_pxml_valid_app ( pxmlh ) )
+				{
+					sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", d -> path_to_object, pnd_pxml_get_previewpic1 ( pxmlh ) );
+					printf("  [%i] -> preview_pic1: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->preview_pic1[applications_count[tmpSection]] );
+
+					sprintf( applications[tmpSection]->preview_pic2[applications_count[tmpSection]], "%s%s", d -> path_to_object, pnd_pxml_get_previewpic2 ( pxmlh ) );
+					printf("  [%i] -> preview_pic2: %s\n", applications_count[tmpSection], \
+						applications[tmpSection]->preview_pic2[applications_count[tmpSection]] );
+
+					strcpy(applications[tmpSection]->description[applications_count[tmpSection]], pnd_pxml_get_description_en ( pxmlh ) );
 					printf ( "  [%i] -> Description: %s\n\n", applications_count[tmpSection], \
 						applications[tmpSection]->description[applications_count[tmpSection]] );
 				}
+				pnd_pxml_delete ( pxmlh );
+
 				applications_count[tmpSection]++;
  			}
 			d = pnd_box_get_next ( d );
@@ -181,7 +192,6 @@ int pnd_app_get_list(void)
 		printf ( "No applications found in search path\n" );
 	}
 
-	// exeunt with alarums
 	free ( configpath );
 	if ( apph )
     		pnd_box_delete ( apph );
