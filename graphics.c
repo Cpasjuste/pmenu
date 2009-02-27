@@ -144,9 +144,9 @@ void draw_text_scroll(char *msg, int size, int type, SDL_Color COLOR, int x, int
 
 	scroll_count -= 1;
 
-	int i = strlen(msg) * 10;
+	int i = strlen(msg) * 12;
 
-	if((scroll_count + x) == -i) scroll_count = x + w;
+	if((scroll_count + x) == i) scroll_count = x + w;
 }
 
 

@@ -198,6 +198,7 @@ void gui_clean()
 	if( fav_background != NULL) SDL_FreeSurface( fav_background );
 	if( app_background != NULL) SDL_FreeSurface( app_background );
 	if( no_icon != NULL ) SDL_FreeSurface( no_icon );
+	if( tmp_preview != NULL ) SDL_FreeSurface ( tmp_preview );
 	TTF_CloseFont( font ); 
 	TTF_CloseFont( font_big );
 	TTF_Quit(); 
@@ -306,6 +307,8 @@ void gui_draw()
 			}
 			i++;
 		}
+
+		if( tmp_preview != NULL ) SPG_DrawCenter( tmp_preview, myscreen, 600, 200 );
 	}
 	else if( category == FAVORITES )
 	{
@@ -382,7 +385,7 @@ void gui_draw()
 		if( arrow[RIGHT] != NULL )
 			SPG_DrawCenter( arrow[RIGHT], myscreen, gui->arrow_right_x, gui->arrow_right_y );
 
-		draw_text_scroll(applications[category]->description[list_curpos[category]], SMALL, NORMAL, WHITE, 100, 455, 500);
+		draw_text_scroll(applications[category]->description[list_curpos[category]], SMALL, NORMAL, WHITE, 440, 320, 315);
 	}
 }
 
@@ -624,14 +627,24 @@ void handle_mouse()
 							else exec_app = 1;
 	
 							SDL_Delay(120);
-							scroll_count = 600;
+							scroll_count = 750;
 							break;
 						}
 						else
 						{
 							list_curpos[category] = i + (page[category] * MAXLIST) ;
+						
+							if( tmp_preview != NULL ) SDL_FreeSurface ( tmp_preview );
+							SDL_Surface *to_resize = load_image_rgba( applications[category]->preview_pic1[list_curpos[category]]);
+							if(to_resize != NULL)
+							{
+								tmp_preview = SPG_ScaleAA(to_resize, 0.4f, 0.4f);
+								SDL_FreeSurface ( to_resize );
+							}
+						
+
 							SDL_Delay(120);
-							scroll_count = 600;
+							scroll_count = 750;
 							break; 
 						}
 					}
@@ -667,7 +680,7 @@ void handle_mouse()
 						mouse_hold_x -= 50;
 					}					
 				}
-				scroll_count = 600;
+				scroll_count = 750;
 				SDL_Delay(120);
 			}
 
@@ -679,14 +692,14 @@ void handle_mouse()
 					page[category] -= 1;
 					list_curpos[category] = page[category] * MAXLIST;
 					list_start[category] = page[category] * MAXLIST;
-					scroll_count = 600;
+					scroll_count = 750;
 					SDL_Delay(120);
 				}
 				else
 				{
 					list_curpos[category] = 0;
 					list_start[category] = 0;
-					scroll_count = 600;
+					scroll_count = 750;
 					SDL_Delay(120);
 				}			
 			}
@@ -697,7 +710,7 @@ void handle_mouse()
 					page[category] += 1;
 					list_curpos[category] = page[category] * MAXLIST;
 					list_start[category] = page[category] * MAXLIST;
-					scroll_count = 600;
+					scroll_count = 750;
 					SDL_Delay(120);
 				}
 			}
@@ -710,7 +723,7 @@ void handle_mouse()
 				category = i;
 				alpha = 0;
 				alpha_up = 1;
-				scroll_count = 600;
+				scroll_count = 750;
 			}
 		}
 	}
@@ -738,7 +751,7 @@ int main(int argc, char *argv[])
 {
 
 	int gui_done = 0;
-	scroll_count = 600;
+	scroll_count = 750;
 	category = FAVORITES;
 	alpha_up = 1;
 	alpha = 0;

@@ -13,7 +13,7 @@ CFLAGS    = -Wall -Werror `sdl-config --cflags` -Iinclude
 LIBS	  = lib/libconfig_pc.a lib/libpnd_pc.a lib/libsprig_pc.a -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `sdl-config --libs` -lstdc++
 else
 CFLAGS    = -Wall -Werror `arm-none-linux-gnueabi-sdl-config --cflags` -Iinclude -DPANDORA
-LIBS	  = -lconfig_pnd -lpnd_pnd -lsprig_pnd -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
+LIBS	  = lib/libconfig_pnd.a lib/libpnd_pnd.a lib/libsprig_pnd.a -lSDL_image -lSDL_ttf -lSDL_gfx -lfreetype `arm-none-linux-gnueabi-sdl-config --libs` -lpng -lstdc++ -lts -ldl -lz -lm -static
 
 endif
 

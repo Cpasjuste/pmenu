@@ -5,7 +5,7 @@
 
 struct config_t cfg;
 
-#define FAV_MAX 1024
+#define FAV_MAX 21
 
 typedef struct
 {
