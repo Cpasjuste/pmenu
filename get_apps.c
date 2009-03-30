@@ -131,15 +131,15 @@ int pnd_app_get_list(void)
 					printf ( "  [%i] -> Unique ID: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->id[applications_count[tmpSection]] );
 				}
-				if ( d -> path_to_object )
+				if ( d -> object_path )
 				{
-					strcpy(applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> path_to_object);
+					strcpy(applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> object_path);
 					printf ( "  [%i] -> fullpath: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->fullpath[applications_count[tmpSection]] );
 				}
 				if ( d -> icon )
 				{
-					sprintf(applications[tmpSection]->icon[applications_count[tmpSection]], "%s%s", d -> path_to_object, d -> icon);
+					sprintf(applications[tmpSection]->icon[applications_count[tmpSection]], "%s%s", d -> object_path, d -> icon);
 					printf ( "  [%i] -> icon: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->icon[applications_count[tmpSection]] );
 
@@ -159,11 +159,11 @@ int pnd_app_get_list(void)
 				}
 				if ( pnd_is_pxml_valid_app ( pxmlh ) )
 				{
-					sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", d -> path_to_object, pnd_pxml_get_previewpic1 ( pxmlh ) );
+					sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", d -> object_path, pnd_pxml_get_previewpic1 ( pxmlh ) );
 					printf("  [%i] -> preview_pic1: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->preview_pic1[applications_count[tmpSection]] );
 
-					sprintf( applications[tmpSection]->preview_pic2[applications_count[tmpSection]], "%s%s", d -> path_to_object, pnd_pxml_get_previewpic2 ( pxmlh ) );
+					sprintf( applications[tmpSection]->preview_pic2[applications_count[tmpSection]], "%s%s", d -> object_path, pnd_pxml_get_previewpic2 ( pxmlh ) );
 					printf("  [%i] -> preview_pic2: %s\n", applications_count[tmpSection], \
 						applications[tmpSection]->preview_pic2[applications_count[tmpSection]] );
 

@@ -44,7 +44,8 @@ typedef enum {
 typedef struct {
   // base
   unsigned char object_type;   // see enum above
-  char *path_to_object;        // full path to the PXML.xml or awesomeapp.pnd file
+  char *object_path;           // directory containing pnd or PXML.xml (does not include filename)
+  char *object_filename;       // filename within object_path of the app: the PXML.xml or awesomeapp.pnd file itself
   unsigned int pnd_icon_pos;   // offset to the byte after end of PXML in a pnd file (should be icon if present)
   // strdup'd from PXML
   char *title_en;
@@ -60,6 +61,8 @@ void pnd_disco_destroy ( pnd_disco_t *p ); // a function name that simply could 
 
 // emit_dotdesktop() will determine a filename and create a FILENAME.desktop file in the targetpath
 // TODO: Copy the icon into this directory as well, if its source is a .pnd or info is in the dico struct
+#define PND_DOTDESKTOP_HEADER "[Desktop Entry]"
+#define PND_DOTDESKTOP_SOURCE "_Source=libpnd"
 unsigned char pnd_emit_dotdesktop ( char *targetpath, char *pndrun, pnd_disco_t *p );
 
 // emit_icon() will attempt to copy the icon from a PXML directory, or from a pnd file if appended,

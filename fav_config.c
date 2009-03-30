@@ -218,10 +218,9 @@ int cfg_fav_add(int fav_number, char *name, char *fullpath, char *exec_name, cha
 	else
 	{
 		config_setting_t *item = NULL;
-
 		printf("Writing item : %s\n", tmpFav[fav_number]);
-
 		item = config_lookup(&cfg, tmpFav[fav_number]);
+
 
 		if (!item) 
 		{
@@ -230,7 +229,9 @@ int cfg_fav_add(int fav_number, char *name, char *fullpath, char *exec_name, cha
 		else 
 		{
 			config_setting_t *tmp = config_setting_get_member (item, "enabled");
-			config_setting_set_int(tmp, 1);
+			if(tmp) {
+				config_setting_set_int(tmp, 1);
+			}
 
 			tmp = config_setting_get_member(item, "name");
 			if(tmp) {
