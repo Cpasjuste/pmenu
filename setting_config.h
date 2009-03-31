@@ -3,6 +3,9 @@
 
 #include <libconfig.h>
 
+int x11_mode;
+
+/*
 struct config_t cfg;
 
 typedef struct
@@ -14,6 +17,7 @@ typedef struct
 SETTING_CONFIG *setting;
 
 int cfg_setting_read();
+*/
 
 #endif
 

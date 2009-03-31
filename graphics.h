@@ -47,7 +47,7 @@ void copy_buffer_to_texture(TEXTURE *texture);
 void draw_3d_box(TEXTURE *tex, int x, int y, GLfloat z);
 void DrawTexture(TEXTURE *texture_struct, int x, int y, int centered, GLfloat factor, GLfloat alpha);
 void DrawBufferTexture(TEXTURE *texture_struct, int x, int y, int centered, GLfloat factor, GLfloat alpha);
-void load_image_to_texture( TEXTURE *texture_struct, char *filename);
+int load_image_to_texture( TEXTURE *texture_struct, char *filename);
 void init_2D_view();
 void gui_swap_buffer();
 void init_raw_screen();

@@ -135,7 +135,7 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, GLfloat *texcoord)
 {
 	GLuint texture;
 	int w, h;
-	SDL_Surface *image;
+	SDL_Surface *image_tmp;
 	SDL_Rect area;
 	Uint32 saved_flags;
 	Uint8  saved_alpha;
@@ -148,7 +148,7 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, GLfloat *texcoord)
 	texcoord[2] = (GLfloat)surface->w / w;	/* Max X */
 	texcoord[3] = (GLfloat)surface->h / h;	/* Max Y */
 
-	image = SDL_CreateRGBSurface(
+	image_tmp = SDL_CreateRGBSurface(
 			SDL_SWSURFACE,
 			w, h,
 			32,
@@ -156,8 +156,9 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, GLfloat *texcoord)
 			0x0000FF00, 
 			0x00FF0000, 
 			0xFF000000 );
-	if ( image == NULL )
+	if ( image_tmp == NULL )
 	{
+		printf("Fail : image_tmp == NULL\n");
 		return 0;
 	}
 
@@ -175,7 +176,7 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, GLfloat *texcoord)
 	area.y = 0;
 	area.w = surface->w;
 	area.h = surface->h;
-	SDL_BlitSurface(surface, &area, image, &area);
+	SDL_BlitSurface(surface, &area, image_tmp, &area);
 
 
 	/* Restore the alpha blending attributes */
@@ -196,33 +197,38 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, GLfloat *texcoord)
 		     0,
 		     GL_RGBA,
 		     GL_UNSIGNED_BYTE,
-		     image->pixels);
-	SDL_FreeSurface(image); /* No longer needed */
+		     image_tmp->pixels);
+
+	SDL_FreeSurface(image_tmp); /* No longer needed */
 
 	return texture;
 }
 
-void load_image_to_texture( TEXTURE *texture_struct, char *filename)
+int load_image_to_texture( TEXTURE *texture_struct, char *filename)
 {
-	printf("Creating GLES Texture Surface from : \n");
-	printf("%s\n", filename);
+	printf("\tCreating GLES Texture Surface from : %s\n", filename);
 
-	SDL_Surface *image;
+	SDL_Surface *image = NULL;
 	GLfloat texcoord[4];
 
-	/* Load the image (could use SDL_image library here) */
-	image = NULL;
+	/* Load the image */
 	image = IMG_Load( filename );
 	if ( image == NULL )
 	{
-		printf("Fail : IMG_Load();\n");
-		return;
+		printf("Fail : IMG_Load(%s);\n", filename);
+		return 0;
 	}
 	texture_struct->w = image->w;
 	texture_struct->h = image->h;
 
 	/* Convert the image into an OpenGL texture */
-	texture_struct->texture = SDL_GL_LoadTexture(image, texcoord);
+	if ( ! (texture_struct->texture = SDL_GL_LoadTexture(image, texcoord) ) )
+	{
+		return 0;
+	}
+
+	/* We don't need the original image anymore */
+	SDL_FreeSurface(image);
 
 	/* Make texture coordinates easy to understand */
 	texture_struct->texMinX = texcoord[0];
@@ -230,19 +236,18 @@ void load_image_to_texture( TEXTURE *texture_struct, char *filename)
 	texture_struct->texMaxX = texcoord[2];
 	texture_struct->texMaxY = texcoord[3];
 
-	/* We don't need the original image anymore */
-	SDL_FreeSurface(image);
-
 	/* Make sure that the texture conversion is okay */
 	if ( ! texture_struct->texture )
 	{
-		printf("Fail : GLES Texture Surface NOK\n\n");
-		return;
+		printf("Fail : GLES Texture Surface NOK\n");
+		return 0;
 	}
 	else
 	{
-		printf("Success : GLES Texture Surface OK\n\n");
+		printf("Success : GLES Texture Surface OK\n");
 	}
+
+	return 1;
 }
 
 void DrawTexture(TEXTURE *texture_struct, int x, int y, int centered, GLfloat factor, GLfloat alpha)
@@ -349,6 +354,7 @@ void DrawBufferTexture(TEXTURE *texture_struct, int x, int y, int centered, GLfl
 
 void draw_text(char *msg, int size, int type, SDL_Color COLOR, int x, int y)
 {
+/*
 	TEXTURE *texture;
 	texture = (TEXTURE *) malloc( sizeof(TEXTURE));
 
@@ -405,6 +411,7 @@ void draw_text(char *msg, int size, int type, SDL_Color COLOR, int x, int y)
 	glDeleteTextures( 1, &texture->texture );
 
 	free( texture );
+*/
 }
 
 void draw_text_center(char *msg, int size, int type, SDL_Color COLOR, int x, int y)
@@ -433,7 +440,6 @@ extern int scroll_count, reset_scroll_count;
 
 void draw_text_scroll(char *msg, int size, int type, SDL_Color COLOR, int x, int y, int w)
 {
-/*
 	int i;
 
 	if( reset_scroll_count ) 
@@ -479,12 +485,11 @@ void draw_text_scroll(char *msg, int size, int type, SDL_Color COLOR, int x, int
 	scroll_count -= 1;
 
 	if(scroll_count == x - i) scroll_count = x + w;
-*/
 }
 
 void gui_swap_buffer()
 {
-	if( setting->x11_mode) SDL_GL_SwapBuffers();
+	if( x11_mode ) SDL_GL_SwapBuffers();
 		else eglSwapBuffers( sglDisplay, sglSurface );
 }
 

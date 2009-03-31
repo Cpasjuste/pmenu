@@ -6,6 +6,7 @@
 
 int cfg_setting_read()
 {
+/*
 	config_init(&cfg);
 
 	if (!config_read_file(&cfg, "setting.cfg"))
@@ -37,7 +38,8 @@ int cfg_setting_read()
 	}
 
 	config_destroy(&cfg);
-
+*/
 	return 1;
+
 }
 

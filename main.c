@@ -28,15 +28,52 @@
 
 int do_quit = 0;
 
+void check_xorg()
+{
+	DIR * d = opendir("/proc");
+	FILE * fp;
+	pid_t pid;
+	struct dirent * de;
+	char * end;
+	char buf[100];
+
+	while ((de = readdir(d)) != NULL)
+	{
+		// for this directory, check the name, we want only numeric filenames (pid).
+		pid = strtoul(de -> d_name, & end, 10);
+		if (*end != '\0')
+			continue; // skip this dir.
+   
+		sprintf( buf, "/proc/%d/cmdline", pid);
+		fp = fopen(buf, "rt");
+		if (fp == NULL)
+			continue;
+
+		fgets(buf, sizeof(buf), fp);
+		fclose(fp);
+		// compare command line to see if it is the program you want. Perhaps drop the first argument
+		// and just compare the first token and see if the name matches.
+		if (strncmp(buf, "Xorg", 4) == 0)
+		{
+			// the pid in question is in pid!
+			//do_what_we_want_with_this_process(pid);
+			x11_mode = 1;
+			break;
+ 		}
+		else
+		{
+			x11_mode = 0;
+		}
+	}
+	closedir(d);
+}
+
 int gui_init_sdl()
 {
-
-	cfg_setting_read();
+	check_xorg();
 
 	putenv ("SDL_MOUSEDRV=TSLIB");
-	//setenv ("SDL_MOUSEDRV", "TSLIB", 1);
-
-	if( ! setting->x11_mode ) putenv ("SDL_VIDEODRIVER=fbcon");
+	if( ! x11_mode ) putenv ("SDL_VIDEODRIVER=fbcon");
 
 	if (SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO) == -1 )
 	{
@@ -61,7 +98,7 @@ int gui_init_sdl()
 
 	myscreen = NULL;
 
-	if( ! setting->x11_mode )
+	if( ! x11_mode )
 	{
 
 		myscreen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_SWSURFACE);
@@ -75,7 +112,7 @@ int gui_init_sdl()
 	}
 	else
 	{
-		myscreen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_OPENGLES | SDL_FULLSCREEN);
+		myscreen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_OPENGLES /*| SDL_FULLSCREEN*/);
 		if( myscreen == NULL )
 		{
 		    fprintf(stderr, "Couldn’t initialize VideoMode: %s\n", SDL_GetError());
@@ -134,17 +171,31 @@ void gui_load_preview(int cat, int n)
 
 	if( tmp_preview != NULL )
 	{
+		printf("\tFreeing old preview pic texture memory\n");
 		glDeleteTextures( 1, &tmp_preview->texture );
-		free ( tmp_preview ); 
+		free ( tmp_preview );
+		tmp_preview = NULL;
 	}
 
 
 	if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
 	{
 		tmp_preview = (TEXTURE *) malloc( sizeof(TEXTURE));
-		load_image_to_texture( tmp_preview, applications[cat]->preview_pic1[n] );
+		if ( ! load_image_to_texture( tmp_preview, applications[cat]->preview_pic1[n] ) )
+		{
+			free( tmp_preview );
+			tmp_preview = NULL;
+			printf("Fail : gui_load_preview (load_image_to_texture);\n\n");
+		}
+		else
+		{
+			printf("Success : gui_load_preview (load_image_to_texture);\n\n");
+		}
 	}
-
+	else
+	{
+		printf("Fail : gui_load_preview (preview pic do not exist -> %s);\n\n", applications[cat]->preview_pic1[n]);
+	}
 }
 
 void gui_load_fav()
@@ -187,46 +238,102 @@ void gui_load()
 	buffer2 = (TEXTURE *) malloc( sizeof(TEXTURE));
 
 	logo = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( logo, "data/logo.bmp" );
+	if( ! load_image_to_texture( logo, "data/logo.bmp" ) )
+	{
+		free( logo );
+		logo = NULL;
+	}
 
 	background = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( background, "data/backg.bmp" );
+	if( ! load_image_to_texture( background, "data/backg.bmp" ) )
+	{
+		free( background );
+		background = NULL;
+	}
 
 	fav_background = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( fav_background, "data/fav_backg.bmp" );
+	if( ! load_image_to_texture( fav_background, "data/fav_backg.bmp" ) )
+	{
+		free( fav_background );
+		fav_background = NULL;
+	}
 
 	app_background = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( app_background, "data/app_backg.bmp" );
+	if( ! load_image_to_texture( app_background, "data/app_backg.bmp" ) )
+	{
+		free( app_background );
+		app_background = NULL;
+	}
 
 	highlight = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( highlight, "data/highlight.bmp" );
+	if( ! load_image_to_texture( highlight, "data/highlight.bmp" ) )
+	{
+		free( highlight );
+		highlight = NULL;
+	}
 
 	app_highlight = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( app_highlight, "data/app_highlight.bmp" );
+	if( ! load_image_to_texture( app_highlight, "data/app_highlight.bmp" ) )
+	{
+		free( app_highlight );
+		app_highlight = NULL;
+	}
 
 	category_icon[FAVORITES] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( category_icon[FAVORITES], "data/favorites_icon.bmp" );
+	if( ! load_image_to_texture( category_icon[FAVORITES], "data/favorites_icon.bmp" ) )
+	{
+		free( category_icon[FAVORITES] );
+		category_icon[FAVORITES] = NULL;
+	}
 
 	category_icon[EMULATORS] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( category_icon[EMULATORS], "data/emulators_icon.bmp" );
+	if( ! load_image_to_texture( category_icon[EMULATORS], "data/emulators_icon.bmp" ) )
+	{
+		free( category_icon[EMULATORS] );
+		category_icon[EMULATORS] = NULL;
+	}
 
 	category_icon[GAMES] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( category_icon[GAMES], "data/games_icon.bmp" );
+	if( ! load_image_to_texture( category_icon[GAMES], "data/games_icon.bmp" ) )
+	{
+		free( category_icon[GAMES] );
+		category_icon[GAMES] = NULL;
+	}
 
 	category_icon[APPLICATIONS] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( category_icon[APPLICATIONS], "data/applications_icon.bmp" );
+	if( ! load_image_to_texture( category_icon[APPLICATIONS], "data/applications_icon.bmp" ) )
+	{
+		free( category_icon[APPLICATIONS] );
+		category_icon[APPLICATIONS] = NULL;
+	}
 
 	arrow[LEFT] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( arrow[LEFT], "data/arrowleft.bmp" );
+	if( ! load_image_to_texture( arrow[LEFT], "data/arrowleft.bmp" ) )
+	{
+		free( arrow[LEFT] );
+		arrow[LEFT] = NULL;
+	}
 
 	arrow[RIGHT] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( arrow[RIGHT], "data/arrowright.bmp" );
+	if( ! load_image_to_texture( arrow[RIGHT], "data/arrowright.bmp" ) )
+	{
+		free( arrow[RIGHT] );
+		arrow[RIGHT] = NULL;
+	}
 
 	confirm_box = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( confirm_box, "data/confirm_box.bmp" );
+	if( ! load_image_to_texture( confirm_box, "data/confirm_box.bmp" ) )
+	{
+		free( confirm_box );
+		confirm_box = NULL;
+	}
 
 	no_icon = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( no_icon, "data/no_icon.bmp" );
+	if( ! load_image_to_texture( no_icon, "data/no_icon.bmp" ) )
+	{
+		free( no_icon );
+		no_icon = NULL;
+	}
 
 
 	for(i = EMULATORS; i < APPLICATIONS+1; i++)
@@ -234,20 +341,31 @@ void gui_load()
 		for(j = 0; j < list_num[i]; j++)
 		{
 			preview[i][j] = (TEXTURE *) malloc( sizeof(TEXTURE));
-			load_image_to_texture(preview[i][j], applications[i]->icon[j]);
+			if( ! load_image_to_texture(preview[i][j], applications[i]->icon[j]) )
+			{
+				free( preview[i][j] );
+				preview[i][j] = NULL;
+			}
 		}
 	}
-
 	gui_load_fav();
-
 }
 
 void gui_clean()
 {
 	int i, j;
 
+	glDeleteTextures( 1, &buffer1->texture);
+	if ( buffer1 ) free ( buffer1 );
+
+	glDeleteTextures( 1, &buffer2->texture);
+	if ( buffer2 ) free ( buffer2 );
+
+	glDeleteTextures( 1, &logo->texture);
+	if ( logo ) free ( logo );
+
 	glDeleteTextures( 1, &background->texture );
-	free (background);
+	if ( background ) free ( background );
 
 	glDeleteTextures( 1, &fav_background->texture );
 	free (fav_background);
@@ -299,7 +417,7 @@ void gui_clean()
 	TTF_Quit(); 
 	SDL_Quit();
 
-	if( ! setting->x11_mode ) destroy_raw_screen();
+	if( ! x11_mode ) destroy_raw_screen();
 }
 
 void gui_app_exec(int n)
@@ -356,11 +474,8 @@ int gui_confirm_box(char *msg)
 		}
 		else reset_ts_pos = 1;
 
-#ifndef PANDORA
-		SDL_framerateDelay( &sixteen );
-#else
+//		SDL_framerateDelay( &sixteen );
 		SDL_Delay(1);
-#endif
 	}
 	return 0;
 }
@@ -597,7 +712,7 @@ void handle_mouse()
 
 	mouse_delay++;
 
-	if(mouse_delay > 10)
+	if(mouse_delay > 15)
 	{
 		get_mouse_loc();
 
@@ -686,7 +801,6 @@ void handle_mouse()
 
 								gui_load_preview( category, list_curpos[category] );
 	
-								//SDL_Delay(120);
 								reset_scroll_count = 1;
 								break; 
 							}
@@ -727,7 +841,6 @@ void handle_mouse()
 						}					
 					}
 					reset_scroll_count = 1;
-					//SDL_Delay(120);
 				}
 
 				if(mouse_is_over_surface_center(gui->arrow_left_x, gui->arrow_left_y, arrow[LEFT]->w, arrow[LEFT]->h))
@@ -739,7 +852,6 @@ void handle_mouse()
 						list_curpos[category] = page[category] * MAXLIST;
 						list_start[category] = page[category] * MAXLIST;
 						reset_scroll_count = 1;
-						//SDL_Delay(120);
 						gui_load_preview( category, list_curpos[category] );
 					}
 					else
@@ -747,7 +859,6 @@ void handle_mouse()
 						list_curpos[category] = 0;
 						list_start[category] = 0;
 						reset_scroll_count = 1;
-						//SDL_Delay(120);
 						gui_load_preview( category, list_curpos[category] );
 					}			
 				}
@@ -760,7 +871,6 @@ void handle_mouse()
 						list_curpos[category] = page[category] * MAXLIST;
 						list_start[category] = page[category] * MAXLIST;
 						reset_scroll_count = 1;
-						//SDL_Delay(120);
 						gui_load_preview( category, list_curpos[category] );
 					}
 				}
@@ -771,18 +881,28 @@ void handle_mouse()
 				if(mouse_is_over_surface_center(category_icon_x[i], 42, category_icon[i]->w, category_icon[i]->h))
 				{
 					category = i;
-					alpha = 0.0f;
-					alpha_up = 1;
-					reset_scroll_count = 1;
-
-					if( tmp_preview != NULL )
+					if( category != FAVORITES )
 					{
-						free( tmp_preview ); 
-						tmp_preview = NULL;
-					}
+						alpha = 0.0f;
+						alpha_up = 1;
+						reset_scroll_count = 1;
 
-					if( list_num[category] > 0 )
-						gui_load_preview( category, list_curpos[category] );
+						if( list_num[category] )
+						{
+							printf("Number of item in category[%i] = %i\n", category, list_num[category]);
+							gui_load_preview( category, list_curpos[category] );
+						}
+						else
+						{
+							if( tmp_preview != NULL )
+							{
+								printf("\tFreeing old preview pic texture memory\n");
+								glDeleteTextures( 1, &tmp_preview->texture );
+								free ( tmp_preview );
+								tmp_preview = NULL;
+							}			
+						}
+					}
 				}
 			}
 
@@ -790,8 +910,6 @@ void handle_mouse()
 			{
 				do_quit = 1;		
 			}
-
-
 		}
 		else
 		{
@@ -826,8 +944,8 @@ int main(int argc, char *argv[])
 
 	gui_load();
 
-	SDL_initFramerate( &sixteen );
-	SDL_setFramerate( &sixteen, 60 );
+//	SDL_initFramerate( &sixteen );
+//	SDL_setFramerate( &sixteen, 60 );
 			
 	char fpscount[64];
 
@@ -872,7 +990,7 @@ int main(int argc, char *argv[])
 		fps = (frame_time > 0) ? 1000.0f / frame_time : 0.0f;
 		sprintf(fpscount, "%2.0f fps", fps );
 
-		SDL_framerateDelay( &sixteen );
+//		SDL_framerateDelay( &sixteen );
 
 		if(do_quit) gui_done = 1;
 	}
