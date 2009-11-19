@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="pmenu" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/pmenu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="pandora" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add directory="/usr/local/pandora/arm-2007q3/usr/include" />
+					<Add directory="include" />
+				</Compiler>
+				<Linker>
+					<Add option="-lIMGegl" />
+					<Add option="-lsrv_um" />
+					<Add option="-lXau" />
+					<Add option="-lXdmcp" />
+					<Add option="-lXi" />
+					<Add option="-lXext" />
+					<Add option="-lX11" />
+					<Add option="-lGLES_CM" />
+					<Add option="-lGLES2D" />
+					<Add option="-lSDL" />
+					<Add option="-lSDL_image" />
+					<Add option="-lSDL_ttf" />
+					<Add option="-lpng" />
+					<Add option="-ltiff" />
+					<Add option="-ljpeg" />
+					<Add option="-lfreetype" />
+					<Add option="-lpnd" />
+					<Add option="-lz" />
+					<Add library="lib/libconfig_pnd.a" />
+					<Add directory="/usr/local/pandora/arm-2007q3/usr/lib" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/pmenu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="pandora" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O3 -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -ffast-math -fomit-frame-pointer -fno-strict-aliasing -fsingle-precision-constant" />
+					<Add directory="/usr/local/pandora/arm-2007q3/usr/include" />
+					<Add directory="libconfig" />
+					<Add directory="libpnd" />
+				</Compiler>
+				<Linker>
+					<Add option="-lIMGegl" />
+					<Add option="-lsrv_um" />
+					<Add option="-lXau" />
+					<Add option="-lXdmcp" />
+					<Add option="-lXi" />
+					<Add option="-lXext" />
+					<Add option="-lX11" />
+					<Add option="-lGLES_CM" />
+					<Add option="-lGLES2D" />
+					<Add option="-lSDL" />
+					<Add option="-lSDL_image" />
+					<Add option="-lSDL_ttf" />
+					<Add option="-lpng" />
+					<Add option="-ltiff" />
+					<Add option="-ljpeg" />
+					<Add option="-lfreetype" />
+					<Add option="-lpnd" />
+					<Add option="-lconfig" />
+					<Add option="-lz" />
+					<Add directory="/usr/local/pandora/arm-2007q3/usr/lib" />
+				</Linker>
+			</Target>
+			<Target title="i386">
+				<Option output="bin/i386/pmenu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/i386/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DI386" />
+					<Add directory="include" />
+				</Compiler>
+				<Linker>
+					<Add option="-lGLES_CM" />
+					<Add option="-lGLES2D" />
+					<Add option="-lfreetype" />
+					<Add option="-lpng" />
+					<Add option="-ltiff" />
+					<Add option="-ljpeg" />
+					<Add option="-lSDL" />
+					<Add option="-lSDL_ttf" />
+					<Add option="-lSDL_image" />
+					<Add option="-lz" />
+					<Add option="-lpthread" />
+					<Add library="lib/libconfig_pc.a" />
+					<Add library="lib/libpnd_pc.a" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="cpuLoad.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cpuLoad.h" />
+		<Unit filename="fav_config.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="fav_config.h" />
+		<Unit filename="get_apps.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="get_apps.h" />
+		<Unit filename="gui_config.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="gui_config.h" />
+		<Unit filename="libconfig.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="main.h" />
+		<Unit filename="menu_settings.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="menu_settings.h" />
+		<Unit filename="pmenu_config.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="pmenu_config.h" />
+		<Unit filename="utils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="utils.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PXML xmlns="http://openpandora.org/namespaces/PXML" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="cpas.reminiscence.0.1.9-1" xsi:noNamespaceSchemaLocation="PXML_schema.xsd">
+  <title lang="en_US">REminiscence</title>
+  <title lang="de_DE">REminiscence</title>
+
+  <exec background="true" startdir="/usr/share/icons/" standalone="true" command="rs"/>
+
+  <description lang="en_US">REminiscence is a rewrite of the engine used in the game Flashback from Delphine Software.</description>
+  <description lang="de_DE">REminiscence is a rewrite of the engine used in the game Flashback from Delphine Software.</description>
+
+  <icon src="re.png"/>
+
+  <previewpics>
+    <pic src="pic1.png"/>
+  </previewpics>
+
+  <author name="Cpasjuste" website="http://www.mydedibox.fr/"/><!--Optional email and website, name required-->
+
+  <version major="0" minor="1" release="9" build="1"/><!--This program's version-->
+  <osversion major="1" minor="0" release="0" build="0"/><!--The minimum OS version required-->
+
+  <categories>
+    <category name="games"><!--category like "Games", "Graphics", "Internet" etc-->
+    <subcategory name="Subcategory 1"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
+    <subcategory name="Subcategory 2"/>
+    </category>
+    <category name="Alternative category">
+      <subcategory name="Alternative Subcategory 1"/>
+    </category>
+  </categories>
+
+  <associations>
+    <!--File associations, with a short description, an extension, and start params.-->
+    <association name="View Word File" filetype="application/msword" exec="-f %s -t doc"/>
+  </associations>
+
+  <clockspeed frequency="600"/><!--Frequency in Hz-->
+
+  <configuration for="gmenupandora">......kfujl........</configuration><!--random data, this is for specific menus-->
+  <configuration for="anothermenu">......qwe......fwer.....</configuration>
+</PXML>
+

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PXML xmlns="http://openpandora.org/namespaces/PXML" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="jeff.sample.3" xsi:noNamespaceSchemaLocation="PXML_schema.xsd">
+  <title lang="en_US">Sample App 3</title>
+  <title lang="de_DE">Sample App 3 - German</title>
+
+  <exec background="true" startdir="/usr/share/icons/" standalone="true" command="program.exe"/>
+
+  <icon src="zeldaicon.png"/>
+
+  <description lang="en_US">This is the English Description of the file.</description>
+  <description lang="de_DE">This would be the German description.</description>
+
+  <previewpics>
+    <pic src="./preview/pic1.jpg"/>
+    <pic src="./preview/pic2.jpg"/>
+  </previewpics>
+
+  <author name="EvilDragon" website="http://www.openpandora.org"/><!--Optional email and website, name required-->
+
+  <version major="1" minor="1" release="1" build="2"/><!--This program's version-->
+  <osversion major="1" minor="0" release="0" build="0"/><!--The minimum OS version required-->
+
+  <categories>
+    <category name="Main category"><!--category like "Games", "Graphics", "Internet" etc-->
+    <subcategory name="Subcategory 1"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
+    <subcategory name="Subcategory 2"/>
+    </category>
+    <category name="Alternative category">
+      <subcategory name="Alternative Subcategory 1"/>
+    </category>
+  </categories>
+
+  <associations>
+    <!--File associations, with a short description, an extension, and start params.-->
+    <association name="View Word File" filetype="application/msword" exec="-f %s -t doc"/>
+  </associations>
+
+  <clockspeed frequency="600"/><!--Frequency in Hz-->
+
+  <configuration for="gmenupandora">......kfujl........</configuration><!--random data, this is for specific menus-->
+  <configuration for="anothermenu">......qwe......fwer.....</configuration>
+</PXML>

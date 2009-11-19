@@ -1,0 +1,28 @@
+
+# Open Pandora
+# dotdesktop configuration
+
+# this config file maps 'PXML' categories to free-desktop standard categories
+# ie: category 'Foo' could map to more standard 'Utility', thus making .desktop file
+# emitting a more useful thing
+
+# the standard listing of categories is:
+# http://standards.freedesktop.org/menu-spec/latest/apa.html
+
+# note that 'map' section in the config is _required_ for a match to be found; this
+# is done to separate categories from (future) top-level directives
+
+default	Application;Utility;Network;
+
+[map]
+Subcategory1	Graphics
+Development	Development
+Education	Education
+Games	Game
+Graphics	Graphics
+Internet	Network
+Multimedia	AudioVideo
+Office	Office
+Settings	Settings
+System	System
+Utilities	Utility

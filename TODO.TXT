@@ -1,0 +1,3 @@
+- fetch sd card partitions where app are from mount 
+done -> you only need to mount for previewpics and you can do that the moment the app is slected, not cache
+done -> also a minor cosmetic thing, you should place the pmenu folder inside /pandora on the sd 

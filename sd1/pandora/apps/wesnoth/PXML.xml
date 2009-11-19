@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PXML xmlns="http://openpandora.org/namespaces/PXML" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="cpas.wesnoth.1.6.2" xsi:noNamespaceSchemaLocation="PXML_schema.xsd">
+  <title lang="en_US">The Battle for Wesnoth</title>
+  <title lang="de_DE">The Battle for Wesnoth</title>
+
+  <exec background="true" startdir="/usr/share/icons/" standalone="true" command="run.sh"/>
+
+  <description lang="en_US">The Battle for Wesnoth  is a free, turn-based tactical strategy game with a high fantasy theme, featuring both single-player, and online/hotseat multiplayer combat. Fight a desperate battle to reclaim the throne of Wesnoth, or take hand in any number of other adventures...</description>
+  <description lang="de_DE">The Battle for Wesnoth  is a free, turn-based tactical strategy game with a high fantasy theme, featuring both single-player, and online/hotseat multiplayer combat. Fight a desperate battle to reclaim the throne of Wesnoth, or take hand in any number of other adventures... </description>
+
+  <icon src="wesnoth.png"/>
+
+  <previewpics>
+    <pic src="pic1.png"/>
+  </previewpics>
+
+  <author name="Cpasjuste" website="http://www.mydedibox.fr/"/><!--Optional email and website, name required-->
+
+  <version major="1" minor="6" release="2" build="0"/><!--This program's version-->
+  <osversion major="1" minor="0" release="0" build="0"/><!--The minimum OS version required-->
+
+  <categories>
+    <category name="games"><!--category like "Games", "Graphics", "Internet" etc-->
+    <subcategory name="Subcategory 1"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
+    <subcategory name="Subcategory 2"/>
+    </category>
+    <category name="Alternative category">
+      <subcategory name="Alternative Subcategory 1"/>
+    </category>
+  </categories>
+
+  <associations>
+    <!--File associations, with a short description, an extension, and start params.-->
+    <association name="View Word File" filetype="application/msword" exec="-f %s -t doc"/>
+  </associations>
+
+  <clockspeed frequency="600"/><!--Frequency in Hz-->
+
+  <configuration for="gmenupandora">......kfujl........</configuration><!--random data, this is for specific menus-->
+  <configuration for="anothermenu">......qwe......fwer.....</configuration>
+</PXML>
+

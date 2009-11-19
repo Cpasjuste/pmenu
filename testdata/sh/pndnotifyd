@@ -1,0 +1,44 @@
+#! /bin/sh 
+#
+### BEGIN INIT INFO
+# Provides:          pndnotifyd
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     1 2 3 4 5
+# Default-Stop:      0 6
+# Short-Description: PND discovery deamon
+### END INIT INFO
+ 
+PID=`pidof -o %PPID -x pndnotifyd`
+
+case "$1" in
+start)
+	# Start daemon.
+	echo "starting $PID"
+                        if [ $PID ]
+                        then
+                                echo "pndnotifyd already running."
+                        else
+				$PNDNOTIFY -d
+				echo "started pndnotifyd"
+                        fi
+ 
+	;;
+stop)
+	# Stop daemon.
+	kill $PID
+	;;
+reload)
+	kill -HUP $PID
+	;;
+restart|force-reload)
+	$0 stop
+	$0 start
+    ;;
+*)
+	echo "Usage: $0 {start|stop|restart|reload|force-reload}" >&2
+	exit 2
+	;;
+esac
+exit 0
+
