@@ -58,9 +58,9 @@ libconfig/.libs/libconfig.a:
 deploy: 
 	# populate deployment directory for copying into image bakes
 	# make dirs
-	mkdir -p deployment/usr/lib
-	mkdir -p deployment/usr/include/GLES2D
+	mkdir -p deployment/etc/pandora/pmenu
 	# copy in goodies
-	cp libGLES2D* deployment/usr/lib
-	cp include/GLES2D/* deployment/usr/include/GLES2D
+	cp -rf skins deployment/etc/pandora/pmenu/
+	cp pmenu deployment/etc/pandora/pmenu/
+	cp pmenu.cfg deployment/etc/pandora/pmenu/
 
