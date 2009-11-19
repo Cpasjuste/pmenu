@@ -1,27 +1,17 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#include <libconfig.h>
+#include "libconfig.h"
+
+#define FAV_MAX 128
 
 struct config_t cfg;
 
-#define FAV_MAX 21
-
-typedef struct
-{
-	int enabled[FAV_MAX];
-	char name[FAV_MAX][256];
-	char fullpath[FAV_MAX][256];
-	char exec_name[FAV_MAX][256];
-	char icon[FAV_MAX][256];
-	char description[FAV_MAX][256];
-
-} CONFIG;
-
-CONFIG *fav;
-
 int cfg_fav_read();
-int cfg_fav_add(int fav_number, char *name, char *fullpath, char *exec_name, char *icon, char *description);
-int cfg_fav_del(int fav_number);
+int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *fullpath, char *exec_name, char *_icon, char *description, char *preview_pic1, char *preview_pic2 );
+int cfg_fav_del( int fav );
+
+char cfg_fav_path[10][512];
+int cfg_fav_count;
 
 #endif

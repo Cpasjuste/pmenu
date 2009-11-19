@@ -3,4 +3,9 @@
 # Desktop configuration
 
 [dotfiles]
-dotdesktoppath	./testdata/dotdesktop	# path for pndnotifyd to spit .desktop files into
+#dotdesktoppath	./testdata/dotdesktop	# path for pndnotifyd to spit .desktop files into
+dotdesktoppath	~/.applications		# path for pndnotifyd to spit .desktop files into
+iconpath	./testdata/dotdesktop	# path for pndnotifyd to drop icons into (can be same as .desktop if WM permits)
+
+[launcher]
+hupscript	pnd_hup.sh

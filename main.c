@@ -1,423 +1,426 @@
 #include <string.h>
-#include <ctype.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/io.h>
-#include <sys/wait.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <time.h>
 #include <stdio.h>
-#include <dirent.h>
+#include <time.h>
+#include <pthread.h>
 
-#include "graphics.h"
 #include "main.h"
 #include "get_apps.h"
-#include "mouse.h"
 #include "fav_config.h"
 #include "gui_config.h"
-#include "setting_config.h"
-
+#include "pmenu_config.h"
+#include "utils.h"
+#include "cpuLoad.h"
 #include "pnd_apps.h"
+#include "pnd_notify.h"
 
-#include "sprig.h"
+#include "menu_settings.h"
 
-#include <GLES/gl.h>
-#include <GLES/glues.h>
+char fps[16];
+static int gui_done = 0, do_quit = 0, preview_timer = 30;
+int reset_scroll_count_fav = 0;
+int preview_scale = 0;
+int page[CATEGORY_COUNT] = {0, 0, 0, 0};
+pnd_notify_handle nh;
+int timerset = 0, start = 0, now = 0;
+int nh_countdown = 60;
+void gui_clean_fav();
+void gui_load_fav();
 
-int do_quit = 0;
-
-void check_xorg()
+void app_scale()
 {
-	DIR * d = opendir("/proc");
-	FILE * fp;
-	pid_t pid;
-	struct dirent * de;
-	char * end;
-	char buf[100];
+    int i;
 
-	while ((de = readdir(d)) != NULL)
-	{
-		// for this directory, check the name, we want only numeric filenames (pid).
-		pid = strtoul(de -> d_name, & end, 10);
-		if (*end != '\0')
-			continue; // skip this dir.
-   
-		sprintf( buf, "/proc/%d/cmdline", pid);
-		fp = fopen(buf, "rt");
-		if (fp == NULL)
-			continue;
+    for(i = 0; i < list_num[category]; i++)
+    {
+        if ( i == list_curpos[category] )
+        {
+            if ( applications[category]->scale[i] < 42 )
+                applications[category]->scale[i]+=1;
+        }
+        else
+        {
+            if ( applications[category]->scale[i] > 32 )
+                applications[category]->scale[i]-=1;
+        }
+    }
 
-		fgets(buf, sizeof(buf), fp);
-		fclose(fp);
-		// compare command line to see if it is the program you want. Perhaps drop the first argument
-		// and just compare the first token and see if the name matches.
-		if (strncmp(buf, "Xorg", 4) == 0)
-		{
-			// the pid in question is in pid!
-			//do_what_we_want_with_this_process(pid);
-			x11_mode = 1;
-			break;
- 		}
-		else
-		{
-			x11_mode = 0;
-		}
-	}
-	closedir(d);
 }
 
-int gui_init_sdl()
+void app_scale_set()
 {
-	check_xorg();
+    int i, j;
 
-	putenv ("SDL_MOUSEDRV=TSLIB");
-	if( ! x11_mode ) putenv ("SDL_VIDEODRIVER=fbcon");
-
-	if (SDL_Init( SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO) == -1 )
+	for( i = 0; i < CATEGORY_COUNT-2; i++ )
 	{
-		fprintf(stderr, "Couldn’t initialize SDL: %s\n", SDL_GetError());
-		exit(1);
-	}
-	atexit(SDL_Quit);
-
-	int joystick = 0, x = 0;
-	joystick = SDL_NumJoysticks();
-	printf("Nombres de joysticks attachés: %d\n", joystick);
-
-	for (x = 0; x < joystick; x++)
-	{
-		SDL_Joystick * joy = SDL_JoystickOpen(x);
-		printf("Joystick %i: %s\n", x, SDL_JoystickName(x));
-		printf("Axes: %d\n", SDL_JoystickNumAxes(joy));
-		printf("Boutons: %d\n", SDL_JoystickNumButtons(joy));
-		printf("Trackballs: %d\n", SDL_JoystickNumBalls(joy));
-		printf("Hats: %d\n\n", SDL_JoystickNumHats(joy));
-	}
-
-	myscreen = NULL;
-
-	if( ! x11_mode )
-	{
-
-		myscreen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_SWSURFACE);
-		if( myscreen == NULL )
+		for(j = 0; j < list_num[i]; j++)
 		{
-		    fprintf(stderr, "Couldn’t initialize VideoMode: %s\n", SDL_GetError());
-		    exit(1);
-		}
-
-		init_raw_screen();
+		    applications[i]->scale[j] = 32;
+        }
 	}
-	else
+}
+
+void reset_preview_timer()
+{
+	if( tmp_preview != NULL )
 	{
-		myscreen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, SDL_OPENGLES /*| SDL_FULLSCREEN*/);
-		if( myscreen == NULL )
+		printf("\tFreeing old preview pic texture memory\n");
+		GLES2D_FreeTexture( tmp_preview );
+		tmp_preview = NULL;
+	}
+	preview_timer = 25;
+}
+
+void rediscover()
+{
+    int i, j;
+
+	for( i = 0; i < CATEGORY_COUNT-2; i++ )
+	{
+		for(j = 0; j < list_num[i]; j++)
 		{
-		    fprintf(stderr, "Couldn’t initialize VideoMode: %s\n", SDL_GetError());
-		    exit(1);
+			if ( icon[i][j] != NULL )
+            {
+                    GLES2D_FreeTexture( icon[i][j] );
+                    icon[i][j] = NULL;
+            }
+		}
+		list_num[i] = 0;
+	}
+
+    for( i = 0; i < CATEGORY_COUNT-2; i++ )
+	{
+		free(applications[i]);
+	}
+
+	pnd_app_get_list();
+
+	for(i = 0; i < CATEGORY_COUNT-2; i++)
+	{
+		for(j = 0; j < list_num[i]; j++)
+		{
+		    icon[i][j] = NULL;
+			icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j] ,0  );
+            applications[i]->scale[j] = 32;
 		}
 	}
 
-	init_2D_view();
 
-	if( TTF_Init() == -1 )
-	{ 
-		printf("TTF_Init() failed : %s\n", SDL_GetError());
-		return 1;
-	} 
+	list_curpos[category] = 0;
+	reset_preview_timer();
 
-	font = NULL;
-	font = TTF_OpenFont( "data/font.ttf", 16); 
-	if( font == NULL )
-	{
-		printf("TTF_OpenFont failed : %s\n", SDL_GetError());
-		return 1; 
-	} 
+	gui_clean_fav();
+	cfg_fav_read();
+	gui_load_fav();
+}
 
-	font_big = NULL;
-	font_big = TTF_OpenFont( "data/font.ttf", 20); 
-	if( font == NULL )
-	{
-		printf("TTF_OpenFont failed : %s\n", SDL_GetError());
-		return 1; 
-	} 
-	
-#ifndef PANDORA
-	SDL_ShowCursor(SDL_ENABLE);
+void check_rediscover()
+{
+    nh_countdown--;
+    if ( ! nh_countdown )
+    {
+        if ( pnd_notify_rediscover_p ( nh ) )
+        {
+            printf ( "Must do a rediscover!\n" );
+
+            rediscover();
+
+            nh_countdown = 120;
+        }
+        else
+        {
+            nh_countdown = 60;
+        }
+    }
+}
+
+void exitError ( char *errormsg )
+{
+	printf("%s", errormsg);
+
+	GLES2D_Quit();
+}
+
+int gui_init()
+{
+#ifdef I386
+    GLES2D_InitVideo( 800, 480, 1, 1, 1 );
+//    GLES2D_JoystickList();
+//    GLES2D_JoystickInit(0);
 #else
-	SDL_ShowCursor(SDL_DISABLE);
+	putenv ("SDL_MOUSEDRV=TSLIB");
+    GLES2D_InitVideo( 800, 480, 1, 1, 1 );
 #endif
 
 	return 0;
 }
 
-
-void gui_clean_fav()
+void gui_load_icon()
 {
-	int i;
-	
-	for( i = 0; i < FAV_MAX; i++)
+    int i, j;
+
+    for(i = 0; i < CATEGORY_COUNT - 2; i++)
 	{
-
+		for(j = 0; j < list_num[i]; j++)
+		{
+		    printf( "Looking for icon[%i][%i]\n",i, j );
+            icon[i][j] = NULL;
+            icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j], 0  );
+		}
 	}
-
 }
 
-void gui_load_preview(int cat, int n)
+void gui_load_preview( int cat, int n )
 {
-	alpha_preview = 0.0f;
+	alpha_preview = 0;
+	preview_scale = 0;
 
 	if( tmp_preview != NULL )
 	{
-		printf("\tFreeing old preview pic texture memory\n");
-		glDeleteTextures( 1, &tmp_preview->texture );
-		free ( tmp_preview );
-		tmp_preview = NULL;
+	    GLES2D_FreeTexture( tmp_preview );
+	    tmp_preview = NULL;
 	}
-
 
 	if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
 	{
-		tmp_preview = (TEXTURE *) malloc( sizeof(TEXTURE));
-		if ( ! load_image_to_texture( tmp_preview, applications[cat]->preview_pic1[n] ) )
-		{
-			free( tmp_preview );
-			tmp_preview = NULL;
-			printf("Fail : gui_load_preview (load_image_to_texture);\n\n");
-		}
+		tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 );
+
+        if ( ! tmp_preview )
+            printf("Fail : gui_load_preview (load_image_to_texture);\n\n");
 		else
-		{
 			printf("Success : gui_load_preview (load_image_to_texture);\n\n");
-		}
 	}
 	else
 	{
-		printf("Fail : gui_load_preview (preview pic do not exist -> %s);\n\n", applications[cat]->preview_pic1[n]);
+	    if ( access ( applications[cat]->fullpath[n], R_OK ) == 0 )
+	    {
+            if ( applications[cat]->type[n] == 2 )
+            {
+                char src[512];
+                memset ( src, 0, 512 );
+                sprintf( src, "/mnt/pnd/%s/%s", applications[cat]->id[n], applications[cat]->preview_pic1_name[n] );
+
+                pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+
+                if ( access ( src, R_OK ) == 0 )
+                {
+                    printf("copy %s -> %s\n", src, applications[cat]->preview_pic1[n] );
+                    copy( src, applications[cat]->preview_pic1[n] );
+
+                    if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
+                    {
+                        tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 );
+
+                        if ( ! tmp_preview )
+                            printf("Fail : gui_load_preview (load_image_to_texture);\n\n");
+                        else
+                            printf("Success : gui_load_preview (load_image_to_texture);\n\n");
+                    }
+                    else
+                    {
+                            printf( "Could not copy %s to %s\n", src, applications[cat]->preview_pic1[n] );
+                    }
+                }
+                else
+                {
+                    printf( "Could not access cache preview from %s\n", src );
+                }
+
+                pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+            }
+	    }
+	    else
+	    {
+            printf("Fail : gui_load_preview (preview pic do not exist -> %s);\n", applications[cat]->preview_pic1[n]);
+            printf("Will use fail safe preview pic\n\n");
+	    }
 	}
 }
 
 void gui_load_fav()
 {
+    int i;
+
+    for(i = 0; i < list_num[FAVORITES]; i++)
+    {
+        icon[FAVORITES][i] = NULL;
+        icon[FAVORITES][i] = GLES2D_CreateTexture( applications[FAVORITES]->icon[i], 0  );
+    }
+}
+
+void gui_clean_fav()
+{
 	int i;
-	
-	for( i = 0; i < FAV_MAX; i++)
+
+    for(i = 0; i < list_num[FAVORITES]; i++)
+    {
+        if ( icon[FAVORITES][i] != NULL )
+        {
+                GLES2D_FreeTexture( icon[FAVORITES][i] );
+                icon[FAVORITES][i] = NULL;
+        }
+	}
+}
+
+void gui_clean_skin()
+{
+    int i;
+
+	GLES2D_FreeTexture( background );
+	GLES2D_FreeTexture( highlight );
+	GLES2D_FreeTexture( highlight_fav );
+	GLES2D_FreeTexture( app_highlight );
+	GLES2D_FreeTexture( confirm_box );
+	GLES2D_FreeTexture( no_icon );
+	GLES2D_FreeTexture( no_preview );
+    GLES2D_FreeTexture( cpu_icon );
+    GLES2D_FreeTexture( clock_icon );
+    GLES2D_FreeTexture( sd1_icon );
+    GLES2D_FreeTexture( sd2_icon );
+
+	for ( i = 0; i < CATEGORY_COUNT; i++ )
 	{
-		if(fav->enabled[i])
-		{
-			if (access (fav->fullpath[i], R_OK) == 0) 
-			{
-				if (access (fav->icon[i], R_OK) == 0) 
-				{
-					fav_preview[i] = (TEXTURE *) malloc( sizeof(TEXTURE));
-					load_image_to_texture( fav_preview[i], fav->icon[i] );
-			
-				}
-				else
-				{
-					fav_preview[i] = (TEXTURE *) malloc( sizeof(TEXTURE));
-					load_image_to_texture( fav_preview[i], "data/no_icon.png" );
-				}
-			}
-			else
-			{
-					cfg_fav_del( i );
-					gui_load_fav();
-			}
-		}
+		GLES2D_FreeTexture( category_icon[i] );
+		category_icon[i] = NULL;
 	}
 
+    GLES2D_FreeFont( normal );
+    GLES2D_FreeFont( small );
+}
+
+void gui_load_skin()
+{
+    char tmp[512];
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/backg.bmp", pmenu->skin_dir );
+	background = GLES2D_CreateTexture( tmp, 0 );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/highlight.bmp", pmenu->skin_dir );
+	highlight = GLES2D_CreateTexture( tmp, 0 );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/highlight_fav.bmp", pmenu->skin_dir );
+    highlight_fav = GLES2D_CreateTexture( tmp, 0 );
+    GLES2D_SetTextureAlpha ( highlight_fav, 100 );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/app_highlight.bmp", pmenu->skin_dir );
+	app_highlight = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/favorites_icon.bmp", pmenu->skin_dir );
+	category_icon[FAVORITES] = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/emulators_icon.bmp", pmenu->skin_dir );
+	category_icon[EMULATORS] = GLES2D_CreateTexture( tmp , 0 );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/games_icon.bmp", pmenu->skin_dir );
+	category_icon[GAMES] = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/applications_icon.bmp", pmenu->skin_dir );
+	category_icon[APPLICATIONS] = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/divers_icon.bmp", pmenu->skin_dir );
+	category_icon[DIVERS] = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/settings_icon.png", pmenu->skin_dir );
+    category_icon[SETTINGS] = GLES2D_CreateTexture( tmp, 0  );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/confirm_box.png", pmenu->skin_dir );
+	confirm_box = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/no_icon.bmp", pmenu->skin_dir );
+	no_icon = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/no_preview.bmp", pmenu->skin_dir );
+	no_preview = GLES2D_CreateTexture( tmp, 0  );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/cpu.png", pmenu->skin_dir );
+    cpu_icon = GLES2D_CreateTexture( tmp, 0  );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/clock.png", pmenu->skin_dir );
+    clock_icon = GLES2D_CreateTexture( tmp, 0  );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/sd1.png", pmenu->skin_dir );
+    sd1_icon = GLES2D_CreateTexture( tmp , 0 );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/sd2.png", pmenu->skin_dir );
+    sd2_icon = GLES2D_CreateTexture( tmp, 0  );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/big.ttf", pmenu->skin_dir );
+    normal = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, 16 );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/font.ttf", pmenu->skin_dir );
+	small = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, 16 );
 }
 
 void gui_load()
 {
-	int i, j;
+    gui_load_skin();
 
-	buffer1 = (TEXTURE *) malloc( sizeof(TEXTURE));
-	buffer2 = (TEXTURE *) malloc( sizeof(TEXTURE));
+    gui_load_icon();
 
-	logo = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( logo, "data/logo.bmp" ) )
-	{
-		free( logo );
-		logo = NULL;
-	}
+    gui_load_fav();
 
-	background = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( background, "data/backg.bmp" ) )
-	{
-		free( background );
-		background = NULL;
-	}
+    app_scale_set();
 
-	fav_background = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( fav_background, "data/fav_backg.bmp" ) )
-	{
-		free( fav_background );
-		fav_background = NULL;
-	}
+    if ( ( nh = pnd_notify_init() ) )
+        printf ( "INOTIFY is up.\n" );
 
-	app_background = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( app_background, "data/app_backg.bmp" ) )
-	{
-		free( app_background );
-		app_background = NULL;
-	}
-
-	highlight = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( highlight, "data/highlight.bmp" ) )
-	{
-		free( highlight );
-		highlight = NULL;
-	}
-
-	app_highlight = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( app_highlight, "data/app_highlight.bmp" ) )
-	{
-		free( app_highlight );
-		app_highlight = NULL;
-	}
-
-	category_icon[FAVORITES] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( category_icon[FAVORITES], "data/favorites_icon.bmp" ) )
-	{
-		free( category_icon[FAVORITES] );
-		category_icon[FAVORITES] = NULL;
-	}
-
-	category_icon[EMULATORS] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( category_icon[EMULATORS], "data/emulators_icon.bmp" ) )
-	{
-		free( category_icon[EMULATORS] );
-		category_icon[EMULATORS] = NULL;
-	}
-
-	category_icon[GAMES] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( category_icon[GAMES], "data/games_icon.bmp" ) )
-	{
-		free( category_icon[GAMES] );
-		category_icon[GAMES] = NULL;
-	}
-
-	category_icon[APPLICATIONS] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( category_icon[APPLICATIONS], "data/applications_icon.bmp" ) )
-	{
-		free( category_icon[APPLICATIONS] );
-		category_icon[APPLICATIONS] = NULL;
-	}
-
-	arrow[LEFT] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( arrow[LEFT], "data/arrowleft.bmp" ) )
-	{
-		free( arrow[LEFT] );
-		arrow[LEFT] = NULL;
-	}
-
-	arrow[RIGHT] = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( arrow[RIGHT], "data/arrowright.bmp" ) )
-	{
-		free( arrow[RIGHT] );
-		arrow[RIGHT] = NULL;
-	}
-
-	confirm_box = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( confirm_box, "data/confirm_box.bmp" ) )
-	{
-		free( confirm_box );
-		confirm_box = NULL;
-	}
-
-	no_icon = (TEXTURE *) malloc( sizeof(TEXTURE));
-	if( ! load_image_to_texture( no_icon, "data/no_icon.bmp" ) )
-	{
-		free( no_icon );
-		no_icon = NULL;
-	}
-
-
-	for(i = EMULATORS; i < APPLICATIONS+1; i++)
-	{
-		for(j = 0; j < list_num[i]; j++)
-		{
-			preview[i][j] = (TEXTURE *) malloc( sizeof(TEXTURE));
-			if( ! load_image_to_texture(preview[i][j], applications[i]->icon[j]) )
-			{
-				free( preview[i][j] );
-				preview[i][j] = NULL;
-			}
-		}
-	}
-	gui_load_fav();
+    initStatusCalls();
+    cpuUsage();
+    getCPULoad();
 }
 
 void gui_clean()
 {
+    printf("gui_clean()\n" );
+
+    gui_clean_skin();
+
 	int i, j;
 
-	glDeleteTextures( 1, &buffer1->texture);
-	if ( buffer1 ) free ( buffer1 );
-
-	glDeleteTextures( 1, &buffer2->texture);
-	if ( buffer2 ) free ( buffer2 );
-
-	glDeleteTextures( 1, &logo->texture);
-	if ( logo ) free ( logo );
-
-	glDeleteTextures( 1, &background->texture );
-	if ( background ) free ( background );
-
-	glDeleteTextures( 1, &fav_background->texture );
-	free (fav_background);
-
-	glDeleteTextures( 1, &app_background->texture );
-	free (app_background);
-
-	glDeleteTextures( 1, &highlight->texture );
-	free (highlight);
-
-	glDeleteTextures( 1, &app_highlight->texture );
-	free (app_highlight);
-
-	glDeleteTextures( 1, &category_icon[FAVORITES]->texture );
-	free (category_icon[FAVORITES]);
-
-	glDeleteTextures( 1, &category_icon[EMULATORS]->texture );
-	free (category_icon[EMULATORS]);
-
-	glDeleteTextures( 1, &category_icon[GAMES]->texture );
-	free (category_icon[GAMES]);
-
-	glDeleteTextures( 1, &category_icon[APPLICATIONS]->texture );
-	free (category_icon[APPLICATIONS]);
-
-	glDeleteTextures( 1, &arrow[LEFT]->texture );
-	free (arrow[LEFT]);
-
-	glDeleteTextures( 1, &arrow[RIGHT]->texture );
-	free (arrow[RIGHT]);
-
-	glDeleteTextures( 1, &confirm_box->texture );
-	free (confirm_box);
-
-	glDeleteTextures( 1, &no_icon->texture );
-	free (no_icon);
-
-	for(i = EMULATORS; i < APPLICATIONS+1; i++)
+	for( i = 0; i < CATEGORY_COUNT-2; i++ )
 	{
 		for(j = 0; j < list_num[i]; j++)
 		{
-			glDeleteTextures( 1, &preview[i][j]->texture );
-			free (preview[i][j]);
+			if ( icon[i][j] != NULL )
+            {
+                    GLES2D_FreeTexture( icon[i][j] );
+                    icon[i][j] = NULL;
+            }
 		}
 	}
 
-	TTF_CloseFont( font ); 
-	TTF_CloseFont( font_big );
-	TTF_Quit(); 
-	SDL_Quit();
+    gui_clean_fav();
 
-	if( ! x11_mode ) destroy_raw_screen();
+    if( tmp_preview != NULL )
+	{
+	    GLES2D_FreeTexture(tmp_preview);
+	    tmp_preview = NULL;
+	}
+
+    pnd_notify_shutdown ( nh );
+    doneStatusCalls();
+
+    GLES2D_Quit();
 }
 
 void gui_app_exec(int n)
@@ -426,573 +429,515 @@ void gui_app_exec(int n)
 
 	pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
 		applications[category]->id[n], applications[category]->exec_name[n], \
-			NULL, 500, PND_EXEC_OPTION_BLOCK);
+			applications[category]->fullpath[n], 600, PND_EXEC_OPTION_BLOCK);
 
-	gui_init_sdl();
+	gui_init();
 	gui_load();
-	
+
 	gui_load_preview( category, n );
 }
 
-void gui_app_exec_fav(int n)
-{
-	gui_clean();
-
-	pnd_apps_exec ( pndrun, fav->fullpath[n], \
-		NULL, fav->exec_name[n], \
-			NULL, 500, PND_EXEC_OPTION_BLOCK );
-
-	gui_init_sdl();
-	gui_load();
-}
-
-int gui_confirm_box(char *msg)
+int gui_confirm_box( char *msg )
 {
 	int done = 0;
 
-	DrawTexture( confirm_box, 400, 240, CENTERED, 0, 1.0f );
-//	draw_text_center(msg, SMALL, BLEND, WHITE, 400, 220);
+    GLES2D_DrawTextureSimple( confirm_box, 300, 125 );
+    GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+    GLES2D_DrawFontBox ( small, 300, 125, confirm_box->dst->w, confirm_box->dst->h, msg );
 
-	gui_swap_buffer();
+    //GLES2D_DrawTextBoxFill( small, msg, 400 - 100, 280 - 50, 200, 100, 100, 100, 100, 200, 255, 255, 255, 255 );
+
+    GLES2D_SwapBuffers();
 
 	while(!done)
 	{
-		get_mouse_loc();
+        GLES2D_HandleEvents( 90 );
 
-		if(get_mouse_click(MOUSE_LEFT))
-		{
-			if(reset_ts_pos) { mouse_hold_x = MOUSE_X; mouse_hold_y = MOUSE_Y; reset_ts_pos = 0; }
+        if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed ( XK_o ) ) // OK
+        {
+                return 1;
+        }
 
-			if(mouse_is_over(280, 370, 270, 310)) // OK
-			{
-				return 1;
-			}
-			else if(mouse_is_over(428, 517, 270, 310)) // Cancel
-			{
-				return 0;
-			}
-		}
-		else reset_ts_pos = 1;
+        if ( GLES2D_PadPressed ( B ) || GLES2D_KeyboardPressed ( XK_n ) ) // Cancel
+        {
+                return 0;
+        }
 
-//		SDL_framerateDelay( &sixteen );
 		SDL_Delay(1);
 	}
 	return 0;
+
 }
 
 void gui_draw()
 {
-	if(category != FAVORITES)
+    GLES2D_DrawTextureSimple ( background, 0, 0 );
+
+	if( category != SETTINGS )
 	{
-		DrawTexture( background, 0, 0, NORMAL, 0, 1.0f);
+	    app_scale();
 
 		int i = list_start[category];
 
 		char tmpStr[256];
 
-		while (i < (list_start[category]+MAXLIST)) 
+		while (i < (list_start[category]+gui->max_app_per_page))
 		{
 			if (i < list_num[category])
 			{
-				memset(tmpStr, 0, 256);
-				strncpy(tmpStr, applications[category]->name[i], 40);
-
 				if (i == list_curpos[category])
 				{
-					
-					DrawTexture( app_highlight, gui->applications_box_x - 54, (((i-list_start[category])+gui->applications_box_y)*50) - 7, NORMAL, 0, 1.0f);
-					draw_text(tmpStr, BIG, BLEND, GREEN, gui->applications_box_x, ((i-list_start[category])+gui->applications_box_y)*50);
+					memset(tmpStr, 0, 256);
+					strncpy(tmpStr, applications[category]->name[i], 29);
+
+					GLES2D_DrawTextureSimple ( app_highlight, gui->applications_box_x - 54, \
+						(((i-list_start[category])+gui->applications_box_y)*50) - 30 );
+
+					GLES2D_DrawFont( normal, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 23 , tmpStr );
+
+					if ( scroll_count < gui->applications_box_x - GLES2D_GetTextWidth ( small, applications[category]->description[i] ) )
+                        scroll_count = gui->applications_box_x + 270;
+
+                    if ( reset_scroll_count )
+                    {
+                        scroll_count = gui->applications_box_x;
+                        reset_scroll_count = 0;
+                    }
+                    GLES2D_DrawFontScroll( small, scroll_count, ( ((i-list_start[category])+gui->applications_box_y)*50 + 20 ) - 23, gui->applications_box_x, gui->applications_box_x + 270,  applications[category]->description[i] );
+
+                    scroll_count--;
 				}
 				else
 				{
-					draw_text(tmpStr, SMALL, BLEND, WHITE, gui->applications_box_x, ((i-list_start[category])+gui->applications_box_y)*50);
+					memset(tmpStr, 0, 256);
+					strncpy(tmpStr, applications[category]->name[i], 29);
+					GLES2D_DrawFont( normal, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 23, tmpStr );
+                    memset(tmpStr, 0, 256);
+					strncpy(tmpStr, applications[category]->description[i], 40 );
+					GLES2D_DrawFont( small, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50 + 20) - 23, tmpStr );
 				}
 
+				if ( icon[category][i] != NULL )
+					GLES2D_DrawTextureScaledCentered( icon[category][i], gui->applications_box_x - 46 + 16, \
+						(((i-list_start[category])+gui->applications_box_y)*50)-23 + 18, applications[category]->scale[i], applications[category]->scale[i] );
+				else
+					GLES2D_DrawTextureScaledCentered( no_icon, gui->applications_box_x - 46 + 16, \
+						(((i-list_start[category])+gui->applications_box_y)*50)-23 + 18, applications[category]->scale[i], applications[category]->scale[i] );
 
-				if (access (applications[category]->icon[i], W_OK) == 0)
-				{
-					DrawTexture( preview[category][i], gui->applications_box_x - 46, ((i-list_start[category])+gui->applications_box_y)*50, NORMAL, 0.6f, 1.0f );
-					preview_x[category][i] = gui->applications_box_x - 46;
-					preview_y[category][i] = ((i-list_start[category])+gui->applications_box_y)*50;
-				}
+				icon_x[category][i] = gui->applications_box_x - 46;
+				icon_y[category][i] = (((i-list_start[category])+gui->applications_box_y)*50)-23;
 
 			}
 			i++;
 		}
 
-		if( tmp_preview != NULL )
-		{	
-			if(alpha_preview < 1.0f) alpha_preview += 0.05f;
-	 
-			DrawTexture( tmp_preview, 600, 200, CENTERED, 0.4f, alpha_preview);
-
-
-		}
-
-	}
-	else if( category == FAVORITES )
-	{
-		DrawTexture( fav_background, 0, 0, NORMAL, 0, 1.0f);
-
-		int i, x = 60, y = 120;
-
-		for( i = 0; i < FAV_MAX; i++)
+		if( list_num[category] )
 		{
-			if( !fav->enabled[i] ) break;
+			if( preview_timer == 1 ) gui_load_preview( category, list_curpos[category] );
 
-			if (( i == 7 ) | ( i == 14 )) { y += 100; x = 60; }
-
-			if( fav_preview[i] != NULL )
+			if( preview_timer > 0 )
 			{
-				DrawTexture( fav_preview[i], x, y, NORMAL, 0, 0.9f);
+				preview_timer--;
 			}
+			else
+			{
+				if(alpha_preview < 245) alpha_preview += 5;
+				if(preview_scale < 330) preview_scale += 10;
 
-			fav_preview_x[i] = x;
-			fav_preview_y[i] = y;
-
-			x += 100;
+				if( tmp_preview != NULL )
+				{
+					GLES2D_SetTextureAlpha ( tmp_preview, alpha_preview );
+					GLES2D_DrawTextureScaledCentered( tmp_preview, gui->preview_pic_x, gui->preview_pic_y, preview_scale, \
+						preview_scale / 1.666 );
+				}
+				else
+				{
+					GLES2D_SetTextureAlpha ( no_preview, alpha_preview );
+					GLES2D_DrawTextureScaledCentered( no_preview, gui->preview_pic_x, gui->preview_pic_y, preview_scale, \
+						preview_scale / 1.666 );
+				}
+			}
 		}
+
 	}
-
-
-	if(alpha_up)
-		alpha += 0.05f;
-	else
-		alpha -= 0.05f;
-
-	if(alpha > 1.0f)
-		alpha_up = 0;
-	else if(alpha < 0.3f)
-		alpha_up = 1;
- 
-	DrawTexture( highlight, category_icon_x[category], category_icon_y, CENTERED, 0  , alpha);
-
-	DrawTexture( category_icon[FAVORITES], category_icon_x[FAVORITES], category_icon_y, CENTERED, 0, 1.0f );
-	DrawTexture( category_icon[EMULATORS], category_icon_x[EMULATORS], category_icon_y, CENTERED, 0, 1.0f );
-	DrawTexture( category_icon[GAMES], category_icon_x[GAMES], category_icon_y, CENTERED, 0, 1.0f );
-	DrawTexture( category_icon[APPLICATIONS], category_icon_x[APPLICATIONS], category_icon_y, CENTERED, 0, 1.0f );
-
-	if(category != FAVORITES)
+	else if ( category == SETTINGS )
 	{
-		DrawTexture ( arrow[LEFT], gui->arrow_left_x, gui->arrow_left_y, CENTERED, 0, 1.0f );
-		DrawTexture ( arrow[RIGHT], gui->arrow_right_x, gui->arrow_right_y, CENTERED, 0, 1.0f );
-
-//		if( list_num[category] ) draw_text_scroll(applications[category]->description[list_curpos[category]], SMALL, NORMAL, WHITE, 440, 320, 315);
+        settings_draw();
 	}
 
-	draw_3d_box(logo, 750, 45, 15.0f);
+	if( alpha_up )
+		alpha += 5;
+	else
+		alpha -= 5;
 
-	draw_text("Exit", SMALL, BLEND, WHITE, 755, 450);
+	if( alpha > 250 )
+		alpha_up = 0;
+	else if(alpha < 50 )
+		alpha_up = 1;
+
+    GLES2D_SetTextureAlpha ( highlight, alpha );
+	GLES2D_DrawTextureCentered( highlight, category_icon_x[category], category_icon_y[category] );
+
+
+	int i;
+	for ( i = 0; i < CATEGORY_COUNT; i++ )
+	{
+        GLES2D_DrawTextureCentered( category_icon[i], category_icon_x[i], category_icon_y[i] );
+
+        if ( gui->show_category_title )
+        {
+            GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+            GLES2D_DrawFontCentered( small, category_icon[i]->dst->x + category_icon[i]->dst->w / 2, category_icon[i]->dst->y + category_icon[i]->dst->h + 10, gui->category_title[i] );
+        }
+	}
+
+
+//	char cpu_char[16];
+//	memset( cpu_char, 0, 16 );
+ //   printf( "%.0f%%\n", cpuUsage()*100 );
+//	sprintf( cpu_char, "%.0f%%\n", cpuUsage()*100 );
+//	GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+//	GLES2D_DrawFont( small, 152, 450, cpu_char );
+	GLES2D_DrawTextureSimple( cpu_icon, 110, 440 );
+
+    GLES2D_DrawFont(small, 542, 450, get_time_string(TIME_24) );
+    GLES2D_DrawTextureSimple( clock_icon, 500, 440 );
+
+    GLES2D_DrawTextureSimple( sd1_icon, 200, 440 );
+    GLES2D_DrawFont( small, 242, 450, disk_space( cfg_fav_path[0] ) );
+
+    GLES2D_DrawTextureSimple( sd2_icon, 350, 440 );
+    GLES2D_DrawFont( small, 392, 450, disk_space( cfg_fav_path[1] ) );
+
 }
 
 void gui_draw_application_box(int item)
 {
-	int done = 0;
+    printf(" gui_draw_application_box\n");
+    int done = 0;
+    char tmpString[256];
 
-	TEXTURE *tmp_pic1 = NULL;
-	TEXTURE *tmp_icon = NULL;
-
-	tmp_icon = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( tmp_icon, applications[category]->icon[item] );
-
-	tmp_pic1 = (TEXTURE *) malloc( sizeof(TEXTURE));
-	load_image_to_texture( tmp_pic1, applications[category]->preview_pic1[item] );
-
-	copy_buffer_to_texture(buffer1);
-
-	GLfloat alpha_old = 1.0f;
-	GLfloat alpha_new = 0.0f;
-	GLfloat reduce = 1.0f;
-	GLfloat maximize = 0.0f;
-
-	while(!done)
+    while( !done )
 	{
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GLES2D_HandleEvents( 90 );
 
-		if( alpha_old > 0.0f)
-		{
+        if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed( XK_o ) )
+            done = 1;
 
-			DrawBufferTexture(buffer1, 400, 240, CENTERED, reduce, alpha_old);
-			
-			alpha_old -= 0.02f;
-			reduce -= 0.02f;
-		}
-	
-		DrawTexture(app_background, 0, 0, NORMAL, maximize, alpha_new);
-		DrawTexture(tmp_icon, 50, 40, NORMAL, maximize, alpha_new);
-		DrawTexture(tmp_pic1, 50, 140, NORMAL, maximize - 0.4f , alpha_new);
+        gui_draw();
 
-		if( alpha_new < 1.0f)
-			alpha_new += 0.02f;
-		if( maximize < 1.0f )
-			maximize += 0.02f;
-	
-		get_mouse_loc();
 
-		if(get_mouse_click(MOUSE_LEFT))
-		{
-			if(reset_ts_pos) { mouse_hold_x = MOUSE_X; mouse_hold_y = MOUSE_Y; reset_ts_pos = 0; }
+//        SDL_SetRenderDrawBlendMode(SDL_BLENDMODE_MASK);
+//        SDL_SetRenderDrawColor( 153, 204, 50, 240 );
+        GLES2D_SetDrawingColor( 153, 204, 50, 240 );
+        GLES2D_DrawRectangle( 40, 40, 760, 440 );
+//        SDL_SetRenderDrawBlendMode(SDL_BLENDMODE_BLEND);
 
-			if(mouse_is_over(595, 755, 170, 240)) // launch
-			{
-				gui_app_exec(item);
-				done = 1;
-			}
-			else if(mouse_is_over(595, 755, 270, 340)) // add to fav
-			{
-				int j;
-				for( j = 0; j < FAV_MAX; j++ )
-				{
-					if(fav->enabled[FAV_MAX-1])
-					{
-						gui_confirm_box("Favorites are full");
-						break;
-					}
-					else if(!fav->enabled[j])
-					{
-						cfg_fav_add(j, applications[category]->name[item], \
-							applications[category]->fullpath[item], \
-							applications[category]->exec_name[item], \
-							applications[category]->icon[item], \
-							applications[category]->description[item]);
-						break;
-					}
-				}
-				done = 1;
-			}
-			else if(mouse_is_over(595, 755, 370, 440)) // Cancel
-			{
-				done = 1;
-			}
-		}
-		else reset_ts_pos = 1;
+//        GLES2D_SetDrawingColor( 255, 255, 255, 255 );
+        sprintf( tmpString, "Title: %s", applications[category]->name[item] );
+        GLES2D_DrawFont( normal, 50, 50, tmpString );
 
-		gui_swap_buffer();
+        sprintf( tmpString, "Description: %s", applications[category]->description[item] );
+        GLES2D_DrawFontBox( normal, 50, 70, 200, 100, tmpString );
+        //GLES2D_DrawText( normal, tmpString, 50, 50 );
 
+        GLES2D_SwapBuffers();
 	}
-
-	copy_buffer_to_texture(buffer2);
-
-	alpha_old = 1.0f;
-	alpha_new = 0.0f;
-	reduce = 1.0f;
-	maximize = 0.0f;
-
-	done = 0;
-	while(!done)
-	{
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if( alpha_old > 0.0f)
-		{
-
-			DrawBufferTexture(buffer2, 400, 240, CENTERED, reduce, alpha_old);
-			
-			alpha_old -= 0.02f;
-			reduce -= 0.02f;
-		}
-
-		DrawBufferTexture(buffer1, 400, 240, CENTERED, maximize, alpha_new);
-
-		if( maximize < 1.0f )
-			maximize += 0.02f;
-
-		gui_swap_buffer();
-
-		if( alpha_new < 1.0f) alpha_new += 0.02f;
-			else done = 1;
-	}
+    SDL_Delay( 60 );
 }
 
-int mouse_delay = 0;
-
-void handle_mouse()
+void gui_change_category( int requested_cat )
 {
-	int i;
-
-	mouse_delay++;
-
-	if(mouse_delay > 15)
+	category = requested_cat;
+	if( category != SETTINGS )
 	{
-		get_mouse_loc();
+		alpha = 0.0f;
+		alpha_up = 1;
+		reset_scroll_count = 1;
 
-		if(get_mouse_click(MOUSE_LEFT))
-		{	
-			mouse_delay = 0;
-
-			reset_scroll_count = 1;
-
-			printf( "X:%i Y:%i\n", MOUSE_X, MOUSE_Y );
-		
-			if(reset_ts_pos) { mouse_hold_x = MOUSE_X; mouse_hold_y = MOUSE_Y; reset_ts_pos = 0; }
-
-			if(category == FAVORITES)
-			{
-				if(mouse_is_over(35, 755, 85, 435))
-				{
-					if(MOUSE_X > (mouse_hold_x + 100))
-					{
-							fav_page += 1;
-							mouse_hold_x += 100;	
-					}
-				}
-
-				for(i = 0; i < FAV_MAX; i++ )
-				{
-					if( !fav->enabled[i] ) break;
-
-					if( mouse_is_over_surface( fav_preview_x[i], fav_preview_y[i], fav_preview[i]->w, fav_preview[i]->h ) )
-					{
-						hold_count++;
-
-						if(hold_count == 3)
-						{
-							if(gui_confirm_box("Delete from favorites ?"))
-							{
-								printf("deleting from fav (%i)\n", i);
-								cfg_fav_del( i );
-								hold_count = 0;
-								exec_app = 0;
-								break;
-							}
-							else
-							{
-								hold_count = 0;
-								exec_app = 0;
-								break;
-							}
-						}
-						else { app_number = i; exec_app = 1; break; }
-					}
-				}
-			}
-
-			else if(category != FAVORITES)
-			{
-				for(i = 0; i < MAXLIST; i++ )
-				{
-					if(preview[category][i + (page[category] * MAXLIST)] != NULL)
-					{
-						if(mouse_is_over_surface(preview_x[category][i + (page[category] * MAXLIST)], \
-							preview_y[category][i + (page[category] * MAXLIST)], \
-								200, \
-									32))
-						{
-							if(list_curpos[category] == i + (page[category] * MAXLIST))
-							{
-								app_number = (i + (page[category] * MAXLIST));
-
-								hold_count++;
-
-								if(hold_count == 3)
-								{
-									gui_draw_application_box( app_number );
-									exec_app = 0;
-									hold_count = 0;
-								}
-								else exec_app = 1;
-	
-								reset_scroll_count = 1;
-								break;
-							}
-							else
-							{
-								list_curpos[category] = i + (page[category] * MAXLIST) ;
-
-								gui_load_preview( category, list_curpos[category] );
-	
-								reset_scroll_count = 1;
-								break; 
-							}
-						}
-					}
-				}
-
-				if(mouse_is_over(130, 300, 400, 450))
-				{
-					if(MOUSE_X > (mouse_hold_x + 50))
-					{
-						if (list_curpos[category] < (list_num[category]-(MAXLIST-1)))
-						{
-							page[category] += 1;
-							list_curpos[category] = page[category] * MAXLIST;
-							list_start[category] = page[category] * MAXLIST;
-							mouse_hold_x += 50;
-							gui_load_preview( category, list_curpos[category] );
-						}		
-					}
-					else if(MOUSE_X < (mouse_hold_x - 50))
-					{
-
-						if (list_curpos[category] > MAXLIST-1)
-						{
-							page[category] -= 1;
-							list_curpos[category] = page[category] * MAXLIST;
-							list_start[category] = page[category] * MAXLIST;
-							mouse_hold_x -= 50;
-							gui_load_preview( category, list_curpos[category] );
-						}
-						else
-						{
-							list_curpos[category] = 0;
-							list_start[category] = 0;
-							mouse_hold_x -= 50;
-							gui_load_preview( category, list_curpos[category] );
-						}					
-					}
-					reset_scroll_count = 1;
-				}
-
-				if(mouse_is_over_surface_center(gui->arrow_left_x, gui->arrow_left_y, arrow[LEFT]->w, arrow[LEFT]->h))
-				{
-
-					if (list_curpos[category] > MAXLIST-1)
-					{
-						page[category] -= 1;
-						list_curpos[category] = page[category] * MAXLIST;
-						list_start[category] = page[category] * MAXLIST;
-						reset_scroll_count = 1;
-						gui_load_preview( category, list_curpos[category] );
-					}
-					else
-					{
-						list_curpos[category] = 0;
-						list_start[category] = 0;
-						reset_scroll_count = 1;
-						gui_load_preview( category, list_curpos[category] );
-					}			
-				}
-				if(mouse_is_over_surface_center(gui->arrow_right_x, gui->arrow_right_y, arrow[RIGHT]->w, arrow[RIGHT]->h))
-				{
-					//if (list_curpos[category] < (list_num[category]-1))
-					if (list_curpos[category] < (list_num[category]-(MAXLIST-1)))
-					{
-						page[category] += 1;
-						list_curpos[category] = page[category] * MAXLIST;
-						list_start[category] = page[category] * MAXLIST;
-						reset_scroll_count = 1;
-						gui_load_preview( category, list_curpos[category] );
-					}
-				}
-			}
-
-			for(i = 0; i < 4; i++ )
-			{
-				if(mouse_is_over_surface_center(category_icon_x[i], 42, category_icon[i]->w, category_icon[i]->h))
-				{
-					category = i;
-					if( category != FAVORITES )
-					{
-						alpha = 0.0f;
-						alpha_up = 1;
-						reset_scroll_count = 1;
-
-						if( list_num[category] )
-						{
-							printf("Number of item in category[%i] = %i\n", category, list_num[category]);
-							gui_load_preview( category, list_curpos[category] );
-						}
-						else
-						{
-							if( tmp_preview != NULL )
-							{
-								printf("\tFreeing old preview pic texture memory\n");
-								glDeleteTextures( 1, &tmp_preview->texture );
-								free ( tmp_preview );
-								tmp_preview = NULL;
-							}			
-						}
-					}
-				}
-			}
-
-			if(mouse_is_over( 740, 800, 440, 480))
-			{
-				do_quit = 1;		
-			}
+		if( list_num[category] )
+		{
+			printf("Number of item in category[%i] = %i\n", category, list_num[category]);
+			reset_preview_timer();
 		}
 		else
 		{
-			if(exec_app)
+			if( tmp_preview != NULL )
 			{
-				if( category == FAVORITES ) { gui_app_exec_fav(app_number); exec_app = 0; hold_count = 0; }
-				else { gui_app_exec(app_number); exec_app = 0; hold_count = 0; }
+				GLES2D_FreeTexture( tmp_preview );
+				tmp_preview = NULL;
 			}
-			reset_ts_pos = 1;
 		}
+	}
+	else
+	{
+        get_skins_list ();
+        load_skin_preview();
 	}
 }
 
-int main(int argc, char *argv[])
+void handle_dpad()
 {
+    GLES2D_HandleEvents( 90 );
 
-	int gui_done = 0;
-	category = FAVORITES;
+    if ( GLES2D_PadPressed ( MENU ) || GLES2D_KeyboardPressed( XK_Escape ) )
+    {
+        do_quit = 1;
+    }
+
+        if( GLES2D_PadPressed ( PAD_LEFT ) || GLES2D_KeyboardHold( XK_Left ) )
+        {
+            if ( category == SETTINGS )
+            {
+                if ( setting_current == MENU_SKIN )
+                {
+                    if ( skin_current > 0 )
+                        skin_current--;
+
+                    load_skin_preview();
+                }
+            }
+
+            else
+            {
+                if ( list_curpos[category] > gui->max_app_per_page - 1 )
+                {
+                    page[category] -= 1;
+                    list_curpos[category] = page[category] * gui->max_app_per_page;
+                    list_start[category] = page[category] * gui->max_app_per_page;
+                    reset_scroll_count = 1;
+                    reset_preview_timer();
+                }
+                else
+                {
+                    list_curpos[category] = 0;
+                    list_start[category] = 0;
+                    reset_scroll_count = 1;
+                    reset_preview_timer();
+                }
+            }
+        }
+
+        if( GLES2D_PadPressed ( PAD_RIGHT ) || GLES2D_KeyboardHold( XK_Right ) )
+        {
+            if ( category == SETTINGS )
+            {
+                if ( setting_current == MENU_SKIN )
+                {
+                    if ( skin_current < skin_count - 1 )
+                        skin_current++;
+
+                    load_skin_preview();
+                }
+            }
+            else
+            {
+                if ( ( gui->max_app_per_page * ( page[category] + 1 ) ) < list_num[category] )
+                {
+                    page[category] += 1;
+                    list_curpos[category] = page[category] * gui->max_app_per_page;
+                    list_start[category] = page[category] * gui->max_app_per_page;
+                    reset_scroll_count = 1;
+                    reset_preview_timer();
+                }
+            }
+        }
+
+        if( GLES2D_PadHold ( PAD_UP ) || GLES2D_KeyboardHold( XK_Up ) )
+        {
+            if ( category == SETTINGS )
+            {
+                if ( setting_current > 0 )
+                    setting_current--;
+            }
+            else
+            {
+                if ( list_curpos[category] > 0 )
+                {
+                    if ( list_curpos[category] == ( page[category] * gui->max_app_per_page ) )
+                    {
+                        page[category] -= 1;
+                        list_curpos[category] -= 1;
+                        list_start[category] = page[category] * gui->max_app_per_page;
+                    }
+                    else
+                    {
+                        list_curpos[category] -= 1;
+                    }
+
+                    reset_scroll_count = 1;
+                    reset_preview_timer();
+                }
+            }
+        }
+
+        if( GLES2D_PadHold ( PAD_DOWN ) || GLES2D_KeyboardHold( XK_Down ) )
+        {
+            if ( category == SETTINGS )
+            {
+                if ( setting_current < SETTINGS_COUNT - 1 )
+                    setting_current++;
+            }
+            else
+            {
+                if (list_curpos[category] < list_num[category] - 1 )
+                {
+                    if (list_curpos[category] == ( gui->max_app_per_page + (page[category] * gui->max_app_per_page) ) - 1)
+                    {
+                        page[category] += 1;
+                        list_curpos[category] = page[category] * gui->max_app_per_page;
+                        list_start[category] = page[category] * gui->max_app_per_page;
+                    }
+                    else
+                    {
+                        list_curpos[category] += 1;
+                    }
+                    reset_scroll_count = 1;
+                    reset_preview_timer();
+                }
+            }
+        }
+
+    if ( GLES2D_PadPressed ( L ) || GLES2D_KeyboardHold( XK_F1 ) )
+    {
+        if( category > 0) gui_change_category( category - 1 );
+            else gui_change_category( CATEGORY_COUNT - 1 );
+    }
+
+    if ( GLES2D_PadPressed ( R ) || GLES2D_KeyboardHold( XK_F2 ) )
+    {
+        if( category < CATEGORY_COUNT - 1) gui_change_category( category + 1 );
+            else gui_change_category( 0 );
+    }
+
+    if ( GLES2D_PadPressed ( A ) )
+    {
+        GLES2D_Pad[ A ] = 0;
+
+        if( category != SETTINGS )
+        {
+            if ( list_num[category] )
+                gui_app_exec( list_curpos[ category ] );
+        }
+    }
+/*
+    if ( GLES2D_PadPressed ( B ) || GLES2D_KeyboardPressed( XK_b ) )
+    {
+        if ( category == FAVORITES )
+        {
+        }
+        else
+        {
+            if ( list_num[category] )
+                gui_draw_application_box( list_curpos[ category ] );
+        }
+    }
+*/
+    if ( GLES2D_PadPressed ( X ) || GLES2D_KeyboardPressed( XK_space ) )
+    {
+        if ( category == FAVORITES )
+        {
+                if ( list_num[category] )
+                {
+                    char tmpStr[512];
+                    sprintf(tmpStr, "Do you want to remove %s from your favorites applications ?", applications[category]->name[list_curpos[ category ]] );
+
+                    if( gui_confirm_box( tmpStr ) )
+                        cfg_fav_del( list_curpos[ category ] );
+                }
+        }
+        else if ( category == SETTINGS  )
+        {
+              if ( setting_current == MENU_SKIN )
+                {
+                    cfg_pmenu_update_skin_path( skin[skin_current]->path );
+                    cfg_pmenu_read();
+                    gui_clean_skin();
+                    gui_load_skin();
+                    load_skin_preview();
+                }
+        }
+        else
+        {
+            if ( list_num[category] )
+            {
+                if ( applications_count[FAVORITES] < FAV_MAX )
+                {
+                    char tmpString[256];
+                    sprintf(tmpString, "Do you want to add %s to your favorites applications ?", applications[category]->name[list_curpos[ category ]] );
+
+                    if (  gui_confirm_box( tmpString ) )
+                    {
+                        cfg_fav_add( applications[category]->name[list_curpos[ category ]], \
+                            applications[category]->id[list_curpos[ category ]], \
+                            applications[category]->category[list_curpos[ category ]], \
+                            applications[category]->cache_path[list_curpos[ category ]], \
+                            applications[category]->fullpath[list_curpos[ category ]], \
+                            applications[category]->exec_name[list_curpos[ category ]], \
+                            applications[category]->icon[list_curpos[ category ]], \
+                            applications[category]->description[list_curpos[ category ]], \
+                            applications[category]->preview_pic1[list_curpos[ category ]], \
+                            applications[category]->preview_pic2[list_curpos[ category ]] );
+                    }
+                }
+                else
+                {
+                    gui_confirm_box("Favorites are full, please remove a favorite before adding one by going under the favorite screen.");
+                }
+            }
+        }
+    }
+}
+
+int main( )
+{
+    gui_init();
+
+	gui_done = 0;
+
+	category = EMULATORS;
 	alpha_up = 1;
-	alpha = 0.0;
-	mouse_y_pos = 120;
-	exec_app = 0;
+	alpha = 150;
 	reset_scroll_count = 1;
-	text_img = NULL;
+
+    if ( cfg_pmenu_read() < 1 )
+    {
+        printf( "FATAL: cfg_pmenu_read failed, exiting...\n" );
+        GLES2D_Quit();
+        exit(0);
+    }
+
+	if ( cfg_gui_read() < 1 )
+    {
+        GLES2D_Quit();
+        printf( "FATAL: cfg_gui_read failed, exiting...\n" );
+        exit(0);
+    }
 
 	pnd_app_get_list();
-
-	gui_init_sdl();
-
-	cfg_fav_read();
-	cfg_gui_read();
-
+    cfg_fav_read();
 	gui_load();
 
-//	SDL_initFramerate( &sixteen );
-//	SDL_setFramerate( &sixteen, 60 );
-			
-	char fpscount[64];
+	GLES2D_FpsCounterInit();
 
-	while(!gui_done)
+    nh_countdown = 60;
+
+	while( ! gui_done )
 	{
 
-		Uint32 start_time, frame_time;
-		float fps;
-		start_time = SDL_GetTicks();
-
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        check_rediscover();
 
 		gui_draw();
+        GLES2D_DrawFont( small, 750, 0, GLES2D_GetFpsChar() );
 
-		handle_mouse();
+		handle_dpad();
 
-		while( SDL_PollEvent( &event ) )
-		{
-			switch(event.type)
-			{
-				case SDL_KEYDOWN:
-					if (event.key.keysym.sym == SDLK_UP) { printf("UP\n"); break; }
+        GLES2D_SwapBuffers();
 
-					if (event.key.keysym.sym == SDLK_DOWN) { printf("DOWN\n"); break; }
-	
-					if (event.key.keysym.sym == SDLK_s) { printf("s\n"); break; }
-				break;
-
-				case SDL_QUIT:
-				{
-					do_quit = 1;
-				}
-				break;
-			}
-		}
-
-		draw_text(fpscount, SMALL, NORMAL, WHITE, 10, 460);
-
-		gui_swap_buffer();
-
-		frame_time = SDL_GetTicks()-start_time;
-		fps = (frame_time > 0) ? 1000.0f / frame_time : 0.0f;
-		sprintf(fpscount, "%2.0f fps", fps );
-
-//		SDL_framerateDelay( &sixteen );
+        GLES2D_FpsCounterUpdate();
 
 		if(do_quit) gui_done = 1;
+
 	}
 
 	gui_clean();

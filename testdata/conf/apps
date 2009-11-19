@@ -3,7 +3,8 @@
 # Application configuration
 
 [autodiscovery]
-searchpath	/mnt/sd1/pandora/apps:/mnt/sd2/pandora/apps:./testdata/apps	# path to depth-search for PXMLs
+searchpath	/media/mmcblk?/pandora/apps:./sd1/pandora/apps:./sd2/pandora/apps	# path to depth-search for PXMLs
+notifypath	/media:/media/*/pandora/apps:./testdata/app?
 
 # PXMLs may be overridden .. ie: overrides are a subset of PXML, where the values are copied over the full PXML
 [overrides]
@@ -11,5 +12,5 @@ searchpath	~/pxml-overrides:./testdata/apps-override
 
 # [pnd] defines where to locate the pnd support scripts, so the user may override pnd_run.sh without clobbering built in
 [pnd]
-searchpath	/mnt/sd1/pandora/scripts:/mnt/sd2/pandora/scripts:./testdata/scripts
+searchpath	/mnt/sd?/pandora/scripts:./testdata/scripts
 runscript	pnd_run.sh

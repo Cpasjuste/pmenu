@@ -1,268 +1,373 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <libconfig.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/io.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <time.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <errno.h>
+
+#include "libconfig.h"
 
 #include "fav_config.h"
+#include "utils.h"
+#include "get_apps.h"
+#include "gui_config.h"
+#include "pmenu_config.h"
+#include "main.h"
 
 void gui_load_fav();
 void gui_clean_fav();
+int _cfg_fav_read( char *fav_path );
 
-const char *tmpFav[FAV_MAX] = {
-	"fav0",
-	"fav1",
-	"fav2",
-	"fav3",
-	"fav4",
-	"fav5",
-	"fav6",
-	"fav7",
-	"fav8",
-	"fav9",
-	"fav10",
-	"fav11",
-	"fav12",
-	"fav13",
-	"fav14",
-	"fav15",
-	"fav16",
-	"fav17",
-	"fav18",
-	"fav19",
-	"fav20"
-}; 
-
-int cfg_fav_read()
+int _cfg_fav_read( char *fav_path )
 {
-	int i;
+    printf( "Start -> _cfg_fav_read( %s )\n", fav_path );
 
-	config_init(&cfg);
+	if ( access ( fav_path, R_OK ) != 0 )
+    {
+            printf( "\tFavorite configuration file do not exist, skipping ( %s )\n", fav_path );
+            printf( "Done -> _cfg_fav_read( %s )\n", fav_path );
+            return 0;
+    }
 
-	if (!config_read_file(&cfg, "data/favorites.cfg"))
+    config_init(&cfg);
+
+	if ( !config_read_file( &cfg, fav_path ) )
 	{
-		printf("config_read_file() failed\n");
-		return -1;
+		printf ( "\tconfig_read_file(%s) failed (line %d of %s)\n", fav_path, ( __LINE__ -1 ), __FILE__ );
+		printf( "Error -> _cfg_fav_read( %s )\n", fav_path );
+        config_destroy(&cfg);
+        return 0;
+
 	}
 	else
 	{
-		fav = (CONFIG *) malloc( sizeof(CONFIG));
+        int i;
+        char string_search[256];
 
-		config_setting_t *search = NULL;
-	
+        config_setting_t *search = NULL;
+
 		for( i = 0; i < FAV_MAX ; i++ )
 		{
-			search = config_lookup(&cfg, tmpFav[i]);	
+            memset( string_search, 0, 256 );
+		    sprintf( string_search, "fav%i", i );
 
-			if (!search)
-			{
-				printf("config_lookup() failed\n");
-				return -1;
-			}
-			else
-			{
-				config_setting_t *tmp = config_setting_get_member(search, "enabled");
-				if(tmp)
-				{ 
-					fav->enabled[i] = config_setting_get_int(tmp);
-					//printf("[%i] fav->enabled = %i\n", i, fav->enabled[i]);
-					if(fav->enabled[i])
-					{
-						tmp = config_setting_get_member(search, "name");
-						if(tmp)
-						{ 
-							strcpy(fav->name[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->name = %s\n", i, fav->name[i]);
-						}
-						tmp = config_setting_get_member(search, "fullpath");
-						if(tmp)
-						{ 
-							strcpy(fav->fullpath[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->fullpath = %s\n", i, fav->fullpath[i]);
-						}
-						tmp = config_setting_get_member(search, "exec_name");
-						if(tmp)
-						{ 
-							strcpy(fav->exec_name[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->exec_name = %s\n", i, fav->exec_name[i]);
-						}
-						tmp = config_setting_get_member(search, "icon");
-						if(tmp)
-						{ 
-							strcpy(fav->icon[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->icon = %s\n", i, fav->icon[i]);
-						}
-						tmp = config_setting_get_member(search, "description");
-						if(tmp)
-						{ 
-							strcpy(fav->description[i], config_setting_get_string(tmp));
-							//printf("[%i] fav->description = %s\n", i, fav->description[i]);
-						}
-					}
+			search = config_lookup( &cfg, string_search );
 
-				}
-				else
+			if ( search )
+			{
+			    applications[FAVORITES]->fav_num[applications_count[FAVORITES]] = i;
+
+                config_setting_t *tmp = config_setting_get_member(search, "name");
+                if(tmp)
 				{
-					printf("config_lookup() failed\n");
-					return -1;
-				}	
+                    strcpy( applications[FAVORITES]->name[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+                tmp = config_setting_get_member(search, "fullpath");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+				tmp = config_setting_get_member(search, "exec_name");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->exec_name[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+                if ( access ( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], R_OK ) != 0 )
+                {
+                    printf( "%s : do not exist anymore, removing from favorites\n", applications[FAVORITES]->fullpath[applications_count[FAVORITES]] );
+                    config_destroy( &cfg );
+                    cfg_fav_del( i );
+                    return 0;
+                }
+
+				tmp = config_setting_get_member(search, "id");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->id[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+				tmp = config_setting_get_member(search, "category");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->category[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+                tmp = config_setting_get_member(search, "cache_path");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->cache_path[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+				tmp = config_setting_get_member(search, "icon");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->icon[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+				tmp = config_setting_get_member(search, "description");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->description[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+				tmp = config_setting_get_member(search, "preview_pic1");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->preview_pic1[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+				tmp = config_setting_get_member(search, "preview_pic2");
+                if(tmp)
+				{
+                    strcpy( applications[FAVORITES]->preview_pic2[applications_count[FAVORITES]], config_setting_get_string(tmp));
+				}
+
+                applications[FAVORITES]->scale[applications_count[FAVORITES]] = 32;
+
+				applications_count[FAVORITES]++;
 			}
 		}
 	}
+
 	config_destroy(&cfg);
 
-	gui_load_fav();
+	printf( "Done -> _cfg_fav_read( %s )\n", fav_path );
 
 	return 1;
 }
 
-int cfg_fav_del( int fav_number )
+int cfg_fav_read( )
 {
-	gui_clean_fav();
-	//free(fav);
+    char favorite_file[512];
 
-	fav->enabled[fav_number] = 0;
+    applications_count[FAVORITES] = 0;
 
-	config_init(&cfg);
+    if ( applications[FAVORITES] != NULL ) free ( applications[FAVORITES] );
 
-	if (!config_read_file(&cfg, "data/favorites.cfg"))
-	{
-		printf("config_read_file() failed\n");
-		return -1;
-	}
-	else
-	{
-		config_setting_t *item = NULL;
+    applications[FAVORITES] = (PND_APP *) malloc(sizeof(PND_APP));
 
-		int i, j = 0;
+    int i;
+    for( i = 0; i < cfg_fav_count; i++ )
+    {
+        memset( favorite_file, 0, 512 );
+        sprintf( favorite_file, "%s/favorites.cfg", cfg_fav_path[i] );
+        _cfg_fav_read( favorite_file );
+    }
 
-		for( i = 0; i < FAV_MAX ; i++ )
-		{
-			if( fav->enabled[i] )
-			{
-				item = config_lookup(&cfg, tmpFav[j]);
+    list_num[FAVORITES] = applications_count[FAVORITES];
+    if (list_start[FAVORITES] >= list_num[FAVORITES]) { list_start[FAVORITES] = list_num[FAVORITES]-1; }
+    if (list_start[FAVORITES] < 0) { list_start[FAVORITES]  = 0; }
+    if (list_curpos[FAVORITES] >= list_num[FAVORITES]) { list_curpos[FAVORITES] = list_num[FAVORITES]-1; }
+    if (list_curpos[FAVORITES] < 0) { list_curpos[FAVORITES] = 0; }
 
-				if (!item) 
-				{
-					printf("config_lookup failed\n");
-				}
-				else 
-				{
-					config_setting_t *tmp = config_setting_get_member (item, "enabled");
-					config_setting_set_int(tmp, 1);
+    return 1;
+}
 
-					tmp = config_setting_get_member(item, "name");
-					if(tmp) {
-						config_setting_set_string(tmp, fav->name[i]);
-					}
+int cfg_fav_del( int fav )
+{
+    printf( "Start -> cfg_fav_del( %i )\n", fav );
 
-					tmp = config_setting_get_member(item, "fullpath");
-					if(tmp) {
-						config_setting_set_string(tmp, fav->fullpath[i]);
-					}
+    char fav_to_del[64];
+    char fav_path[512];
 
-					tmp = config_setting_get_member(item, "exec_name");
-					if(tmp) {
-						config_setting_set_string(tmp, fav->exec_name[i]);
-					}
+    memset( fav_to_del, 0, 64 );
+    sprintf( fav_to_del, "fav%i", applications[FAVORITES]->fav_num[fav] );
 
-					tmp = config_setting_get_member(item, "icon");
-					if(tmp) {
-						config_setting_set_string(tmp, fav->icon[i]);
-					}
+    memset( fav_path, 0, 512 );
+    sprintf ( fav_path, "%s/favorites.cfg", applications[FAVORITES]->cache_path[fav] );
 
-					tmp = config_setting_get_member(item, "description");
-					if(tmp) {
-						config_setting_set_string(tmp, fav->description[i]);
-					}
-				}
-				j++;
-			}
-		}
-		for( i = j; i < FAV_MAX; i++ )
-		{
-			item = config_lookup(&cfg, tmpFav[i]);
+    config_init(&cfg);
 
-			if (!item) 
-			{
-				printf("config_lookup failed\n");
-			}
-			else 
-			{
-				config_setting_t *tmp = config_setting_get_member (item, "enabled");
-				config_setting_set_int(tmp, 0);
-			}
-		}
-	}
+    if ( ! config_read_file( &cfg, fav_path ) )
+    {
+        printf ( "\tFunction config_read_file(%s) failed (line %d of %s)\n", fav_path, (__LINE__ -2), __FILE__ );
+        printf( "Error -> cfg_fav_del( %i )\n\n", fav );
+        config_destroy( &cfg );
+        return 0;
+    }
 
-	config_write_file(&cfg, "data/favorites.cfg");
-	config_destroy(&cfg);
+    printf( "\tRemoving %s from %s\n", fav_to_del, fav_path );
 
-	free(fav);
-	cfg_fav_read();
+    config_setting_t *root = config_root_setting( &cfg );
+
+    config_setting_remove( root, fav_to_del );
+
+    config_write_file( &cfg, fav_path );
+    config_destroy( &cfg );
+
+    if ( icon[FAVORITES][fav] != NULL )
+    {
+        printf( "\tRemoving icon%i from memory\n", fav );
+        GLES2D_FreeTexture ( icon[FAVORITES][fav] );
+        icon[FAVORITES][fav] = NULL;
+    }
+
+    gui_clean_fav();
+    cfg_fav_read();
+    gui_load_fav();
+
+    printf( "Done -> cfg_fav_del( %i )\n\n", fav );
 
 	return 1;
 }
 
-int cfg_fav_add(int fav_number, char *name, char *fullpath, char *exec_name, char *icon, char *description)
+int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *fullpath, char *exec_name, char *_icon, char *description, char *preview_pic1, char *preview_pic2 )
 {
-	gui_clean_fav();
-	free(fav);
+    printf( "Start -> cfg_fav_add( )\n" );
 
-	config_init(&cfg);
+    char string_search[256];
+    char favorite_file[512];
 
-	if (!config_read_file(&cfg, "data/favorites.cfg"))
-	{
-		printf("config_read_file() failed\n");
-		return -1;
-	}
-	else
-	{
-		config_setting_t *item = NULL;
-		printf("Writing item : %s\n", tmpFav[fav_number]);
-		item = config_lookup(&cfg, tmpFav[fav_number]);
+    if ( applications_count[FAVORITES] < FAV_MAX )
+    {
+        config_init(&cfg);
+
+        if ( access ( cache_path, R_OK ) != 0 )
+        {
+            printf("\tCreating pmenu cache directory : %s\n", cache_path );
+            if ( mkdir ( cache_path, 0755 ) < 0 )
+            {
+                printf("\tCould not create cache directory : %s\n", strerror(errno) );
+                printf( "Error -> cfg_fav_add( )\n\n" );
+                return 0;
+            }
+
+        }
+
+        memset( favorite_file, 0, 512 );
+        strcpy( favorite_file, cache_path );
+        strcat( favorite_file, "/favorites.cfg" );
+
+        if ( access ( favorite_file, R_OK ) != 0 )
+        {
+            printf("\tCreating favorites configuration file : %s\n", favorite_file );
+            FILE *fav_file = fopen( favorite_file, "wt" );
+            if ( !fav_file )
+            {
+                printf( "\tCould not create favorite configuration file : %s\n", favorite_file );
+                fclose( fav_file );
+                config_destroy( &cfg );
+                printf( "Error -> cfg_fav_add( )\n\n" );
+                return 0;
+            }
+
+            fclose( fav_file );
+        }
+
+        if ( ! config_read_file( &cfg, favorite_file ) )
+        {
+            printf ( "\tFunction config_read_file(%s) failed (line %d of %s)\n", favorite_file, (__LINE__ -2), __FILE__ );
+            printf( "Error -> cfg_fav_add( )\n\n" );
+            config_destroy( &cfg );
+            return 0;
+        }
 
 
-		if (!item) 
+        int i;
+		for( i = 0; i < FAV_MAX ; i++ )
 		{
-			printf("config_lookup failed\n");
+            memset( string_search, 0, 256 );
+		    sprintf( string_search, "fav%i", i );
+
+			config_setting_t *search = config_lookup( &cfg, string_search );
+
+			if ( ! search )
+			{
+				printf("\tAdding Favorite application number %i (%s) to %s\n", i, name, favorite_file );
+
+                config_setting_t *root = config_root_setting(&cfg);
+
+                config_setting_t *new = config_setting_add( root, string_search, CONFIG_TYPE_GROUP);
+
+                config_setting_t *item = config_setting_add( new, "name", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "id", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "category", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "cache_path", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "fullpath", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "exec_name", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "icon", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "description", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "preview_pic1", CONFIG_TYPE_STRING );
+                item = config_setting_add( new, "preview_pic2", CONFIG_TYPE_STRING );
+
+                item = config_lookup( &cfg, string_search );
+
+                config_setting_t *value = config_setting_get_member(item, "name");
+                config_setting_set_string(value, name);
+
+                value = config_setting_get_member(item, "id");
+                config_setting_set_string(value, id);
+
+                value = config_setting_get_member(item, "cache_path");
+                config_setting_set_string(value, cache_path);
+
+                value = config_setting_get_member(item, "category");
+                config_setting_set_string(value, category);
+
+                value = config_setting_get_member(item, "fullpath");
+                config_setting_set_string(value, fullpath);
+
+                value = config_setting_get_member(item, "exec_name");
+                config_setting_set_string(value, exec_name);
+
+                value = config_setting_get_member(item, "icon");
+                config_setting_set_string(value, _icon);
+
+                value = config_setting_get_member(item, "description");
+                config_setting_set_string(value, description);
+
+                value = config_setting_get_member(item, "preview_pic1");
+                config_setting_set_string(value, preview_pic1);
+
+                value = config_setting_get_member(item, "preview_pic2");
+                config_setting_set_string(value, preview_pic2);
+
+                applications[FAVORITES]->fav_num[applications_count[FAVORITES]] = i;
+                strcpy( applications[FAVORITES]->name[applications_count[FAVORITES]], name );
+                strcpy( applications[FAVORITES]->id[applications_count[FAVORITES]], id );
+                strcpy( applications[FAVORITES]->cache_path[applications_count[FAVORITES]], cache_path );
+                strcpy( applications[FAVORITES]->category[applications_count[FAVORITES]], category );
+				strcpy( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], fullpath );
+				strcpy( applications[FAVORITES]->exec_name[applications_count[FAVORITES]], exec_name );
+				strcpy( applications[FAVORITES]->icon[applications_count[FAVORITES]], _icon );
+				strcpy( applications[FAVORITES]->description[applications_count[FAVORITES]], description );
+                strcpy( applications[FAVORITES]->preview_pic1[applications_count[FAVORITES]], preview_pic1 );
+				strcpy( applications[FAVORITES]->preview_pic2[applications_count[FAVORITES]], preview_pic2 );
+
+                icon[FAVORITES][applications_count[FAVORITES]] = NULL;
+                icon[FAVORITES][applications_count[FAVORITES]] = GLES2D_CreateTexture( applications[FAVORITES]->icon[applications_count[FAVORITES]], 0  );
+
+                applications[FAVORITES]->scale[applications_count[FAVORITES]] = 32;
+
+                applications_count[FAVORITES] += 1;
+
+                list_num[FAVORITES] = applications_count[FAVORITES];
+                if (list_start[FAVORITES] >= list_num[FAVORITES]) { list_start[FAVORITES] = list_num[FAVORITES]-1; }
+                if (list_start[FAVORITES] < 0) { list_start[FAVORITES]  = 0; }
+                if (list_curpos[FAVORITES] >= list_num[FAVORITES]) { list_curpos[FAVORITES] = list_num[FAVORITES]-1; }
+                if (list_curpos[FAVORITES] < 0) { list_curpos[FAVORITES] = 0; }
+
+                config_write_file( &cfg, favorite_file );
+                config_destroy( &cfg );
+
+                printf( "Done -> cfg_fav_add( )\n\n" );
+
+                return 1;
+			}
 		}
-		else 
-		{
-			config_setting_t *tmp = config_setting_get_member (item, "enabled");
-			if(tmp) {
-				config_setting_set_int(tmp, 1);
-			}
+    }
 
-			tmp = config_setting_get_member(item, "name");
-			if(tmp) {
-				config_setting_set_string(tmp, name);
-			}
-
-			tmp = config_setting_get_member(item, "fullpath");
-			if(tmp) {
-				config_setting_set_string(tmp, fullpath);
-			}
-
-			tmp = config_setting_get_member(item, "exec_name");
-			if(tmp) {
-				config_setting_set_string(tmp, exec_name);
-			}
-
-			tmp = config_setting_get_member(item, "icon");
-			if(tmp) {
-				config_setting_set_string(tmp, icon);
-			}
-
-			tmp = config_setting_get_member(item, "description");
-			if(tmp) {
-				config_setting_set_string(tmp, description);
-			}
-		}
-	}
-	config_write_file(&cfg, "data/favorites.cfg");
-	config_destroy(&cfg);
-
-	cfg_fav_read();
+    printf( "Done -> cfg_fav_add( ) -> Maximum favorites applications reached\n\n" );
 
 	return 0;
 }
