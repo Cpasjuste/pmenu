@@ -22,11 +22,14 @@
 #include "gui_config.h"
 #include "pmenu_config.h"
 #include "fav_config.h"
+#include "common.h"
 
 int copy( char *src, char *dst );
 
 int pnd_app_get_list( void )
 {
+    debug_start();
+
 	char *configpath;
 	char *appspath;
 	char *overridespath;
@@ -65,8 +68,8 @@ int pnd_app_get_list( void )
 		overridespath = PND_PXML_OVERRIDE_SEARCHPATH;
 	}
 
-	printf ( "Apps searchpath is '%s'\n", appspath );
-	printf ( "Apps overrides searchpath is '%s'\n", overridespath );
+	debug_infof ( "Apps searchpath is '%s'", appspath );
+	debug_infof ( "Apps overrides searchpath is '%s'", overridespath );
 
 	/* find pnd runscript */
 
@@ -90,9 +93,9 @@ int pnd_app_get_list( void )
 		pndrun = pnd_locate_filename ( run_searchpath, run_script );
 	}
 
-	if ( run_searchpath ) printf ( "Locating pnd run in %s\n", run_searchpath );
-	if ( run_script ) printf ( "Locating pnd runscript as %s\n", run_script );
-	if ( pndrun ) printf ( "Default pndrun is %s\n", pndrun );
+	if ( run_searchpath ) debug_infof ( "Locating pnd run in %s", run_searchpath );
+	if ( run_script ) debug_infof ( "Locating pnd runscript as %s", run_script );
+	if ( pndrun ) debug_infof ( "Default pndrun is %s", pndrun );
 
 	/* attempt to discover apps in the path */
 	pnd_box_handle applist;
@@ -137,14 +140,14 @@ int pnd_app_get_list( void )
                 }
 
                 strcpy(applications[tmpSection]->category[applications_count[tmpSection]], d -> main_category);
-				printf ( "  [%i] -> Category: %s\n", applications_count[tmpSection], \
+				debug_infof ( "[%i] -> Category: %s", applications_count[tmpSection], \
 					applications[tmpSection]->category[applications_count[tmpSection]] );
 			}
             else
             {
                 tmpSection = DIVERS;
                 strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "DIVERS"  );
-                printf ( "  [%i] -> Category: %s\n", applications_count[tmpSection], \
+                debug_infof ( "[%i] -> Category: %s", applications_count[tmpSection], \
                     applications[tmpSection]->category[applications_count[tmpSection]] );
             }
 
@@ -152,13 +155,13 @@ int pnd_app_get_list( void )
             if ( d -> title_en )
             {
                 strncpy(applications[tmpSection]->name[applications_count[tmpSection]], d -> title_en, strlen(d -> title_en) );
-                printf ( "  [%i] -> Name: %s\n", applications_count[tmpSection], \
+                debug_infof ( "[%i] -> Name: %s", applications_count[tmpSection], \
                     applications[tmpSection]->name[applications_count[tmpSection]]);
             }
             if ( d -> unique_id )
             {
                 strcpy(applications[tmpSection]->id[applications_count[tmpSection]], d -> unique_id);
-                printf ( "  [%i] -> Unique ID: %s\n", applications_count[tmpSection], \
+                debug_infof ( "[%i] -> Unique ID: %s", applications_count[tmpSection], \
                     applications[tmpSection]->id[applications_count[tmpSection]] );
             }
             if ( d -> object_path )
@@ -176,7 +179,7 @@ int pnd_app_get_list( void )
                     strcpy( applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> object_path );
                 }
 
-                printf ( "  [%i] -> fullpath: %s\n", applications_count[tmpSection], \
+                debug_infof( "[%i] -> fullpath: %s", applications_count[tmpSection], \
                     applications[tmpSection]->fullpath[applications_count[tmpSection]] );
 
                 int cut_lenght = 0;
@@ -192,7 +195,7 @@ int pnd_app_get_list( void )
                 strncpy( applications[tmpSection]->cache_path[applications_count[tmpSection]], d -> object_path, strlen( applications[tmpSection]->fullpath[applications_count[tmpSection]] ) - cut_lenght - 6 );
                 strcat ( applications[tmpSection]->cache_path[applications_count[tmpSection]], "pmenu" );
 
-                printf("  [%i] -> cache: %s\n", applications_count[tmpSection], applications[tmpSection]->cache_path[applications_count[tmpSection]] );
+                debug_infof( "[%i] -> cache: %s", applications_count[tmpSection], applications[tmpSection]->cache_path[applications_count[tmpSection]] );
 
                 if ( access ( applications[tmpSection]->cache_path[applications_count[tmpSection]], R_OK ) != 0 )
                 {
@@ -218,7 +221,7 @@ int pnd_app_get_list( void )
                 if ( new_device )
                 {
                     strcpy( cfg_fav_path[cfg_fav_count], applications[tmpSection]->cache_path[applications_count[tmpSection]] );
-                    printf("  [%i] -> New device detected : %s\n", applications_count[tmpSection], cfg_fav_path[cfg_fav_count] );
+                    debug_infof( "[%i] -> New device detected : %s", applications_count[tmpSection], cfg_fav_path[cfg_fav_count] );
                     cfg_fav_count++;
                 }
                 /* End Crappy routine */
@@ -227,14 +230,14 @@ int pnd_app_get_list( void )
             if ( d -> exec )
             {
                 strcpy(applications[tmpSection]->exec_name[applications_count[tmpSection]], d -> exec );
-                printf ( "  [%i] -> Exec Name : %s\n", applications_count[tmpSection], \
+                debug_infof( "[%i] -> Exec Name : %s", applications_count[tmpSection], \
                     applications[tmpSection]->exec_name[applications_count[tmpSection]]);
             }
 
             if ( d -> desc_en )
             {
                 strcpy(applications[tmpSection]->description[applications_count[tmpSection]], d -> desc_en );
-                printf ( "  [%i] -> Description : %s\n", applications_count[tmpSection], \
+                debug_infof( "[%i] -> Description : %s", applications_count[tmpSection], \
                     applications[tmpSection]->description[applications_count[tmpSection]]);
             }
 
@@ -243,13 +246,13 @@ int pnd_app_get_list( void )
                 if( d -> object_type == 2 )
                 {
                     sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s/%s.%s", applications[tmpSection]->cache_path[applications_count[tmpSection]], applications[tmpSection]->id[applications_count[tmpSection]], d -> preview_pic1 );
-                    printf( "  [%i] -> Preview Pic : %s\n", applications_count[tmpSection], \
+                    debug_infof( "[%i] -> Preview Pic : %s", applications_count[tmpSection], \
                         applications[tmpSection]->preview_pic1[applications_count[tmpSection]]);
                 }
                 else
                 {
                     sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> preview_pic1 );
-                    printf( "  [%i] -> Preview Pic : %s\n", applications_count[tmpSection], \
+                    debug_infof( "[%i] -> Preview Pic : %s", applications_count[tmpSection], \
                         applications[tmpSection]->preview_pic1[applications_count[tmpSection]]);
                 }
 
@@ -274,17 +277,17 @@ int pnd_app_get_list( void )
                              if ( access ( icon_cache, R_OK ) == 0 )
                                 strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], icon_cache );
                             else
-                                printf( "Could acces icon_cache (%s)\n", icon_cache );
+                                debug_infof( "Could acces icon_cache (%s)", icon_cache );
                         }
                         else
                         {
                             strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], "no icon" );
-                            printf( "Could not emit icon to %s\n", icon_cache );
+                            debug_infof( "Could not emit icon to %s", icon_cache );
                         }
                     }
                     else
                     {
-                        printf("  [%i] -> icon: Already extracted\n", applications_count[tmpSection] );
+                        debug_infof( "[%i] -> icon: Already extracted", applications_count[tmpSection] );
                         strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], icon_cache );
                     }
                 }
@@ -294,15 +297,13 @@ int pnd_app_get_list( void )
                         "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> icon);
                 }
 
-                printf ( "  [%i] -> icon: %s\n", applications_count[tmpSection], \
+                debug_infof( "[%i] -> icon: %s", applications_count[tmpSection], \
                     applications[tmpSection]->icon[applications_count[tmpSection]] );
             }
 
             applications_count[tmpSection]++;
 
 			d = pnd_box_get_next ( d );
-
-			printf("\n\n");
 		}
 
 		for(i = 0; i < CATEGORY_COUNT - 2; i++)
@@ -317,12 +318,14 @@ int pnd_app_get_list( void )
 	}
 	else
 	{
-		printf ( "No applications found in search path\n" );
+		debug_info ( "No applications found in search path\n" );
 	}
 
 	free ( configpath );
 	if ( apph )
     		pnd_box_delete ( apph );
+
+    debug_end();
 
 	return ( 0 );
 }

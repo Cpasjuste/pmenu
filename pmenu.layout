@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Release" />
+	<ActiveTarget name="i386" />
+	<File name="common.h" open="1" top="0" tabpos="2">
+		<Cursor position="1923" topLine="37" />
+	</File>
 	<File name="cpuLoad.c" open="0" top="0" tabpos="2">
 		<Cursor position="4439" topLine="106" />
 	</File>
-	<File name="fav_config.c" open="1" top="1" tabpos="2">
-		<Cursor position="263" topLine="0" />
+	<File name="fav_config.c" open="1" top="0" tabpos="4">
+		<Cursor position="12773" topLine="166" />
 	</File>
-	<File name="fav_config.h" open="1" top="0" tabpos="3">
+	<File name="fav_config.h" open="1" top="0" tabpos="5">
 		<Cursor position="385" topLine="0" />
 	</File>
-	<File name="get_apps.c" open="1" top="0" tabpos="4">
-		<Cursor position="6519" topLine="183" />
+	<File name="get_apps.c" open="1" top="0" tabpos="6">
+		<Cursor position="650" topLine="12" />
 	</File>
-	<File name="get_apps.h" open="1" top="0" tabpos="5">
-		<Cursor position="595" topLine="0" />
+	<File name="get_apps.h" open="1" top="0" tabpos="7">
+		<Cursor position="285" topLine="0" />
 	</File>
 	<File name="gui_config.c" open="0" top="0" tabpos="10">
 		<Cursor position="6167" topLine="176" />
@@ -22,26 +25,26 @@
 	<File name="gui_config.h" open="0" top="0" tabpos="6">
 		<Cursor position="724" topLine="5" />
 	</File>
-	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="25188" topLine="896" />
+	<File name="main.c" open="1" top="1" tabpos="1">
+		<Cursor position="5088" topLine="175" />
 	</File>
-	<File name="main.h" open="1" top="0" tabpos="6">
+	<File name="main.h" open="1" top="0" tabpos="8">
 		<Cursor position="67" topLine="0" />
 	</File>
-	<File name="menu_settings.c" open="1" top="0" tabpos="8">
+	<File name="menu_settings.c" open="1" top="0" tabpos="10">
 		<Cursor position="411" topLine="0" />
 	</File>
 	<File name="menu_settings.h" open="0" top="0" tabpos="5">
 		<Cursor position="78" topLine="0" />
 	</File>
-	<File name="pmenu_config.c" open="1" top="0" tabpos="7">
+	<File name="pmenu_config.c" open="1" top="0" tabpos="9">
 		<Cursor position="674" topLine="0" />
 	</File>
-	<File name="pmenu_config.h" open="1" top="0" tabpos="10">
+	<File name="pmenu_config.h" open="1" top="0" tabpos="11">
 		<Cursor position="139" topLine="0" />
 	</File>
-	<File name="utils.c" open="1" top="0" tabpos="9">
-		<Cursor position="1341" topLine="0" />
+	<File name="utils.c" open="1" top="0" tabpos="3">
+		<Cursor position="161" topLine="0" />
 	</File>
 	<File name="utils.h" open="0" top="0" tabpos="4">
 		<Cursor position="229" topLine="0" />

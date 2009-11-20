@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1257608410 source:/home/cpasjuste/dev/pandora/pmenu/fav_config.c
+1258626201 source:/home/cpasjuste/dev/pandora/pmenu/fav_config.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -12,6 +12,7 @@
 	<time.h>
 	<stdio.h>
 	<dirent.h>
+	<errno.h>
 	"libconfig.h"
 	"fav_config.h"
 	"utils.h"
@@ -295,10 +296,10 @@
 1234445172 /home/cpasjuste/dev/pandora/pmenu/libconfig.h
 	<stdio.h>
 
-1250856472 /home/cpasjuste/dev/pandora/pmenu/fav_config.h
+1258620753 /home/cpasjuste/dev/pandora/pmenu/fav_config.h
 	"libconfig.h"
 
-1257780114 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
+1258640908 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -320,6 +321,8 @@
 	"get_apps.h"
 	"gui_config.h"
 	"pmenu_config.h"
+	"fav_config.h"
+	"common.h"
 
 1234188447 /usr/local/pandora/arm-2007q3/usr/include/unistd.h
 	<features.h>
@@ -397,7 +400,7 @@
 
 1257702755 /home/cpasjuste/dev/pandora/pmenu/include/pnd_locate.h
 
-1250955390 /home/cpasjuste/dev/pandora/pmenu/get_apps.h
+1258617333 /home/cpasjuste/dev/pandora/pmenu/get_apps.h
 	<pnd_pndfiles.h>
 
 1257336110 source:/home/cpasjuste/dev/pandora/pmenu/gui_config.c
@@ -416,7 +419,7 @@
 1234445172 /home/cpasjuste/dev/pandora/pmenu/include/libconfig.h
 	<stdio.h>
 
-1257842422 source:/home/cpasjuste/dev/pandora/pmenu/main.c
+1258640427 source:/home/cpasjuste/dev/pandora/pmenu/main.c
 	<string.h>
 	<unistd.h>
 	<stdlib.h>
@@ -432,6 +435,7 @@
 	"cpuLoad.h"
 	"pnd_apps.h"
 	"pnd_notify.h"
+	"common.h"
 	"menu_settings.h"
 
 1241608925 /home/cpasjuste/dev/pandora/pmenu/graphics.h
@@ -851,7 +855,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1257608157 /home/cpasjuste/dev/pandora/pmenu/main.h
+1258620349 /home/cpasjuste/dev/pandora/pmenu/main.h
 	<GLES2D/GLES2D.h>
 	"get_apps.h"
 
@@ -879,7 +883,7 @@
 	<string.h>
 	"setting_config.h"
 
-1250083962 source:/home/cpasjuste/dev/pandora/pmenu/utils.c
+1258642910 source:/home/cpasjuste/dev/pandora/pmenu/utils.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -1246,7 +1250,7 @@
 
 1257702755 /home/cpasjuste/dev/pandora/pmenu/include/pnd_pndfiles.h
 
-1257609685 source:/home/cpasjuste/dev/pandora/pmenu/menu_settings.c
+1257957669 source:/home/cpasjuste/dev/pandora/pmenu/menu_settings.c
 	<string.h>
 	<unistd.h>
 	<stdlib.h>
@@ -1259,17 +1263,38 @@
 	"menu_settings.h"
 	"gui_config.h"
 
-1257340008 /home/cpasjuste/dev/pandora/pmenu/pmenu_config.h
+1258619411 /home/cpasjuste/dev/pandora/pmenu/pmenu_config.h
 	"libconfig.h"
 	"get_apps.h"
 
 1257337954 /home/cpasjuste/dev/pandora/pmenu/menu_settings.h
 
-1257339993 source:/home/cpasjuste/dev/pandora/pmenu/pmenu_config.c
+1258619404 source:/home/cpasjuste/dev/pandora/pmenu/pmenu_config.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	"pmenu_config.h"
 	"get_apps.h"
 	"utils.h"
+
+1234932726 /home/cpasjuste/dev/pandora/pmenu/libconfig/libconfig.h
+	<stdio.h>
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_pndfiles.h
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_conf.h
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_container.h
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_apps.h
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_pxml.h
+
+1257953688 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_discovery.h
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_locate.h
+
+1258642979 /home/cpasjuste/dev/pandora/pmenu/common.h
+
+1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_notify.h
 

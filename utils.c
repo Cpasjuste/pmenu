@@ -7,6 +7,14 @@
 #include <time.h>
 #include <sys/statvfs.h>
 
+void textcolor( int attr, int fg )
+{
+    char command[13];
+
+	/* Command is the control command to the terminal */
+	sprintf( command, "%c[%d;%dm", 0x1B, attr, fg + 30 );
+	printf( "%s", command );
+}
 
 void error(char *msg)
 {

@@ -87,7 +87,8 @@
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-DI386" />
-					<Add directory="include" />
+					<Add directory="libconfig" />
+					<Add directory="libpnd" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGLES_CM" />
@@ -99,13 +100,14 @@
 					<Add option="-lSDL" />
 					<Add option="-lSDL_ttf" />
 					<Add option="-lSDL_image" />
+					<Add option="-lconfig" />
+					<Add option="-lpnd" />
 					<Add option="-lz" />
 					<Add option="-lpthread" />
-					<Add library="lib/libconfig_pc.a" />
-					<Add library="lib/libpnd_pc.a" />
 				</Linker>
 			</Target>
 		</Build>
+		<Unit filename="common.h" />
 		<Unit filename="cpuLoad.c">
 			<Option compilerVar="CC" />
 		</Unit>

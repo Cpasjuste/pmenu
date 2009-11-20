@@ -14,25 +14,27 @@
 #include "cpuLoad.h"
 #include "pnd_apps.h"
 #include "pnd_notify.h"
+#include "common.h"
 
 #include "menu_settings.h"
 
-char fps[16];
+pnd_notify_handle nh;
+int nh_countdown = 60;
+
 static int gui_done = 0, do_quit = 0, preview_timer = 30;
-int reset_scroll_count_fav = 0;
 int preview_scale = 0;
 int page[CATEGORY_COUNT] = {0, 0, 0, 0};
-pnd_notify_handle nh;
-int timerset = 0, start = 0, now = 0;
-int nh_countdown = 60;
+
 void gui_clean_fav();
 void gui_load_fav();
+void gui_clean_icon();
+void gui_load_icon();
 
 void app_scale()
 {
     int i;
 
-    for(i = 0; i < list_num[category]; i++)
+    for( i = 0; i < list_num[category]; i++ )
     {
         if ( i == list_curpos[category] )
         {
@@ -48,24 +50,10 @@ void app_scale()
 
 }
 
-void app_scale_set()
-{
-    int i, j;
-
-	for( i = 0; i < CATEGORY_COUNT-2; i++ )
-	{
-		for(j = 0; j < list_num[i]; j++)
-		{
-		    applications[i]->scale[j] = 32;
-        }
-	}
-}
-
 void reset_preview_timer()
 {
 	if( tmp_preview != NULL )
 	{
-		printf("\tFreeing old preview pic texture memory\n");
 		GLES2D_FreeTexture( tmp_preview );
 		tmp_preview = NULL;
 	}
@@ -74,38 +62,20 @@ void reset_preview_timer()
 
 void rediscover()
 {
-    int i, j;
+    debug_start( );
 
-	for( i = 0; i < CATEGORY_COUNT-2; i++ )
-	{
-		for(j = 0; j < list_num[i]; j++)
-		{
-			if ( icon[i][j] != NULL )
-            {
-                    GLES2D_FreeTexture( icon[i][j] );
-                    icon[i][j] = NULL;
-            }
-		}
-		list_num[i] = 0;
-	}
+    int i;
+
+    gui_clean_icon();
 
     for( i = 0; i < CATEGORY_COUNT-2; i++ )
 	{
-		free(applications[i]);
+		free( applications[i] );
 	}
 
 	pnd_app_get_list();
 
-	for(i = 0; i < CATEGORY_COUNT-2; i++)
-	{
-		for(j = 0; j < list_num[i]; j++)
-		{
-		    icon[i][j] = NULL;
-			icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j] ,0  );
-            applications[i]->scale[j] = 32;
-		}
-	}
-
+    gui_load_icon();
 
 	list_curpos[category] = 0;
 	reset_preview_timer();
@@ -113,6 +83,8 @@ void rediscover()
 	gui_clean_fav();
 	cfg_fav_read();
 	gui_load_fav();
+
+	debug_end();
 }
 
 void check_rediscover()
@@ -135,13 +107,6 @@ void check_rediscover()
     }
 }
 
-void exitError ( char *errormsg )
-{
-	printf("%s", errormsg);
-
-	GLES2D_Quit();
-}
-
 int gui_init()
 {
 #ifdef I386
@@ -158,21 +123,55 @@ int gui_init()
 
 void gui_load_icon()
 {
+    debug_start();
+
     int i, j;
 
     for(i = 0; i < CATEGORY_COUNT - 2; i++)
 	{
 		for(j = 0; j < list_num[i]; j++)
 		{
-		    printf( "Looking for icon[%i][%i]\n",i, j );
-            icon[i][j] = NULL;
-            icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j], 0  );
+		    if (  icon[i][j] != NULL )
+		    {
+                GLES2D_FreeTexture( icon[i][j] );
+		    }
+
+            if ( ( icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j], 0  ) ) == NULL )
+            {
+                icon[i][j] = NULL;
+                debug_errorf( "Could not load icon (%s);", applications[i]->icon[j] );
+            }
+            applications[i]->scale[j] = 32;
 		}
 	}
+	debug_end();
+}
+
+void gui_clean_icon()
+{
+    debug_start();
+
+    int i, j;
+
+	for( i = 0; i < CATEGORY_COUNT-2; i++ )
+	{
+		for(j = 0; j < list_num[i]; j++)
+		{
+			if ( icon[i][j] != NULL )
+            {
+                    GLES2D_FreeTexture( icon[i][j] );
+                    icon[i][j] = NULL;
+            }
+		}
+		list_num[i] = 0;
+	}
+	debug_end();
 }
 
 void gui_load_preview( int cat, int n )
 {
+    debug_start();
+
 	alpha_preview = 0;
 	preview_scale = 0;
 
@@ -184,12 +183,10 @@ void gui_load_preview( int cat, int n )
 
 	if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
 	{
-		tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 );
-
-        if ( ! tmp_preview )
-            printf("Fail : gui_load_preview (load_image_to_texture);\n\n");
-		else
-			printf("Success : gui_load_preview (load_image_to_texture);\n\n");
+		if ( ( tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 ) ) == NULL )
+		{
+            debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
+		}
 	}
 	else
 	{
@@ -205,26 +202,24 @@ void gui_load_preview( int cat, int n )
 
                 if ( access ( src, R_OK ) == 0 )
                 {
-                    printf("copy %s -> %s\n", src, applications[cat]->preview_pic1[n] );
+                    debug_infof("copy %s -> %s", src, applications[cat]->preview_pic1[n] );
                     copy( src, applications[cat]->preview_pic1[n] );
 
                     if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
                     {
-                        tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 );
-
-                        if ( ! tmp_preview )
-                            printf("Fail : gui_load_preview (load_image_to_texture);\n\n");
-                        else
-                            printf("Success : gui_load_preview (load_image_to_texture);\n\n");
+                        if ( ( tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 ) ) == NULL )
+                        {
+                            debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
+                        }
                     }
                     else
                     {
-                            printf( "Could not copy %s to %s\n", src, applications[cat]->preview_pic1[n] );
+                            debug_errorf( "Could not copy %s to %s", src, applications[cat]->preview_pic1[n] );
                     }
                 }
                 else
                 {
-                    printf( "Could not access cache preview from %s\n", src );
+                    debug_errorf( "Could not access cache preview from %s", src );
                 }
 
                 pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
@@ -232,10 +227,11 @@ void gui_load_preview( int cat, int n )
 	    }
 	    else
 	    {
-            printf("Fail : gui_load_preview (preview pic do not exist -> %s);\n", applications[cat]->preview_pic1[n]);
-            printf("Will use fail safe preview pic\n\n");
+            debug_errorf("Preview pic do not exist (%s)", applications[cat]->preview_pic1[n]);
+            debug_info("Will use fail safe preview pic");
 	    }
 	}
+	debug_end();
 }
 
 void gui_load_fav()
@@ -291,76 +287,129 @@ void gui_clean_skin()
 
 void gui_load_skin()
 {
+    debug_start();
+
     char tmp[512];
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/backg.bmp", pmenu->skin_dir );
-	background = GLES2D_CreateTexture( tmp, 0 );
+	if ( ( background = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/highlight.bmp", pmenu->skin_dir );
-	highlight = GLES2D_CreateTexture( tmp, 0 );
+	if ( ( highlight = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/highlight_fav.bmp", pmenu->skin_dir );
-    highlight_fav = GLES2D_CreateTexture( tmp, 0 );
+    if ( ( highlight_fav = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
     GLES2D_SetTextureAlpha ( highlight_fav, 100 );
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/app_highlight.bmp", pmenu->skin_dir );
-	app_highlight = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( app_highlight = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/favorites_icon.bmp", pmenu->skin_dir );
-	category_icon[FAVORITES] = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( category_icon[FAVORITES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/emulators_icon.bmp", pmenu->skin_dir );
-	category_icon[EMULATORS] = GLES2D_CreateTexture( tmp , 0 );
+	if ( ( category_icon[EMULATORS] = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/games_icon.bmp", pmenu->skin_dir );
-	category_icon[GAMES] = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( category_icon[GAMES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/applications_icon.bmp", pmenu->skin_dir );
-	category_icon[APPLICATIONS] = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( category_icon[APPLICATIONS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/divers_icon.bmp", pmenu->skin_dir );
-	category_icon[DIVERS] = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( category_icon[DIVERS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/settings_icon.png", pmenu->skin_dir );
-    category_icon[SETTINGS] = GLES2D_CreateTexture( tmp, 0  );
+    if ( ( category_icon[SETTINGS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/confirm_box.png", pmenu->skin_dir );
-	confirm_box = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( confirm_box = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/no_icon.bmp", pmenu->skin_dir );
-	no_icon = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( no_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/no_preview.bmp", pmenu->skin_dir );
-	no_preview = GLES2D_CreateTexture( tmp, 0  );
+	if ( ( no_preview = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/cpu.png", pmenu->skin_dir );
-    cpu_icon = GLES2D_CreateTexture( tmp, 0  );
+    if ( ( cpu_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/clock.png", pmenu->skin_dir );
-    clock_icon = GLES2D_CreateTexture( tmp, 0  );
+    if ( ( clock_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/sd1.png", pmenu->skin_dir );
-    sd1_icon = GLES2D_CreateTexture( tmp , 0 );
+    if ( ( sd1_icon = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/sd2.png", pmenu->skin_dir );
-    sd2_icon = GLES2D_CreateTexture( tmp, 0  );
+    if ( ( sd2_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/big.ttf", pmenu->skin_dir );
@@ -369,46 +418,36 @@ void gui_load_skin()
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/font.ttf", pmenu->skin_dir );
 	small = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, 16 );
+
+	debug_end();
 }
 
 void gui_load()
 {
+    debug_start();
+
     gui_load_skin();
-
     gui_load_icon();
-
     gui_load_fav();
 
-    app_scale_set();
-
-    if ( ( nh = pnd_notify_init() ) )
-        printf ( "INOTIFY is up.\n" );
+    if ( ! ( nh = pnd_notify_init() ) )
+    {
+        debug_error ( "PND INOTIFY init problem spotted\n" );
+    }
 
     initStatusCalls();
     cpuUsage();
     getCPULoad();
+
+    debug_end();
 }
 
 void gui_clean()
 {
-    printf("gui_clean()\n" );
+    debug_start();
 
     gui_clean_skin();
-
-	int i, j;
-
-	for( i = 0; i < CATEGORY_COUNT-2; i++ )
-	{
-		for(j = 0; j < list_num[i]; j++)
-		{
-			if ( icon[i][j] != NULL )
-            {
-                    GLES2D_FreeTexture( icon[i][j] );
-                    icon[i][j] = NULL;
-            }
-		}
-	}
-
+    gui_clean_icon();
     gui_clean_fav();
 
     if( tmp_preview != NULL )
@@ -421,6 +460,8 @@ void gui_clean()
     doneStatusCalls();
 
     GLES2D_Quit();
+
+    debug_end();
 }
 
 void gui_app_exec(int n)
@@ -648,6 +689,8 @@ void gui_draw_application_box(int item)
 
 void gui_change_category( int requested_cat )
 {
+    debug_start();
+
 	category = requested_cat;
 	if( category != SETTINGS )
 	{
@@ -657,7 +700,7 @@ void gui_change_category( int requested_cat )
 
 		if( list_num[category] )
 		{
-			printf("Number of item in category[%i] = %i\n", category, list_num[category]);
+			debug_infof("Number of item in category[%i] : %i\n", category, list_num[category]);
 			reset_preview_timer();
 		}
 		else
@@ -674,6 +717,7 @@ void gui_change_category( int requested_cat )
         get_skins_list ();
         load_skin_preview();
 	}
+	debug_end();
 }
 
 void handle_dpad()
@@ -921,6 +965,7 @@ int main( )
 	GLES2D_FpsCounterInit();
 
     nh_countdown = 60;
+    debug_func = 0;
 
 	while( ! gui_done )
 	{

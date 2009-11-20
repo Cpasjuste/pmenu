@@ -20,6 +20,7 @@
 #include "gui_config.h"
 #include "pmenu_config.h"
 #include "main.h"
+#include "common.h"
 
 void gui_load_fav();
 void gui_clean_fav();
@@ -27,12 +28,12 @@ int _cfg_fav_read( char *fav_path );
 
 int _cfg_fav_read( char *fav_path )
 {
-    printf( "Start -> _cfg_fav_read( %s )\n", fav_path );
+    debug_start( );
 
 	if ( access ( fav_path, R_OK ) != 0 )
     {
-            printf( "\tFavorite configuration file do not exist, skipping ( %s )\n", fav_path );
-            printf( "Done -> _cfg_fav_read( %s )\n", fav_path );
+            debug_infof( "Favorite configuration file do not exist, skipping ( %s )", fav_path );
+            debug_end( );
             return 0;
     }
 
@@ -40,8 +41,8 @@ int _cfg_fav_read( char *fav_path )
 
 	if ( !config_read_file( &cfg, fav_path ) )
 	{
-		printf ( "\tconfig_read_file(%s) failed (line %d of %s)\n", fav_path, ( __LINE__ -1 ), __FILE__ );
-		printf( "Error -> _cfg_fav_read( %s )\n", fav_path );
+		debug_errorf( "config_read_file(%s) failed", fav_path );
+		debug_end( );
         config_destroy(&cfg);
         return 0;
 
@@ -84,7 +85,8 @@ int _cfg_fav_read( char *fav_path )
 
                 if ( access ( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], R_OK ) != 0 )
                 {
-                    printf( "%s : do not exist anymore, removing from favorites\n", applications[FAVORITES]->fullpath[applications_count[FAVORITES]] );
+                    debug_infof( "%s do not exist anymore, removing from favorites", applications[FAVORITES]->fullpath[applications_count[FAVORITES]] );
+                    debug_end();
                     config_destroy( &cfg );
                     cfg_fav_del( i );
                     return 0;
@@ -141,7 +143,7 @@ int _cfg_fav_read( char *fav_path )
 
 	config_destroy(&cfg);
 
-	printf( "Done -> _cfg_fav_read( %s )\n", fav_path );
+	debug_end();
 
 	return 1;
 }
@@ -175,7 +177,7 @@ int cfg_fav_read( )
 
 int cfg_fav_del( int fav )
 {
-    printf( "Start -> cfg_fav_del( %i )\n", fav );
+    debug_start();
 
     char fav_to_del[64];
     char fav_path[512];
@@ -190,13 +192,14 @@ int cfg_fav_del( int fav )
 
     if ( ! config_read_file( &cfg, fav_path ) )
     {
-        printf ( "\tFunction config_read_file(%s) failed (line %d of %s)\n", fav_path, (__LINE__ -2), __FILE__ );
-        printf( "Error -> cfg_fav_del( %i )\n\n", fav );
+        debug_errorf ( "config_read_file(%s) failed", fav_path );
+        debug_errorf( "cfg_fav_del( %i ) failed", fav );
+        debug_end();
         config_destroy( &cfg );
         return 0;
     }
 
-    printf( "\tRemoving %s from %s\n", fav_to_del, fav_path );
+    debug_infof( "Removing %s from %s", fav_to_del, fav_path );
 
     config_setting_t *root = config_root_setting( &cfg );
 
@@ -207,7 +210,7 @@ int cfg_fav_del( int fav )
 
     if ( icon[FAVORITES][fav] != NULL )
     {
-        printf( "\tRemoving icon%i from memory\n", fav );
+        debug_infof( "Removing icon%i from memory\n", fav );
         GLES2D_FreeTexture ( icon[FAVORITES][fav] );
         icon[FAVORITES][fav] = NULL;
     }
@@ -216,14 +219,14 @@ int cfg_fav_del( int fav )
     cfg_fav_read();
     gui_load_fav();
 
-    printf( "Done -> cfg_fav_del( %i )\n\n", fav );
+    debug_end();
 
 	return 1;
 }
 
 int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *fullpath, char *exec_name, char *_icon, char *description, char *preview_pic1, char *preview_pic2 )
 {
-    printf( "Start -> cfg_fav_add( )\n" );
+    debug_start();
 
     char string_search[256];
     char favorite_file[512];
@@ -234,11 +237,11 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
 
         if ( access ( cache_path, R_OK ) != 0 )
         {
-            printf("\tCreating pmenu cache directory : %s\n", cache_path );
+            debug_infof("Creating pmenu cache directory : %s", cache_path );
             if ( mkdir ( cache_path, 0755 ) < 0 )
             {
-                printf("\tCould not create cache directory : %s\n", strerror(errno) );
-                printf( "Error -> cfg_fav_add( )\n\n" );
+                debug_errorf("Could not create cache directory : %s", strerror(errno) );
+                debug_end();
                 return 0;
             }
 
@@ -250,14 +253,14 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
 
         if ( access ( favorite_file, R_OK ) != 0 )
         {
-            printf("\tCreating favorites configuration file : %s\n", favorite_file );
+            debug_infof("Creating favorites configuration file : %s", favorite_file );
             FILE *fav_file = fopen( favorite_file, "wt" );
             if ( !fav_file )
             {
-                printf( "\tCould not create favorite configuration file : %s\n", favorite_file );
+                debug_errorf( "Could not create favorite configuration file : %s", favorite_file );
                 fclose( fav_file );
                 config_destroy( &cfg );
-                printf( "Error -> cfg_fav_add( )\n\n" );
+                debug_end();
                 return 0;
             }
 
@@ -266,8 +269,8 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
 
         if ( ! config_read_file( &cfg, favorite_file ) )
         {
-            printf ( "\tFunction config_read_file(%s) failed (line %d of %s)\n", favorite_file, (__LINE__ -2), __FILE__ );
-            printf( "Error -> cfg_fav_add( )\n\n" );
+            debug_errorf ( "config_read_file(%s) failed", favorite_file );
+            debug_end();
             config_destroy( &cfg );
             return 0;
         }
@@ -283,7 +286,7 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
 
 			if ( ! search )
 			{
-				printf("\tAdding Favorite application number %i (%s) to %s\n", i, name, favorite_file );
+				debug_infof("Adding Favorite application number %i (%s) to %s", i, name, favorite_file );
 
                 config_setting_t *root = config_root_setting(&cfg);
 
@@ -360,14 +363,15 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
                 config_write_file( &cfg, favorite_file );
                 config_destroy( &cfg );
 
-                printf( "Done -> cfg_fav_add( )\n\n" );
+                debug_end();
 
                 return 1;
 			}
 		}
     }
 
-    printf( "Done -> cfg_fav_add( ) -> Maximum favorites applications reached\n\n" );
+    debug_info( "cfg_fav_add( ) -> Maximum favorites applications reached\n\n" );
+    debug_end();
 
 	return 0;
 }

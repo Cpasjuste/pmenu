@@ -32,8 +32,8 @@ clean:
 	${RM} -f ${ALLOBJ} ${LIBCONFIG} ${TARGET}
 	${RM} -rf obj bin
 	${RM} -rf deployment
-	${RM} -rf sd1/pandora/apps/pmenu
-	${RM} -rf sd2/pandora/apps/pmenu
+	${RM} -rf sd1/pandora/pmenu
+	${RM} -rf sd2/pandora/pmenu
 	cd libconfig; make distclean; cd ..;
 	find . -name "*~*" -exec rm {} \; -print
 
