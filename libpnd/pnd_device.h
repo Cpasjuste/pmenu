@@ -20,7 +20,7 @@ extern "C" {
 #define PND_DEVICE_SYS_BACKLIGHT_BRIGHTNESS "/sys/class/backlight/gpio-backlight/brightness"
 #define PND_DEVICE_FRAMEBUFFER "/dev/fb0"
 #define PND_DEVICE_NUB1 "/dev/input/js1"
-#define PND_DEVICE_NUB1 "/dev/input/js2"
+#define PND_DEVICE_NUB2 "/dev/input/js2"
 
 /* utility
  */

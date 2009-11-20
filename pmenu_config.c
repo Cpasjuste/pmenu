@@ -5,6 +5,7 @@
 #include "pmenu_config.h"
 #include "get_apps.h"
 #include "utils.h"
+#include "common.h"
 
 int cfg_pmenu_read()
 {
@@ -40,6 +41,12 @@ int cfg_pmenu_read()
             if(tmp)
             {
                 strcpy( pmenu->skin_dir, config_setting_get_string(tmp));
+            }
+
+            tmp = config_setting_get_member(search, "cpu_mhz");
+            if(tmp)
+            {
+                pmenu->cpu_mhz = config_setting_get_int( tmp );
             }
 		}
 	}
@@ -83,6 +90,48 @@ int cfg_pmenu_update_skin_path( char *skin_path )
 
 	/* Free the configuration */
 	config_destroy( &cfg );
+
+	return 0;
+}
+
+int cfg_pmenu_update_cpu_mhz( int mhz )
+{
+    debug_start();
+
+	/* Initialize the configuration */
+	config_init(&cfg);
+
+	if ( !config_read_file( &cfg, "pmenu.cfg" ) )
+	{
+		debug_error( "config_read_file(pmenu.cfg) failed" );;
+		config_destroy(&cfg);
+		return -1;
+	}
+	else
+	{
+		config_setting_t *item = NULL;
+		item = config_lookup( &cfg, "pmenu_main" );
+
+		if ( !item )
+		{
+			debug_error("cfg_pmenu_update_skin_path: config_lookup failed");
+		}
+			else
+			{
+				config_setting_t *tmp = config_setting_get_member( item, "cpu_mhz" );
+				if( tmp )
+				{
+					config_setting_set_int( tmp, mhz );
+				}
+			}
+    }
+	/* Write configuration */
+	config_write_file( &cfg, "pmenu.cfg" );
+
+	/* Free the configuration */
+	config_destroy( &cfg );
+
+	debug_end();
 
 	return 0;
 }

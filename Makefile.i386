@@ -1,0 +1,61 @@
+#
+# Pmenu Makefile
+#
+
+# tools
+CC = ${CROSSCOMPILE}gcc
+CXX = ${CROSSCOMPILE}g++
+AR = ${CROSSCOMPILE}ar
+RANLIB = ${CROSSCOMPILE}ranlib
+STRIP = ${CROSSCOMPILE}strip
+RM = rm
+
+# environment
+LDFLAGS = -L/usr/lib -lSDL -lSDL_image -lSDL_ttf -lfreetype -lGLES2D \
+		-lGLES_CM -lpnd -lstdc++
+
+CFLAGS = -Wall -Werror -g -Ilibconfig -Ilibpnd -I/usr/include
+
+# code
+TARGET = pmenu
+LIBCONFIG = libconfig/.libs/libconfig.a
+ALLOBJ = cpuLoad.o fav_config.o get_apps.o gui_config.o main.o \
+		menu_settings.o pmenu_config.o utils.o
+
+all: ${TARGET}
+
+clean:
+	${RM} -f ${ALLOBJ} ${LIBCONFIG} ${TARGET}
+	${RM} -rf obj bin
+	${RM} -rf deployment
+	${RM} -rf sd1/pandora/pmenu
+	${RM} -rf sd2/pandora/pmenu
+	cd libconfig; make distclean; cd ..;
+	find . -name "*~*" -exec rm {} \; -print
+
+
+# component targets
+#
+
+pmenu:	${LIBCONFIG} ${ALLOBJ}
+	${CC} ${ALLOBJ} ${LIBCONFIG} ${LDFLAGS} -o ${TARGET}
+	${STRIP} ${TARGET}
+
+libconfig/.libs/libconfig.a:
+		cd libconfig; make distclean; \
+		./configure; \
+		make libconfig.la; \
+		cd ..;
+
+# deployment and assembly components
+#
+
+deploy: 
+	# populate deployment directory for copying into image bakes
+	# make dirs
+	mkdir -p deployment/etc/pandora/pmenu
+	# copy in goodies
+	cp -rf skins deployment/etc/pandora/pmenu/
+	cp pmenu deployment/etc/pandora/pmenu/
+	cp pmenu.cfg deployment/etc/pandora/pmenu/
+

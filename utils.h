@@ -6,6 +6,7 @@ void error(char *msg);
 char* get_time_string(int mode24);
 int copy(char *src, char *dst);
 char *disk_space(char *path);
+void set_cpu( int mhz );
 
 #define TIME_24   1
 #define TIME_12   0

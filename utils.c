@@ -7,6 +7,9 @@
 #include <time.h>
 #include <sys/statvfs.h>
 
+#include "common.h"
+#include "pmenu_config.h"
+
 void textcolor( int attr, int fg )
 {
     char command[13];
@@ -95,3 +98,20 @@ char *disk_space(char *path)
     return space_str;
 }
 
+void set_cpu( int mhz )
+{
+    if ( ( mhz >= 30 ) && ( mhz <= 800 ) )
+    {
+
+        char command[256];
+        memset( command, 0, 256 );
+
+        sprintf( command, "echo %i > /proc/pandora/cpu_mhz_max", mhz );
+
+	int ret;
+
+        ret = system( command );
+
+       // pnd_device_set_clock( mhz );
+    }
+}

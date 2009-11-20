@@ -117,7 +117,6 @@ int gui_init()
 	putenv ("SDL_MOUSEDRV=TSLIB");
     GLES2D_InitVideo( 800, 480, 1, 1, 1 );
 #endif
-
 	return 0;
 }
 
@@ -138,7 +137,6 @@ void gui_load_icon()
 
             if ( ( icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j], 0  ) ) == NULL )
             {
-                icon[i][j] = NULL;
                 debug_errorf( "Could not load icon (%s);", applications[i]->icon[j] );
             }
             applications[i]->scale[j] = 32;
@@ -439,6 +437,8 @@ void gui_load()
     cpuUsage();
     getCPULoad();
 
+    set_cpu( pmenu->cpu_mhz );
+
     debug_end();
 }
 
@@ -633,12 +633,12 @@ void gui_draw()
 	}
 
 
-//	char cpu_char[16];
-//	memset( cpu_char, 0, 16 );
- //   printf( "%.0f%%\n", cpuUsage()*100 );
-//	sprintf( cpu_char, "%.0f%%\n", cpuUsage()*100 );
-//	GLES2D_SetFontColor( small, 255, 255, 255, 255 );
-//	GLES2D_DrawFont( small, 152, 450, cpu_char );
+    char cpu_char[16];
+    memset( cpu_char, 0, 16 );
+//    sprintf( cpu_char, "%.0f%%", cpuUsage()*100 );
+//    GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+    sprintf( cpu_char, "%i", pmenu->cpu_mhz );
+    GLES2D_DrawFont( small, 152, 450, cpu_char );
 	GLES2D_DrawTextureSimple( cpu_icon, 110, 440 );
 
     GLES2D_DrawFont(small, 542, 450, get_time_string(TIME_24) );
@@ -729,7 +729,19 @@ void handle_dpad()
         do_quit = 1;
     }
 
-        if( GLES2D_PadPressed ( PAD_LEFT ) || GLES2D_KeyboardHold( XK_Left ) )
+        if( GLES2D_PadHold ( PAD_LEFT ) )
+        {
+            if ( category == SETTINGS )
+            {
+                if ( setting_current == MENU_CPU )
+                {
+                    if ( pmenu->cpu_mhz > 30 )
+                        pmenu->cpu_mhz-=5;
+                }
+            }
+        }
+
+        if( GLES2D_PadPressed ( PAD_LEFT ) || GLES2D_KeyboardPressed( XK_Left ) )
         {
             if ( category == SETTINGS )
             {
@@ -762,7 +774,19 @@ void handle_dpad()
             }
         }
 
-        if( GLES2D_PadPressed ( PAD_RIGHT ) || GLES2D_KeyboardHold( XK_Right ) )
+        if( GLES2D_PadHold ( PAD_RIGHT ) )
+        {
+            if ( category == SETTINGS )
+            {
+                if ( setting_current == MENU_CPU )
+                {
+                    if ( pmenu->cpu_mhz < 800 )
+                        pmenu->cpu_mhz+=5;
+                }
+            }
+        }
+
+        if( GLES2D_PadPressed ( PAD_RIGHT ) || GLES2D_KeyboardPressed( XK_Right ) )
         {
             if ( category == SETTINGS )
             {
@@ -892,14 +916,19 @@ void handle_dpad()
         }
         else if ( category == SETTINGS  )
         {
-              if ( setting_current == MENU_SKIN )
-                {
-                    cfg_pmenu_update_skin_path( skin[skin_current]->path );
-                    cfg_pmenu_read();
-                    gui_clean_skin();
-                    gui_load_skin();
-                    load_skin_preview();
-                }
+            if ( setting_current == MENU_SKIN )
+            {
+                cfg_pmenu_update_skin_path( skin[skin_current]->path );
+                cfg_pmenu_read();
+                gui_clean_skin();
+                gui_load_skin();
+                load_skin_preview();
+            }
+            else if ( setting_current == MENU_CPU )
+            {
+                cfg_pmenu_update_cpu_mhz( pmenu->cpu_mhz );
+                set_cpu( pmenu->cpu_mhz );
+            }
         }
         else
         {
@@ -946,7 +975,7 @@ int main( )
 
     if ( cfg_pmenu_read() < 1 )
     {
-        printf( "FATAL: cfg_pmenu_read failed, exiting...\n" );
+        debug_error( "cfg_pmenu_read failed, exiting..." );
         GLES2D_Quit();
         exit(0);
     }
@@ -954,7 +983,7 @@ int main( )
 	if ( cfg_gui_read() < 1 )
     {
         GLES2D_Quit();
-        printf( "FATAL: cfg_gui_read failed, exiting...\n" );
+        debug_error( "cfg_gui_read failed, exiting..." );
         exit(0);
     }
 
