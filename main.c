@@ -133,6 +133,7 @@ void gui_load_icon()
 		    if (  icon[i][j] != NULL )
 		    {
                 GLES2D_FreeTexture( icon[i][j] );
+                icon[i][j] = NULL;
 		    }
 
             if ( ( icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j], 0  ) ) == NULL )
@@ -259,41 +260,118 @@ void gui_clean_fav()
 
 void gui_clean_skin()
 {
+    debug_start();
+
     int i;
 
-	GLES2D_FreeTexture( background );
-	GLES2D_FreeTexture( highlight );
-	GLES2D_FreeTexture( highlight_fav );
-	GLES2D_FreeTexture( app_highlight );
-	GLES2D_FreeTexture( confirm_box );
-	GLES2D_FreeTexture( no_icon );
-	GLES2D_FreeTexture( no_preview );
-    GLES2D_FreeTexture( cpu_icon );
-    GLES2D_FreeTexture( clock_icon );
-    GLES2D_FreeTexture( sd1_icon );
-    GLES2D_FreeTexture( sd2_icon );
+    if ( background != NULL )
+    {
+        GLES2D_FreeTexture( background );
+        background = NULL;
+    }
+
+    if ( highlight != NULL )
+    {
+        GLES2D_FreeTexture( highlight );
+        highlight = NULL;
+    }
+
+    if ( highlight_fav != NULL )
+    {
+        GLES2D_FreeTexture( highlight_fav );
+        highlight_fav = NULL;
+    }
+
+	if ( app_highlight != NULL )
+	{
+        GLES2D_FreeTexture( app_highlight );
+        app_highlight = NULL;
+	}
+
+	if ( confirm_box != NULL )
+	{
+        GLES2D_FreeTexture( confirm_box );
+        confirm_box = NULL;
+	}
+
+	if ( no_icon != NULL )
+	{
+        GLES2D_FreeTexture( no_icon );
+        no_icon = NULL;
+    }
+
+	if ( no_preview != NULL )
+	{
+        GLES2D_FreeTexture( no_preview );
+        no_preview = NULL;
+	}
+
+	if ( cpu_icon != NULL )
+	{
+        GLES2D_FreeTexture( cpu_icon );
+        cpu_icon = NULL;
+
+    }
+
+    if ( clock_icon != NULL )
+    {
+        GLES2D_FreeTexture( clock_icon );
+        clock_icon = NULL;
+    }
+
+
+    if ( sd1_icon != NULL )
+    {
+        GLES2D_FreeTexture( sd1_icon );
+        sd1_icon = NULL;
+    }
+
+    if ( sd2_icon != NULL )
+    {
+        GLES2D_FreeTexture( sd2_icon );
+        sd2_icon = NULL;
+    }
+
 
 	for ( i = 0; i < CATEGORY_COUNT; i++ )
 	{
-		GLES2D_FreeTexture( category_icon[i] );
-		category_icon[i] = NULL;
+	    if ( category_icon[i] != NULL )
+	    {
+            GLES2D_FreeTexture( category_icon[i] );
+            category_icon[i] = NULL;
+	    }
 	}
 
-    GLES2D_FreeFont( normal );
-    GLES2D_FreeFont( small );
+    if ( big != NULL )
+    {
+        GLES2D_FreeFont( big );
+        big = NULL;
+    }
+
+    if ( small != NULL )
+    {
+        GLES2D_FreeFont( small );
+        small = NULL;
+    }
+
+    debug_end();
 }
 
-void gui_load_skin()
+int gui_load_skin()
 {
     debug_start();
 
     char tmp[512];
+
+    cfg_gui_read();
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/backg.bmp", pmenu->skin_dir );
 	if ( ( background = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
@@ -301,6 +379,8 @@ void gui_load_skin()
 	if ( ( highlight = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
@@ -308,6 +388,8 @@ void gui_load_skin()
     if ( ( highlight_fav = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
     GLES2D_SetTextureAlpha ( highlight_fav, 100 );
 
@@ -316,6 +398,8 @@ void gui_load_skin()
 	if ( ( app_highlight = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -323,6 +407,8 @@ void gui_load_skin()
 	if ( ( category_icon[FAVORITES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -330,6 +416,8 @@ void gui_load_skin()
 	if ( ( category_icon[EMULATORS] = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -337,6 +425,8 @@ void gui_load_skin()
 	if ( ( category_icon[GAMES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -344,6 +434,8 @@ void gui_load_skin()
 	if ( ( category_icon[APPLICATIONS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -351,6 +443,8 @@ void gui_load_skin()
 	if ( ( category_icon[DIVERS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -358,6 +452,8 @@ void gui_load_skin()
     if ( ( category_icon[SETTINGS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
@@ -365,6 +461,8 @@ void gui_load_skin()
 	if ( ( confirm_box = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -372,6 +470,8 @@ void gui_load_skin()
 	if ( ( no_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -379,6 +479,8 @@ void gui_load_skin()
 	if ( ( no_preview = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
 	memset ( tmp, 0, 512 );
@@ -386,6 +488,8 @@ void gui_load_skin()
     if ( ( cpu_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
@@ -393,6 +497,8 @@ void gui_load_skin()
     if ( ( clock_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
@@ -400,6 +506,8 @@ void gui_load_skin()
     if ( ( sd1_icon = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
@@ -407,17 +515,30 @@ void gui_load_skin()
     if ( ( sd2_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
 	}
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/big.ttf", pmenu->skin_dir );
-    normal = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, 16 );
+    if ( ( big = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_big_size ) ) == NULL )
+    {
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+    }
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/font.ttf", pmenu->skin_dir );
-	small = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, 16 );
+    sprintf( tmp, "%s/small.ttf", pmenu->skin_dir );
+	if ( ( small = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_small_size ) ) == NULL )
+	{
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+	}
 
 	debug_end();
+	return 1;
 }
 
 void gui_load()
@@ -483,7 +604,7 @@ int gui_confirm_box( char *msg )
 	int done = 0;
 
     GLES2D_DrawTextureSimple( confirm_box, 300, 125 );
-    GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+    GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
     GLES2D_DrawFontBox ( small, 300, 125, confirm_box->dst->w, confirm_box->dst->h, msg );
 
     //GLES2D_DrawTextBoxFill( small, msg, 400 - 100, 280 - 50, 200, 100, 100, 100, 100, 200, 255, 255, 255, 255 );
@@ -534,7 +655,9 @@ void gui_draw()
 					GLES2D_DrawTextureSimple ( app_highlight, gui->applications_box_x - 54, \
 						(((i-list_start[category])+gui->applications_box_y)*50) - 30 );
 
-					GLES2D_DrawFont( normal, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 23 , tmpStr );
+                    GLES2D_SetFontColor( big, HEXTOR(gui->font_big_color_highlight), HEXTOG(gui->font_big_color_highlight), HEXTOB(gui->font_big_color_highlight), HEXTOA(gui->font_big_color_highlight) );
+					GLES2D_DrawFont( big, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 20 , tmpStr );
+					GLES2D_SetFontColor( big, HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
 
 					if ( scroll_count < gui->applications_box_x - GLES2D_GetTextWidth ( small, applications[category]->description[i] ) )
                         scroll_count = gui->applications_box_x + 270;
@@ -544,18 +667,22 @@ void gui_draw()
                         scroll_count = gui->applications_box_x;
                         reset_scroll_count = 0;
                     }
-                    GLES2D_DrawFontScroll( small, scroll_count, ( ((i-list_start[category])+gui->applications_box_y)*50 + 20 ) - 23, gui->applications_box_x, gui->applications_box_x + 270,  applications[category]->description[i] );
-
+                   // GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
+                    GLES2D_DrawFontScroll( small, scroll_count, ( ((i-list_start[category])+gui->applications_box_y)*50 + 20 ) - 20, gui->applications_box_x, gui->applications_box_x + 270,  applications[category]->description[i] );
+                   // GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
                     scroll_count--;
 				}
 				else
 				{
+				    GLES2D_SetFontColor( big, HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
+				    GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+
 					memset(tmpStr, 0, 256);
 					strncpy(tmpStr, applications[category]->name[i], 29);
-					GLES2D_DrawFont( normal, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 23, tmpStr );
+					GLES2D_DrawFont( big, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 20, tmpStr );
                     memset(tmpStr, 0, 256);
 					strncpy(tmpStr, applications[category]->description[i], 40 );
-					GLES2D_DrawFont( small, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50 + 20) - 23, tmpStr );
+					GLES2D_DrawFont( small, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50 + 20) - 20, tmpStr );
 				}
 
 				if ( icon[category][i] != NULL )
@@ -627,7 +754,7 @@ void gui_draw()
 
         if ( gui->show_category_title )
         {
-            GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+            GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
             GLES2D_DrawFontCentered( small, category_icon[i]->dst->x + category_icon[i]->dst->w / 2, category_icon[i]->dst->y + category_icon[i]->dst->h + 10, gui->category_title[i] );
         }
 	}
@@ -636,7 +763,7 @@ void gui_draw()
     char cpu_char[16];
     memset( cpu_char, 0, 16 );
 //    sprintf( cpu_char, "%.0f%%", cpuUsage()*100 );
-//    GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+//    GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
     sprintf( cpu_char, "%i", pmenu->cpu_mhz );
     GLES2D_DrawFont( small, 152, 450, cpu_char );
 	GLES2D_DrawTextureSimple( cpu_icon, 110, 440 );
@@ -676,10 +803,10 @@ void gui_draw_application_box(int item)
 
 //        GLES2D_SetDrawingColor( 255, 255, 255, 255 );
         sprintf( tmpString, "Title: %s", applications[category]->name[item] );
-        GLES2D_DrawFont( normal, 50, 50, tmpString );
+        GLES2D_DrawFont( big, 50, 50, tmpString );
 
         sprintf( tmpString, "Description: %s", applications[category]->description[item] );
-        GLES2D_DrawFontBox( normal, 50, 70, 200, 100, tmpString );
+        GLES2D_DrawFontBox( big, 50, 70, 200, 100, tmpString );
         //GLES2D_DrawText( normal, tmpString, 50, 50 );
 
         GLES2D_SwapBuffers();
@@ -748,7 +875,10 @@ void handle_dpad()
                 if ( setting_current == MENU_SKIN )
                 {
                     if ( skin_current > 0 )
+                    {
+                        skin_previous = skin_current;
                         skin_current--;
+                    }
 
                     load_skin_preview();
                 }
@@ -793,7 +923,10 @@ void handle_dpad()
                 if ( setting_current == MENU_SKIN )
                 {
                     if ( skin_current < skin_count - 1 )
+                    {
+                        skin_previous = skin_current;
                         skin_current++;
+                    }
 
                     load_skin_preview();
                 }
@@ -921,7 +1054,16 @@ void handle_dpad()
                 cfg_pmenu_update_skin_path( skin[skin_current]->path );
                 cfg_pmenu_read();
                 gui_clean_skin();
-                gui_load_skin();
+
+                if ( ! gui_load_skin() )
+                {
+                    cfg_pmenu_update_skin_path( skin[skin_previous]->path );
+                    cfg_pmenu_read();
+                    gui_clean_skin();
+                    gui_load_skin();
+
+                }
+
                 load_skin_preview();
             }
             else if ( setting_current == MENU_CPU )
@@ -995,6 +1137,9 @@ int main( )
 
     nh_countdown = 60;
     debug_func = 0;
+
+
+//    debug_errorf( "R:%i G:%i B:%i", HEXTOR(color), HEXTOG(color), HEXTOB(color) );
 
 	while( ! gui_done )
 	{

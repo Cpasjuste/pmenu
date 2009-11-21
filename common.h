@@ -1,6 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#define HEXTOR(c) ((c>>24)&0xFF)
+#define HEXTOG(c) ((c>>16)&0xFF)
+#define HEXTOB(c) ((c>>8)&0xFF)
+#define HEXTOA(c) ((c)&0xFF)
+
 #define RESET		0
 #define BRIGHT 		1
 #define DIM	        2

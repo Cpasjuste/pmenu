@@ -5,7 +5,7 @@
 
 #include "get_apps.h"
 
-GLES2D_Font *normal, *small;
+GLES2D_Font *big, *small;
 
 GLES2D_Texture *sd1_icon, *sd2_icon, *clock_icon, *cpu_icon, *background, *fav_background, *app_background, *highlight, *highlight_fav, *app_highlight, *category_icon[CATEGORY_COUNT], *arrow[2], *confirm_box, *no_icon, *no_preview, \
 		*icon[CATEGORY_COUNT][256], *tmp_preview, *logo, *buffer1, *buffer2;

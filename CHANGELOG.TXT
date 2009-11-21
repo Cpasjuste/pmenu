@@ -1,0 +1,9 @@
+pmenu_i386_20091121_r2 :
+- Fixed : skin configuration file (gui.cfg) was not read while switching skins
+- Removed the exit on mouse click function
+
+pmenu_i386_20091121 :
+- Added linux i386 makefile
+- Added fonts size/color configuration to skins configuration file (gui.cfg)
+- Added Cpu speed selector to settings menu (pandora only)
+- Added Skins data verification routine to prevent loading a skin if some file are missing

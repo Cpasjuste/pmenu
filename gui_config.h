@@ -9,12 +9,14 @@ struct config_t cfg;
 
 typedef struct
 {
+    int font_small_size;
+    int font_small_color;
+    int font_small_color_highlight;
+    int font_big_size;
+    int font_big_color;
+    int font_big_color_highlight;
 	int applications_box_x;
 	int applications_box_y;
-	int arrow_left_x;
-	int arrow_left_y;
-	int arrow_right_x;
-	int arrow_right_y;
 	int confirm_box_x;
 	int confirm_box_y;
 	int preview_pic_x;

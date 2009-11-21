@@ -107,7 +107,7 @@ void settings_draw()
         GLES2D_DrawFont( small, 50, setting_y[i], setting_string[i] );
 
         if ( i == setting_current )
-            GLES2D_SetFontColor( small, 0, 255, 200, 255 );
+            GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
 
         if ( i == MENU_SKIN )
         {
@@ -125,7 +125,7 @@ void settings_draw()
             GLES2D_DrawFont( small, GLES2D_GetTextWidth( small, setting_string[i] ) + 55, setting_y[i], cpu_str );
         }
 
-        GLES2D_SetFontColor( small, 255, 255, 255, 255 );
+        GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
     }
 }
 

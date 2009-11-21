@@ -30,6 +30,7 @@ clean:
 	${RM} -rf deployment
 	${RM} -rf sd1/pandora/pmenu
 	${RM} -rf sd2/pandora/pmenu
+	${RM} -rf release
 	cd libconfig; make distclean; cd ..;
 	find . -name "*~*" -exec rm {} \; -print
 
@@ -58,4 +59,22 @@ deploy:
 	cp -rf skins deployment/etc/pandora/pmenu/
 	cp pmenu deployment/etc/pandora/pmenu/
 	cp pmenu.cfg deployment/etc/pandora/pmenu/
+
+release:clean $(TARGET)
+	# populate deployment directory for copying into image bakes
+	# make dirs
+	mkdir -p release/libs
+	# copy in goodies
+	cp /usr/lib/libGLES_CM.so release/libs
+	cp /usr/lib/libEGL.so release/libs
+	cp -rf skins release
+	cp -rf sd1 release
+	cp -rf sd2 release
+	cp -rf testdata release
+	cp run.sh release
+	cp pmenu release
+	cp pmenu.cfg release
+	cp CHANGELOG.TXT release
+	${RM} -rf pmenu_i386_`date +%Y%m%d`.zip
+	zip -r pmenu_i386_`date +%Y%m%d`.zip release/	
 

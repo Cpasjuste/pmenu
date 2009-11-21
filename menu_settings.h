@@ -12,6 +12,7 @@ int get_skins_list ();
 int load_skin_preview();
 
 int setting_current;
+int skin_previous;
 int skin_current;
 int skin_count;
 

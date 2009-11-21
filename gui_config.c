@@ -36,7 +36,33 @@ int cfg_gui_read()
 		}
 		else
 		{
-			config_setting_t *tmp = config_setting_get_member(search, "applications_box_x");
+		    config_setting_t *tmp = config_setting_get_member( search, "font_small_size" );
+			{
+				gui->font_small_size = config_setting_get_int(tmp);
+			}
+			tmp = config_setting_get_member( search, "font_small_color" );
+			{
+				gui->font_small_color = config_setting_get_int(tmp);
+			}
+			tmp = config_setting_get_member( search, "font_small_color_highlight" );
+			{
+				gui->font_small_color_highlight = config_setting_get_int(tmp);
+			}
+
+			tmp = config_setting_get_member( search, "font_big_size" );
+			{
+				gui->font_big_size = config_setting_get_int(tmp);
+			}
+			tmp = config_setting_get_member( search, "font_big_color" );
+			{
+				gui->font_big_color = config_setting_get_int(tmp);
+			}
+			tmp = config_setting_get_member( search, "font_big_color_highlight" );
+			{
+				gui->font_big_color_highlight = config_setting_get_int(tmp);
+			}
+
+			tmp = config_setting_get_member(search, "applications_box_x");
 			if(tmp)
 			{
 				gui->applications_box_x = config_setting_get_int(tmp);
@@ -45,26 +71,6 @@ int cfg_gui_read()
 			if(tmp)
 			{
 				gui->applications_box_y = config_setting_get_int(tmp);
-			}
-			tmp = config_setting_get_member(search, "arrow_left_x");
-			if(tmp)
-			{
-				gui->arrow_left_x = config_setting_get_int(tmp);
-			}
-			tmp = config_setting_get_member(search, "arrow_left_y");
-			if(tmp)
-			{
-				gui->arrow_left_y = config_setting_get_int(tmp);
-			}
-			tmp = config_setting_get_member(search, "arrow_right_x");
-			if(tmp)
-			{
-				gui->arrow_right_x = config_setting_get_int(tmp);
-			}
-			tmp = config_setting_get_member(search, "arrow_right_y");
-			if(tmp)
-			{
-				gui->arrow_right_y = config_setting_get_int(tmp);
 			}
 			tmp = config_setting_get_member(search, "confirm_box_x");
 			if(tmp)

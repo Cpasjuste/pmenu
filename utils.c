@@ -108,8 +108,7 @@ void set_cpu( int mhz )
 
         sprintf( command, "echo %i > /proc/pandora/cpu_mhz_max", mhz );
 
-	int ret;
-
+        int ret;
         ret = system( command );
 
        // pnd_device_set_clock( mhz );
