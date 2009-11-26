@@ -107,40 +107,48 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Unit filename="category_media.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="category_media.h" />
+		<Unit filename="category_settings.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="category_settings.h" />
 		<Unit filename="common.h" />
-		<Unit filename="cpuLoad.c">
+		<Unit filename="config_favourite.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="cpuLoad.h" />
-		<Unit filename="fav_config.c">
+		<Unit filename="config_favourite.h" />
+		<Unit filename="config_pmenu.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="fav_config.h" />
+		<Unit filename="config_pmenu.h" />
+		<Unit filename="config_skin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="config_skin.h" />
 		<Unit filename="get_apps.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="get_apps.h" />
-		<Unit filename="gui_config.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="gui_config.h" />
 		<Unit filename="libconfig.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="main.h" />
-		<Unit filename="menu_settings.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="menu_settings.h" />
-		<Unit filename="pmenu_config.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="pmenu_config.h" />
 		<Unit filename="utils.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="utils.h" />
+		<Unit filename="utils_cpu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="utils_cpu.h" />
+		<Unit filename="utils_mplayer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="utils_mplayer.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

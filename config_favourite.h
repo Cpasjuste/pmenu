@@ -1,5 +1,5 @@
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef __CONFIG_FAVOURITE_H__
+#define __CONFIG_FAVOURITE_H__
 
 #include "libconfig.h"
 

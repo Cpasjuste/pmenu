@@ -7,6 +7,8 @@ char* get_time_string(int mode24);
 int copy(char *src, char *dst);
 char *disk_space(char *path);
 void set_cpu( int mhz );
+int is_avi( char *filename );
+int is_img( char *filename );
 
 #define TIME_24   1
 #define TIME_12   0

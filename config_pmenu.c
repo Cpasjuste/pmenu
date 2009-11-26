@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "pmenu_config.h"
+#include "config_pmenu.h"
 #include "get_apps.h"
 #include "utils.h"
 #include "common.h"
@@ -58,6 +58,9 @@ int cfg_pmenu_read()
 
 int cfg_pmenu_update_skin_path( char *skin_path )
 {
+
+    strcpy( pmenu->skin_dir, skin_path );
+
 	/* Initialize the configuration */
 	config_init(&cfg);
 

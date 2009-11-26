@@ -10,14 +10,17 @@
 
 #define EMULATORS 0
 #define GAMES 1
-#define APPLICATIONS 2
-#define DIVERS 3
+#define MISC 2
+#define MEDIA 3
 #define FAVORITES 4
 #define SETTINGS 5
 
+#define IS_DIR 0
+#define IS_FILE 1
+#define IS_PND 2
 
 int applications_count[CATEGORY_COUNT-1], list_num[CATEGORY_COUNT-1], \
-	 list_start[CATEGORY_COUNT-1], list_curpos[CATEGORY_COUNT-1], now_depth[CATEGORY_COUNT-1];
+	 list_start[CATEGORY_COUNT-1], list_curpos[CATEGORY_COUNT-1];
 
 int category;
 

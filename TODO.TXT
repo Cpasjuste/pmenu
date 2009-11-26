@@ -1,3 +1,6 @@
-done -> fetch sd card partitions where app are from mount 
-done -> you only need to mount for previewpics and you can do that the moment the app is slected, not cache
-done -> also a minor cosmetic thing, you should place the pmenu folder inside /pandora on the sd 
+DONE -> One problem I'm having is in the settings menu, the list of settings seem to be hardcoded on the left side of the menu, when ideally it should use the same x y values as the application list, or even it's own values so we can center them. 
+DONE -> Add custom fonts for each text type
+
+- Could we have a variable on categories "name_active_icon" like this:: emulators_active_icon = "hightlight_emulators.jpg"; This will replace the emulators_icon when it is selected/active?
+
+- Could turn on/off the standard highlight.

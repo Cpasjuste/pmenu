@@ -5,9 +5,19 @@
 
 #include "get_apps.h"
 
-GLES2D_Font *big, *small;
+//GLES2D_Font *big, *small, *clock_font, *sd1_font, *sd2_font, *cpu_font;
+#define FONT_COUNT 7
+#define BIG 0
+#define SMALL 1
+#define CLOCK 2
+#define SD1 3
+#define SD2 4
+#define CPU 5
+#define MEDIA_FNT 6
 
-GLES2D_Texture *sd1_icon, *sd2_icon, *clock_icon, *cpu_icon, *background, *fav_background, *app_background, *highlight, *highlight_fav, *app_highlight, *category_icon[CATEGORY_COUNT], *arrow[2], *confirm_box, *no_icon, *no_preview, \
+GLES2D_Font *fnt[7];
+
+GLES2D_Texture *sd1_icon, *sd2_icon, *clock_icon, *cpu_icon, *background, *fav_background, *app_background, *highlight, *highlight_fav, *app_highlight, *category_icon[CATEGORY_COUNT], *category_icon_highlight[CATEGORY_COUNT], *confirm_box, *no_icon, *no_preview, \
 		*icon[CATEGORY_COUNT][256], *tmp_preview, *logo, *buffer1, *buffer2;
 
 int icon_x[CATEGORY_COUNT][256], icon_y[CATEGORY_COUNT][256];

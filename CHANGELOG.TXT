@@ -1,3 +1,28 @@
+pmenu_i386_20091126:
+- Added settings text interlines spacing option to the skin configuration file (gui.cfg)
+- Added proper x/y coordinates for applications_box.
+- Added proper x/y coordinates for the setting menu text (same as applications_box)
+- Added "applications_box_w" setting to the skin configuration file (gui.cfg)
+- Added "icon_scale_max" and "icon_scale_min" to the skin configuration file (gui.cfg)
+- Added "applications_spacing" for text interlines spacing to the skin configuration file (gui.cfg)
+- Changed "applications" section by "Media" section
+- Changed "divers" section by "Misc" section
+- Added a specific font for each infos settings, and with custom color and size.
+- Added an "hightlight" category icon option in the skin configuration file (gui.cfg) so you can set a different icon when selected.
+
+
+pmenu_i386_20091122 :
+- Added infos text color parameter to the skin configuration file (gui.cfg)
+- Added skin data path to the skin configuration file (gui.cfg)
+
+pmenu_i386_20091121_r3 :
+- Added cpu/sd1/sd2/clock icon/text x/y option to the skin configuration file (gui.cfg)
+- Fixed keyboard autorepeat
+- Added a delay for description scrolling
+- Added a "preview_pic_w" option to the skin configuration file (gui.cfg), to set the
+  preview pic maximum width ( height will be a 1.6666 ratio of that to preserve
+  the pandora screen ration (800/480) ).
+
 pmenu_i386_20091121_r2 :
 - Fixed : skin configuration file (gui.cfg) was not read while switching skins
 - Removed the exit on mouse click function

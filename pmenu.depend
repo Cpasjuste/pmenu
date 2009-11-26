@@ -300,7 +300,7 @@
 1258620753 /home/cpasjuste/dev/pandora/pmenu/fav_config.h
 	"libconfig.h"
 
-1258640908 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
+1259229909 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -320,9 +320,9 @@
 	<pnd_discovery.h>
 	<pnd_locate.h>
 	"get_apps.h"
-	"gui_config.h"
-	"pmenu_config.h"
-	"fav_config.h"
+	"config_skin.h"
+	"config_pmenu.h"
+	"config_favourite.h"
 	"common.h"
 
 1234188447 /usr/local/pandora/arm-2007q3/usr/include/unistd.h
@@ -401,10 +401,10 @@
 
 1257702755 /home/cpasjuste/dev/pandora/pmenu/include/pnd_locate.h
 
-1258617333 /home/cpasjuste/dev/pandora/pmenu/get_apps.h
+1259161935 /home/cpasjuste/dev/pandora/pmenu/get_apps.h
 	<pnd_pndfiles.h>
 
-1257336110 source:/home/cpasjuste/dev/pandora/pmenu/gui_config.c
+1259156989 source:/home/cpasjuste/dev/pandora/pmenu/gui_config.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -412,15 +412,17 @@
 	"get_apps.h"
 	"utils.h"
 	"pmenu_config.h"
+	"common.h"
 
-1257329455 /home/cpasjuste/dev/pandora/pmenu/gui_config.h
+1259156692 /home/cpasjuste/dev/pandora/pmenu/gui_config.h
+	<GLES2D/GLES2D.h>
 	"libconfig.h"
 	"get_apps.h"
 
 1234445172 /home/cpasjuste/dev/pandora/pmenu/include/libconfig.h
 	<stdio.h>
 
-1258739271 source:/home/cpasjuste/dev/pandora/pmenu/main.c
+1259231252 source:/home/cpasjuste/dev/pandora/pmenu/main.c
 	<string.h>
 	<unistd.h>
 	<stdlib.h>
@@ -429,34 +431,36 @@
 	<pthread.h>
 	"main.h"
 	"get_apps.h"
-	"fav_config.h"
-	"gui_config.h"
-	"pmenu_config.h"
+	"config_favourite.h"
+	"config_skin.h"
+	"config_pmenu.h"
 	"utils.h"
-	"cpuLoad.h"
+	"utils_cpu.h"
 	"pnd_apps.h"
 	"pnd_notify.h"
 	"common.h"
-	"menu_settings.h"
+	"utils_mplayer.h"
+	"category_settings.h"
+	"category_media.h"
 
 1241608925 /home/cpasjuste/dev/pandora/pmenu/graphics.h
 	"fav_config.h"
 	"get_apps.h"
 	<GLES2D/GLES2D.h>
 
-1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D.h
-	<SDL13/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL13/SDL_opengl.h>
-	<SDL13/SDL_opengles.h>
-	"GLES2D_font.h"
-	"GLES2D_sprite.h"
-	"GLES2D_video.h"
-	"GLES2D_texture.h"
-	"GLES2D_tile.h"
-	"GLES2D_ctrl.h"
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D.h
+	<GLES2D/GLES2D_platform.h>
+	<GLES2D/GLES2D_video.h>
+	<GLES2D/GLES2D_texture.h>
+	<GLES2D/GLES2D_control.h>
+	<GLES2D/GLES2D_font.h>
+	<GLES2D/GLES2D_drawing.h>
+	<GLES2D/GLES2D_collision.h>
+	<GLES2D/GLES2D_sprite.h>
+	<GLES2D/GLES2D_tile.h>
+	<GLES2D/GLES2D_utils.h>
 
-1233669427 /usr/local/pandora/arm-2007q3/usr/include/GLES/gl.h
+1257350565 /usr/local/pandora/arm-2007q3/usr/include/GLES/gl.h
 
 1233669427 /usr/local/pandora/arm-2007q3/usr/include/GLES/egl.h
 	<GLES/gl.h>
@@ -676,7 +680,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL.h
 	"SDL_main.h"
 	"SDL_stdinc.h"
 	"SDL_audio.h"
@@ -695,14 +699,14 @@
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_main.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_main.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_stdinc.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_stdinc.h
 	"SDL_config.h"
 	<sys/types.h>
 	<stdio.h>
@@ -728,17 +732,17 @@
 	<stdlib.h>
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_config.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_config.h
 	"SDL_platform.h"
 	<stdarg.h>
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_platform.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_platform.h
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/begin_code.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/begin_code.h
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/close_code.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/close_code.h
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_audio.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_audio.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_endian.h"
@@ -748,23 +752,23 @@
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_error.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_error.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_endian.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_endian.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_mutex.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_mutex.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_thread.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_thread.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_mutex.h"
@@ -772,24 +776,24 @@
 	<process.h>
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_rwops.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_rwops.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_cdrom.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_cdrom.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_cpuinfo.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_cpuinfo.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_events.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_events.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_active.h"
@@ -800,63 +804,63 @@
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_active.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_active.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_keyboard.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_keyboard.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_keysym.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_keysym.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_keysym.h
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_mouse.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_mouse.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_video.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_video.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_video.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"SDL_rwops.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_joystick.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_joystick.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_quit.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_quit.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_loadso.h
-	"SDL_stdinc.h"
-	"SDL_error.h"
-	"begin_code.h"
-	"close_code.h"
-
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_timer.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_loadso.h
 	"SDL_stdinc.h"
 	"SDL_error.h"
 	"begin_code.h"
 	"close_code.h"
 
-1236694492 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_version.h
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_timer.h
+	"SDL_stdinc.h"
+	"SDL_error.h"
+	"begin_code.h"
+	"close_code.h"
+
+1226928022 /usr/local/pandora/arm-2007q3/usr/include/SDL/SDL_version.h
 	"SDL_stdinc.h"
 	"begin_code.h"
 	"close_code.h"
 
-1258620349 /home/cpasjuste/dev/pandora/pmenu/main.h
+1259157214 /home/cpasjuste/dev/pandora/pmenu/main.h
 	<GLES2D/GLES2D.h>
 	"get_apps.h"
 
@@ -865,7 +869,7 @@
 1238493693 /home/cpasjuste/dev/pandora/pmenu/setting_config.h
 	<libconfig.h>
 
-1258713680 /home/cpasjuste/dev/pandora/pmenu/utils.h
+1259162100 /home/cpasjuste/dev/pandora/pmenu/utils.h
 
 1257702755 /home/cpasjuste/dev/pandora/pmenu/include/pnd_notify.h
 
@@ -884,7 +888,7 @@
 	<string.h>
 	"setting_config.h"
 
-1258753330 source:/home/cpasjuste/dev/pandora/pmenu/utils.c
+1259229964 source:/home/cpasjuste/dev/pandora/pmenu/utils.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -894,7 +898,7 @@
 	<time.h>
 	<sys/statvfs.h>
 	"common.h"
-	"pmenu_config.h"
+	"config_pmenu.h"
 
 1248778948 /usr/local/pandora/arm-2007q3/usr/include/SDL13/SDL.h
 	"SDL_main.h"
@@ -1198,35 +1202,20 @@
 1248778948 /usr/local/pandora/arm-2007q3/usr/include/SDL13/SDL_opengles.h
 	<OpenGLES/ES1/gl.h>
 
-1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_font.h
-	<SDL13/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL13/SDL_opengl.h>
-	<SDL13/SDL_opengles.h>
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_font.h
 
-1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_sprite.h
-	<SDL13/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL13/SDL_opengl.h>
-	<SDL13/SDL_opengles.h>
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_sprite.h
+	"GLES2D/GLES2D_platform.h"
 
-1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_video.h
-	<SDL13/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL13/SDL_opengl.h>
-	<SDL13/SDL_opengles.h>
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_video.h
 
-1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_texture.h
-	<SDL13/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL13/SDL_opengl.h>
-	<SDL13/SDL_opengles.h>
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_texture.h
+	<GLES/gl.h>
+	<SDL/SDL.h>
 
-1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_tile.h
-	<SDL13/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL13/SDL_opengl.h>
-	<SDL13/SDL_opengles.h>
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_tile.h
+	"GLES2D/GLES2D_platform.h"
+	"GLES2D/GLES2D_texture.h"
 
 1249143055 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_ctrl.h
 	<SDL13/SDL.h>
@@ -1300,7 +1289,228 @@
 
 1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_locate.h
 
-1258703565 /home/cpasjuste/dev/pandora/pmenu/common.h
+1258809731 /home/cpasjuste/dev/pandora/pmenu/common.h
 
 1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_notify.h
+
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_platform.h
+
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_control.h
+	<SDL/SDL.h>
+	"GLES2D/GLES2D_platform.h"
+	<GLES2D/GLES2D_texture.h>
+	"X11/Xlib.h"
+	"X11/Xutil.h"
+	<X11/Xos.h>
+	<X11/Xatom.h>
+	<X11/keysym.h>
+
+1256828335 /usr/local/pandora/arm-2007q3/usr/include/X11/Xlib.h
+	<sys/types.h>
+	<sys/types.h>
+	<sys/types.h>
+	<stdint.h>
+	<X11/X.h>
+	<X11/Xfuncproto.h>
+	<X11/Xosdefs.h>
+	<stddef.h>
+	<stdlib.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/X.h
+	<X11/Xmd.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xmd.h
+	<sys/isa_defs.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xfuncproto.h
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xosdefs.h
+
+1256828335 /usr/local/pandora/arm-2007q3/usr/include/X11/Xutil.h
+	<X11/Xlib.h>
+	<X11/keysym.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/keysym.h
+	<X11/keysymdef.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/keysymdef.h
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xos.h
+	<X11/Xosdefs.h>
+	<sys/types.h>
+	<sys/types.h>
+	<sys/types.h>
+	<stdint.h>
+	<netinet/in_systm.h>
+	<sys/select.h>
+	<string.h>
+	<strings.h>
+	<strings.h>
+	<malloc.h>
+	<string.h>
+	<strings.h>
+	<fcntl.h>
+	<unistd.h>
+	<X11/Xw32defs.h>
+	<sys/file.h>
+	<fcntl.h>
+	<unistd.h>
+	<fcntl.h>
+	<unistd.h>
+	<sys/time.h>
+	<time.h>
+	<sys/time.h>
+	<time.h>
+	<sys/timeb.h>
+	<time.h>
+	<sys/select.h>
+	<sys/time.h>
+	<time.h>
+	<sys/time.h>
+	<time.h>
+	<limits.h>
+	<sys/bsdtypes.h>
+	<sys/limits.h>
+	<X11/Xarch.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xw32defs.h
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xarch.h
+	<sys/endian.h>
+	<sys/byteorder.h>
+	<sys/types.h>
+	<machine/endian.h>
+	<endian.h>
+	<endian.h>
+	<bsd/in.h>
+	<bsd/in_systm.h>
+	<bsd/ip.h>
+	<sys/isa_defs.h>
+
+1256827595 /usr/local/pandora/arm-2007q3/usr/include/X11/Xatom.h
+
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_drawing.h
+	<SDL/SDL.h>
+
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_collision.h
+	"GLES2D/GLES2D_platform.h"
+	"GLES2D/GLES2D_texture.h"
+	"GLES2D/GLES2D_sprite.h"
+
+1259085697 /usr/local/pandora/arm-2007q3/usr/include/GLES2D/GLES2D_utils.h
+
+1259230620 source:/home/cpasjuste/dev/pandora/pmenu/category_media.c
+	<string.h>
+	<unistd.h>
+	<stdlib.h>
+	<stdio.h>
+	<time.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<dirent.h>
+	"main.h"
+	"get_apps.h"
+	"category_settings.h"
+	"config_skin.h"
+	"config_pmenu.h"
+	"common.h"
+
+1259163158 /home/cpasjuste/dev/pandora/pmenu/category_settings.h
+
+1259165700 /home/cpasjuste/dev/pandora/pmenu/config_skin.h
+	<GLES2D/GLES2D.h>
+	"libconfig.h"
+	"get_apps.h"
+
+1258714039 /home/cpasjuste/dev/pandora/pmenu/config_pmenu.h
+	"libconfig.h"
+	"get_apps.h"
+
+1259230644 source:/home/cpasjuste/dev/pandora/pmenu/category_settings.c
+	<string.h>
+	<unistd.h>
+	<stdlib.h>
+	<stdio.h>
+	<time.h>
+	<sys/types.h>
+	<dirent.h>
+	"main.h"
+	"get_apps.h"
+	"category_settings.h"
+	"config_skin.h"
+	"config_pmenu.h"
+	"common.h"
+
+1259229860 source:/home/cpasjuste/dev/pandora/pmenu/config_favourite.c
+	<string.h>
+	<ctype.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<sys/io.h>
+	<sys/wait.h>
+	<stdlib.h>
+	<signal.h>
+	<time.h>
+	<stdio.h>
+	<dirent.h>
+	<errno.h>
+	"libconfig.h"
+	"config_favourite.h"
+	"utils.h"
+	"get_apps.h"
+	"config_skin.h"
+	"config_pmenu.h"
+	"main.h"
+	"common.h"
+
+1259229514 /home/cpasjuste/dev/pandora/pmenu/config_favourite.h
+	"libconfig.h"
+
+1259229870 source:/home/cpasjuste/dev/pandora/pmenu/config_pmenu.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"config_pmenu.h"
+	"get_apps.h"
+	"utils.h"
+	"common.h"
+
+1259229883 source:/home/cpasjuste/dev/pandora/pmenu/config_skin.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"config_skin.h"
+	"get_apps.h"
+	"utils.h"
+	"config_pmenu.h"
+	"common.h"
+
+1250067387 /home/cpasjuste/dev/pandora/pmenu/utils_cpu.h
+	<stdio.h>
+	<sys/time.h>
+	<unistd.h>
+	<string.h>
+	<stdlib.h>
+
+1259145723 /home/cpasjuste/dev/pandora/pmenu/utils_mplayer.h
+
+1259163141 /home/cpasjuste/dev/pandora/pmenu/category_media.h
+
+1259229973 source:/home/cpasjuste/dev/pandora/pmenu/utils_cpu.c
+	"utils_cpu.h"
+
+1259229986 source:/home/cpasjuste/dev/pandora/pmenu/utils_mplayer.c
+	<string.h>
+	<ctype.h>
+	<unistd.h>
+	<stdlib.h>
+	<stdio.h>
+	<dirent.h>
+	<time.h>
+	<sys/statvfs.h>
+	<GLES2D/GLES2D.h>
+	"common.h"
+	"config_pmenu.h"
+	"utils_mplayer.h"
 

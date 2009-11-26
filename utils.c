@@ -8,7 +8,7 @@
 #include <sys/statvfs.h>
 
 #include "common.h"
-#include "pmenu_config.h"
+#include "config_pmenu.h"
 
 void textcolor( int attr, int fg )
 {
@@ -57,7 +57,7 @@ char* get_time_string(int mode24)
   if(!mode24 && hour>12)            /* Adjust if 12 hour format    */
     hour -= 12;
 
-    sprintf(time_str, "%d:%d",hour, now->tm_min);
+    sprintf(time_str, "%02d:%02d",hour, now->tm_min);
 
 /*
     if(!mode24)
@@ -114,3 +114,69 @@ void set_cpu( int mhz )
        // pnd_device_set_clock( mhz );
     }
 }
+
+const char *mystristr(const char *haystack, const char *needle)
+{
+   if ( !*needle )
+   {
+      return haystack;
+   }
+   for ( ; *haystack; ++haystack )
+   {
+      if ( toupper(*haystack) == toupper(*needle) )
+      {
+         /*
+          * Matched starting char -- loop through remaining chars.
+          */
+         const char *h, *n;
+         for ( h = haystack, n = needle; *h && *n; ++h, ++n )
+         {
+            if ( toupper(*h) != toupper(*n) )
+            {
+               break;
+            }
+         }
+         if ( !*n ) /* matched all of 'needle' to null termination */
+         {
+            return haystack; /* return the start of the match */
+         }
+      }
+   }
+   return 0;
+}
+
+int is_avi( char *filename )
+{
+    debug_start();
+    debug_infof( "%s", filename );
+    const char *avi = mystristr( filename, ".avi" );
+
+    if ( avi )
+    {
+        debug_end();
+        return 1;
+    }
+
+    debug_end();
+    return 0;
+}
+
+int is_img( char *filename )
+{
+    debug_start();
+    debug_infof( "%s", filename );
+    const char *png = mystristr( filename, ".png" );
+    const char *bmp = mystristr( filename, ".bmp" );
+
+    if ( png || bmp )
+    {
+        debug_end();
+        return 1;
+    }
+
+    debug_end();
+    return 0;
+}
+
+
+

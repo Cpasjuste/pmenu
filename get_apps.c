@@ -19,9 +19,9 @@
 #include <pnd_locate.h>
 
 #include "get_apps.h"
-#include "gui_config.h"
-#include "pmenu_config.h"
-#include "fav_config.h"
+#include "config_skin.h"
+#include "config_pmenu.h"
+#include "config_favourite.h"
 #include "common.h"
 
 int copy( char *src, char *dst );
@@ -102,7 +102,7 @@ int pnd_app_get_list( void )
 
 	applist = pnd_disco_search ( appspath, overridespath );
 
-	for(i = 0; i < CATEGORY_COUNT - 2; i++)
+	for(i = 0; i < CATEGORY_COUNT - 3; i++)
 	{
 		applications[i] = (PND_APP *) malloc(sizeof(PND_APP));
 		applications_count[i] = 0;
@@ -130,13 +130,9 @@ int pnd_app_get_list( void )
 				{
 					tmpSection = GAMES;
 				}
-				else if((strcasecmp(d -> main_category, "applications") == 0) | (strcasecmp(d -> main_category, "application") == 0))
-				{
-					tmpSection = APPLICATIONS;
-				}
 				else
                 {
-                    tmpSection = DIVERS;
+                    tmpSection = MISC;
                 }
 
                 strcpy(applications[tmpSection]->category[applications_count[tmpSection]], d -> main_category);
@@ -145,8 +141,8 @@ int pnd_app_get_list( void )
 			}
             else
             {
-                tmpSection = DIVERS;
-                strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "DIVERS"  );
+                tmpSection = MISC;
+                strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "MISC"  );
                 debug_infof ( "[%i] -> Category: %s", applications_count[tmpSection], \
                     applications[tmpSection]->category[applications_count[tmpSection]] );
             }
@@ -306,14 +302,14 @@ int pnd_app_get_list( void )
 			d = pnd_box_get_next ( d );
 		}
 
-		for(i = 0; i < CATEGORY_COUNT - 2; i++)
-		{
-			list_num[i] = applications_count[i];
-			if (list_start[i] >= list_num[i]) { list_start[i] = list_num[i]-1; }
-			if (list_start[i] < 0) { list_start[i]  = 0; }
-			if (list_curpos[i] >= list_num[i]) { list_curpos[i] = list_num[i]-1; }
-			if (list_curpos[i] < 0) { list_curpos[i] = 0; }
-		}
+		for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+        {
+            list_num[tmpSection] = applications_count[tmpSection];
+            if (list_start[tmpSection] >= list_num[tmpSection]) { list_start[tmpSection] = list_num[tmpSection]-1; }
+            if (list_start[tmpSection] < 0) { list_start[tmpSection]  = 0; }
+            if (list_curpos[tmpSection] >= list_num[tmpSection]) { list_curpos[tmpSection] = list_num[tmpSection]-1; }
+			if (list_curpos[tmpSection] < 0) { list_curpos[tmpSection] = 0; }
+        }
 
 	}
 	else

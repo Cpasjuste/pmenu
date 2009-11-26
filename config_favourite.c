@@ -14,11 +14,11 @@
 
 #include "libconfig.h"
 
-#include "fav_config.h"
+#include "config_favourite.h"
 #include "utils.h"
 #include "get_apps.h"
-#include "gui_config.h"
-#include "pmenu_config.h"
+#include "config_skin.h"
+#include "config_pmenu.h"
 #include "main.h"
 #include "common.h"
 

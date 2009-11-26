@@ -7,28 +7,37 @@
 
 #include "main.h"
 #include "get_apps.h"
-#include "fav_config.h"
-#include "gui_config.h"
-#include "pmenu_config.h"
+#include "config_favourite.h"
+#include "config_skin.h"
+#include "config_pmenu.h"
 #include "utils.h"
-#include "cpuLoad.h"
+#include "utils_cpu.h"
 #include "pnd_apps.h"
 #include "pnd_notify.h"
 #include "common.h"
+#include "utils_mplayer.h"
 
-#include "menu_settings.h"
+#include "category_settings.h"
+#include "category_media.h"
 
 pnd_notify_handle nh;
 int nh_countdown = 60;
 
 static int gui_done = 0, do_quit = 0, preview_timer = 30;
 int preview_scale = 0;
-int page[CATEGORY_COUNT] = {0, 0, 0, 0};
+int page[CATEGORY_COUNT-1] = { 0, 0, 0, 0, 0 };
+int scroll_wait = 0;
+
+int pnd_mounted = 0;
 
 void gui_clean_fav();
 void gui_load_fav();
 void gui_clean_icon();
 void gui_load_icon();
+void gui_unload_preview();
+void gui_draw();
+void gui_clean_skin();
+int gui_load_skin();
 
 void app_scale()
 {
@@ -38,26 +47,16 @@ void app_scale()
     {
         if ( i == list_curpos[category] )
         {
-            if ( applications[category]->scale[i] < 42 )
+            if ( applications[category]->scale[i] < gui->icon_scale_max )
                 applications[category]->scale[i]+=1;
         }
         else
         {
-            if ( applications[category]->scale[i] > 32 )
+            if ( applications[category]->scale[i] > gui->icon_scale_min )
                 applications[category]->scale[i]-=1;
         }
     }
 
-}
-
-void reset_preview_timer()
-{
-	if( tmp_preview != NULL )
-	{
-		GLES2D_FreeTexture( tmp_preview );
-		tmp_preview = NULL;
-	}
-	preview_timer = 25;
 }
 
 void rediscover()
@@ -68,9 +67,10 @@ void rediscover()
 
     gui_clean_icon();
 
-    for( i = 0; i < CATEGORY_COUNT-2; i++ )
+    for( i = 0; i < CATEGORY_COUNT-1; i++ )
 	{
-		free( applications[i] );
+	    if ( applications[i] != NULL )
+            free( applications[i] );
 	}
 
 	pnd_app_get_list();
@@ -78,7 +78,7 @@ void rediscover()
     gui_load_icon();
 
 	list_curpos[category] = 0;
-	reset_preview_timer();
+	gui_unload_preview();
 
 	gui_clean_fav();
 	cfg_fav_read();
@@ -109,15 +109,63 @@ void check_rediscover()
 
 int gui_init()
 {
+    now_depth = 0;
+
 #ifdef I386
-    GLES2D_InitVideo( 800, 480, 1, 1, 1 );
+    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
 //    GLES2D_JoystickList();
 //    GLES2D_JoystickInit(0);
 #else
 	putenv ("SDL_MOUSEDRV=TSLIB");
-    GLES2D_InitVideo( 800, 480, 1, 1, 1 );
+	putenv ("DISPLAY=:0");
+    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
 #endif
 	return 0;
+}
+
+void gui_change_skin()
+{
+                int alpha;
+                for ( alpha = 0; alpha < 245; alpha+=10 )
+                {
+                    gui_draw();
+                    GLES2D_SetDrawingColor( 0, 0, 0, alpha );
+                    GLES2D_DrawRectangle ( 0, 0, 800, 480 );
+                    GLES2D_SwapBuffers();
+                }
+
+                char prev_skin[512];
+                memset( prev_skin, 0, 512 );
+                strcpy( prev_skin, pmenu->skin_dir );
+
+                cfg_pmenu_update_skin_path( skin[skin_current]->path );
+
+                if ( ! cfg_gui_read() )
+                {
+                    cfg_pmenu_update_skin_path( prev_skin );
+                    cfg_gui_read();
+                }
+                else
+                {
+                    gui_clean_skin();
+
+                    if ( ! gui_load_skin() )
+                    {
+                        cfg_pmenu_update_skin_path( prev_skin );
+                        gui_clean_skin();
+                        gui_load_skin();
+                    }
+                }
+
+                for ( alpha = 255; alpha > 10; alpha-=10 )
+                {
+                    gui_draw();
+                    GLES2D_SetDrawingColor( 0, 0, 0, alpha );
+                    GLES2D_DrawRectangle ( 0, 0, 800, 480 );
+                    GLES2D_SwapBuffers();
+                }
+
+                load_skin_preview();
 }
 
 void gui_load_icon()
@@ -126,9 +174,9 @@ void gui_load_icon()
 
     int i, j;
 
-    for(i = 0; i < CATEGORY_COUNT - 2; i++)
+    for( i = 0; i < CATEGORY_COUNT - 2; i++ )
 	{
-		for(j = 0; j < list_num[i]; j++)
+		for( j = 0; j < list_num[i]; j++ )
 		{
 		    if (  icon[i][j] != NULL )
 		    {
@@ -152,7 +200,7 @@ void gui_clean_icon()
 
     int i, j;
 
-	for( i = 0; i < CATEGORY_COUNT-2; i++ )
+	for( i = 0; i < CATEGORY_COUNT-3; i++ )
 	{
 		for(j = 0; j < list_num[i]; j++)
 		{
@@ -165,6 +213,32 @@ void gui_clean_icon()
 		list_num[i] = 0;
 	}
 	debug_end();
+}
+
+void gui_unload_preview()
+{
+    debug_start();
+
+    if( tmp_preview != NULL )
+    {
+        GLES2D_FreeTexture( tmp_preview );
+        tmp_preview = NULL;
+    }
+
+    video_quit( );
+
+    if ( applications[category]->type[list_curpos[ category ]] ) // .pnd spotted
+    {
+        if( pnd_mounted )
+        {
+            pnd_pnd_unmount( pndrun, applications[category]->fullpath[list_curpos[ category ]], applications[category]->id[list_curpos[ category ]] );
+            pnd_mounted = 0;
+        }
+    }
+
+    preview_timer = 50;
+
+    debug_end();
 }
 
 void gui_load_preview( int cat, int n )
@@ -182,10 +256,19 @@ void gui_load_preview( int cat, int n )
 
 	if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
 	{
-		if ( ( tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 ) ) == NULL )
-		{
-            debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
-		}
+	    if ( is_img( applications[cat]->preview_pic1[n] ) )
+	    {
+	        debug_info( "Preview is a picture" );
+            if ( ( tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 ) ) == NULL )
+            {
+                debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
+            }
+	    }
+	    else if ( is_avi( applications[cat]->preview_pic1[n] ) )
+	    {
+            debug_info( "Preview is a video" );
+            video_play_preview( applications[cat]->preview_pic1[n] );
+	    }
 	}
 	else
 	{
@@ -197,31 +280,41 @@ void gui_load_preview( int cat, int n )
                 memset ( src, 0, 512 );
                 sprintf( src, "/mnt/pnd/%s/%s", applications[cat]->id[n], applications[cat]->preview_pic1_name[n] );
 
-                pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
-
-                if ( access ( src, R_OK ) == 0 )
+                if ( is_img( applications[cat]->preview_pic1_name[n] ) )
                 {
-                    debug_infof("copy %s -> %s", src, applications[cat]->preview_pic1[n] );
-                    copy( src, applications[cat]->preview_pic1[n] );
+                    pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
 
-                    if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
+                    if ( ( tmp_preview = GLES2D_CreateTexture( src, 0 ) ) == NULL )
                     {
-                        if ( ( tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 ) ) == NULL )
-                        {
-                            debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
-                        }
+                        debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
                     }
-                    else
-                    {
-                            debug_errorf( "Could not copy %s to %s", src, applications[cat]->preview_pic1[n] );
-                    }
+                    pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
                 }
                 else
                 {
-                    debug_errorf( "Could not access cache preview from %s", src );
-                }
+                    pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                    pnd_mounted = 1;
 
-                pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                    if ( access ( src, R_OK ) == 0 )
+                    {
+                        pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                        pnd_mounted = 1;
+
+                        video_play_preview( src );
+                    }
+                    else
+                    {
+                        pnd_pnd_unmount( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                        pnd_mounted = 0;
+                        debug_errorf("Preview pic do not exist (%s)", applications[cat]->preview_pic1[n]);
+                        debug_info("Will use fail safe preview pic");
+                    }
+                }
+            }
+            else
+            {
+                debug_errorf("Preview pic do not exist (%s)", applications[cat]->preview_pic1[n]);
+                debug_info("Will use fail safe preview pic");
             }
 	    }
 	    else
@@ -274,12 +367,6 @@ void gui_clean_skin()
     {
         GLES2D_FreeTexture( highlight );
         highlight = NULL;
-    }
-
-    if ( highlight_fav != NULL )
-    {
-        GLES2D_FreeTexture( highlight_fav );
-        highlight_fav = NULL;
     }
 
 	if ( app_highlight != NULL )
@@ -340,19 +427,21 @@ void gui_clean_skin()
             GLES2D_FreeTexture( category_icon[i] );
             category_icon[i] = NULL;
 	    }
+	    if ( category_icon_highlight[i] != NULL )
+	    {
+            GLES2D_FreeTexture( category_icon_highlight[i] );
+            category_icon_highlight[i] = NULL;
+	    }
 	}
 
-    if ( big != NULL )
-    {
-        GLES2D_FreeFont( big );
-        big = NULL;
-    }
-
-    if ( small != NULL )
-    {
-        GLES2D_FreeFont( small );
-        small = NULL;
-    }
+	for ( i = 0; i < FONT_COUNT; i++ )
+	{
+        if ( fnt[i] != NULL )
+        {
+            GLES2D_FreeFont( fnt[i] );
+            fnt[i] = NULL;
+        }
+	}
 
     debug_end();
 }
@@ -363,10 +452,8 @@ int gui_load_skin()
 
     char tmp[512];
 
-    cfg_gui_read();
-
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/backg.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->background );
 	if ( ( background = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -375,7 +462,7 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/highlight.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->highlight );
 	if ( ( highlight = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -384,17 +471,7 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/highlight_fav.bmp", pmenu->skin_dir );
-    if ( ( highlight_fav = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
-	{
-        debug_errorf( "Could not load image (%s)", tmp );
-        debug_end();
-        return 0;
-	}
-    GLES2D_SetTextureAlpha ( highlight_fav, 100 );
-
-    memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/app_highlight.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->application_highlight );
 	if ( ( app_highlight = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -403,35 +480,50 @@ int gui_load_skin()
 	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/favorites_icon.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->favorites_icon );
 	if ( ( category_icon[FAVORITES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
         return 0;
 	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->favorites_icon_highlight );
+	if ( ( category_icon_highlight[FAVORITES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/emulators_icon.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->emulators_icon );
 	if ( ( category_icon[EMULATORS] = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
         return 0;
 	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->emulators_icon_highlight );
+	if ( ( category_icon_highlight[EMULATORS] = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/games_icon.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->games_icon );
 	if ( ( category_icon[GAMES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
         return 0;
 	}
-
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/applications_icon.bmp", pmenu->skin_dir );
-	if ( ( category_icon[APPLICATIONS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->games_icon_highlight );
+	if ( ( category_icon_highlight[GAMES] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
@@ -439,17 +531,16 @@ int gui_load_skin()
 	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/divers_icon.bmp", pmenu->skin_dir );
-	if ( ( category_icon[DIVERS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->misc_icon );
+	if ( ( category_icon[MISC] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
         return 0;
 	}
-
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/settings_icon.png", pmenu->skin_dir );
-    if ( ( category_icon[SETTINGS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->misc_icon_highlight );
+	if ( ( category_icon_highlight[MISC] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
@@ -457,7 +548,41 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/confirm_box.png", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->media_icon );
+	if ( ( category_icon[MEDIA] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->media_icon_highlight );
+	if ( ( category_icon_highlight[MEDIA] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->settings_icon );
+    if ( ( category_icon[SETTINGS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->settings_icon_highlight );
+    if ( ( category_icon_highlight[SETTINGS] = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->confirm_box );
 	if ( ( confirm_box = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -466,7 +591,7 @@ int gui_load_skin()
 	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/no_icon.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->no_icon );
 	if ( ( no_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -475,7 +600,7 @@ int gui_load_skin()
 	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/no_preview.bmp", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->no_preview );
 	if ( ( no_preview = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -484,7 +609,7 @@ int gui_load_skin()
 	}
 
 	memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/cpu.png", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->cpu_icon );
     if ( ( cpu_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -493,7 +618,7 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/clock.png", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->clock_icon );
     if ( ( clock_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -502,7 +627,7 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/sd1.png", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->sd1_icon );
     if ( ( sd1_icon = GLES2D_CreateTexture( tmp , 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -511,7 +636,7 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/sd2.png", pmenu->skin_dir );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->sd2_icon );
     if ( ( sd2_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
@@ -520,8 +645,8 @@ int gui_load_skin()
 	}
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/big.ttf", pmenu->skin_dir );
-    if ( ( big = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_big_size ) ) == NULL )
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
+    if ( ( fnt[BIG] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_big_size ) ) == NULL )
     {
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
@@ -529,13 +654,63 @@ int gui_load_skin()
     }
 
     memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/small.ttf", pmenu->skin_dir );
-	if ( ( small = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_small_size ) ) == NULL )
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+	if ( ( fnt[SMALL] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_small_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->clock_text_font );
+	if ( ( fnt[CLOCK] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->clock_text_size ) ) == NULL )
+	{
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	GLES2D_SetFontColor( fnt[CLOCK], HEXTOR(gui->clock_text_color), HEXTOG(gui->clock_text_color), HEXTOB(gui->clock_text_color), HEXTOA(gui->clock_text_color) );
+
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->sd1_text_font );
+	if ( ( fnt[SD1] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->sd1_text_size ) ) == NULL )
+	{
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	GLES2D_SetFontColor( fnt[SD1], HEXTOR(gui->sd1_text_color), HEXTOG(gui->sd1_text_color), HEXTOB(gui->sd1_text_color), HEXTOA(gui->sd1_text_color) );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->sd2_text_font );
+	if ( ( fnt[SD2] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->sd2_text_size ) ) == NULL )
+	{
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	GLES2D_SetFontColor( fnt[SD2], HEXTOR(gui->sd2_text_color), HEXTOG(gui->sd2_text_color), HEXTOB(gui->sd2_text_color), HEXTOA(gui->sd2_text_color) );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->cpu_text_font );
+	if ( ( fnt[CPU] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->cpu_text_size ) ) == NULL )
+	{
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	GLES2D_SetFontColor( fnt[CPU], HEXTOR(gui->cpu_text_color), HEXTOG(gui->cpu_text_color), HEXTOB(gui->cpu_text_color), HEXTOA(gui->cpu_text_color) );
+
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->media_text_font );
+	if ( ( fnt[MEDIA_FNT] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->media_text_size ) ) == NULL )
+	{
+        debug_errorf( "Could not load font (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	GLES2D_SetFontColor( fnt[MEDIA_FNT], HEXTOR(gui->media_text_color), HEXTOG(gui->media_text_color), HEXTOB(gui->media_text_color), HEXTOA(gui->media_text_color) );
 
 	debug_end();
 	return 1;
@@ -545,6 +720,7 @@ void gui_load()
 {
     debug_start();
 
+    cfg_gui_read();
     gui_load_skin();
     gui_load_icon();
     gui_load_fav();
@@ -566,6 +742,8 @@ void gui_load()
 void gui_clean()
 {
     debug_start();
+
+    video_quit();
 
     gui_clean_skin();
     gui_clean_icon();
@@ -604,10 +782,8 @@ int gui_confirm_box( char *msg )
 	int done = 0;
 
     GLES2D_DrawTextureSimple( confirm_box, 300, 125 );
-    GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
-    GLES2D_DrawFontBox ( small, 300, 125, confirm_box->dst->w, confirm_box->dst->h, msg );
-
-    //GLES2D_DrawTextBoxFill( small, msg, 400 - 100, 280 - 50, 200, 100, 100, 100, 100, 200, 255, 255, 255, 255 );
+    GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+    GLES2D_DrawFontBox ( fnt[SMALL], 300, 125, confirm_box->dst->w, confirm_box->dst->h, msg );
 
     GLES2D_SwapBuffers();
 
@@ -635,68 +811,76 @@ void gui_draw()
 {
     GLES2D_DrawTextureSimple ( background, 0, 0 );
 
-	if( category != SETTINGS )
+    if ( category == MEDIA )
+    {
+        menu_media_draw();
+    }
+	else if ( category == SETTINGS )
+	{
+        menu_settings_draw();
+	}
+    else
 	{
 	    app_scale();
 
+        int y = gui->applications_box_y;
 		int i = list_start[category];
 
 		char tmpStr[256];
 
-		while (i < (list_start[category]+gui->max_app_per_page))
+		while (i < ( list_start[category]+gui->max_app_per_page ) )
 		{
-			if (i < list_num[category])
+			if ( i < list_num[category] )
 			{
-				if (i == list_curpos[category])
+				if ( i == list_curpos[category] )
 				{
-					memset(tmpStr, 0, 256);
-					strncpy(tmpStr, applications[category]->name[i], 29);
+					memset( tmpStr, 0, 256 );
+					strncpy( tmpStr, applications[category]->name[i], 29 );
 
-					GLES2D_DrawTextureSimple ( app_highlight, gui->applications_box_x - 54, \
-						(((i-list_start[category])+gui->applications_box_y)*50) - 30 );
+					GLES2D_DrawTextureSimple ( app_highlight, gui->applications_box_x, y );
 
-                    GLES2D_SetFontColor( big, HEXTOR(gui->font_big_color_highlight), HEXTOG(gui->font_big_color_highlight), HEXTOB(gui->font_big_color_highlight), HEXTOA(gui->font_big_color_highlight) );
-					GLES2D_DrawFont( big, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 20 , tmpStr );
-					GLES2D_SetFontColor( big, HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
+                    GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color_highlight), HEXTOG(gui->font_big_color_highlight), HEXTOB(gui->font_big_color_highlight), HEXTOA(gui->font_big_color_highlight) );
+					GLES2D_DrawFont( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, tmpStr );
+					GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
 
-					if ( scroll_count < gui->applications_box_x - GLES2D_GetTextWidth ( small, applications[category]->description[i] ) )
-                        scroll_count = gui->applications_box_x + 270;
+                    y += fnt[BIG]->lineskip;
+
+					if ( scroll_count < gui->applications_box_x - GLES2D_GetTextWidth ( fnt[SMALL], applications[category]->description[i] ) )
+                        scroll_count = gui->applications_box_x + gui->icon_scale_max + gui->applications_box_w + 10;
 
                     if ( reset_scroll_count )
                     {
-                        scroll_count = gui->applications_box_x;
+                        scroll_count = gui->applications_box_x + gui->icon_scale_max + 10;
                         reset_scroll_count = 0;
+                        scroll_wait = 0;
                     }
-                   // GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
-                    GLES2D_DrawFontScroll( small, scroll_count, ( ((i-list_start[category])+gui->applications_box_y)*50 + 20 ) - 20, gui->applications_box_x, gui->applications_box_x + 270,  applications[category]->description[i] );
-                   // GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
-                    scroll_count--;
+                    GLES2D_DrawFontScroll( fnt[SMALL], scroll_count, y + 5, gui->applications_box_x + gui->icon_scale_max + 10, gui->applications_box_x + gui->icon_scale_max + 10 + gui->applications_box_w,  applications[category]->description[i] );
+
+                    if ( scroll_wait > 60 ) scroll_count--;
+                    scroll_wait++;
 				}
 				else
 				{
-				    GLES2D_SetFontColor( big, HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
-				    GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+				    GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
+				    GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
 
 					memset(tmpStr, 0, 256);
 					strncpy(tmpStr, applications[category]->name[i], 29);
-					GLES2D_DrawFont( big, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50) - 20, tmpStr );
+					GLES2D_DrawFont( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, tmpStr );
+					y += fnt[BIG]->lineskip;
+
                     memset(tmpStr, 0, 256);
 					strncpy(tmpStr, applications[category]->description[i], 40 );
-					GLES2D_DrawFont( small, gui->applications_box_x, (((i-list_start[category])+gui->applications_box_y)*50 + 20) - 20, tmpStr );
+					GLES2D_DrawFont( fnt[SMALL], gui->applications_box_x + gui->icon_scale_max + 10, y + 5, tmpStr );
 				}
 
 				if ( icon[category][i] != NULL )
-					GLES2D_DrawTextureScaledCentered( icon[category][i], gui->applications_box_x - 46 + 16, \
-						(((i-list_start[category])+gui->applications_box_y)*50)-23 + 18, applications[category]->scale[i], applications[category]->scale[i] );
+					GLES2D_DrawTextureScaledCentered( icon[category][i], gui->applications_box_x + 5 + gui->icon_scale_max / 2, y + 4, applications[category]->scale[i], applications[category]->scale[i] );
 				else
-					GLES2D_DrawTextureScaledCentered( no_icon, gui->applications_box_x - 46 + 16, \
-						(((i-list_start[category])+gui->applications_box_y)*50)-23 + 18, applications[category]->scale[i], applications[category]->scale[i] );
-
-				icon_x[category][i] = gui->applications_box_x - 46;
-				icon_y[category][i] = (((i-list_start[category])+gui->applications_box_y)*50)-23;
-
+					GLES2D_DrawTextureScaledCentered( no_icon, gui->applications_box_x + 5 + gui->icon_scale_max / 2, y + 4, applications[category]->scale[i], applications[category]->scale[i] );
 			}
 			i++;
+			y += gui->applications_spacing;
 		}
 
 		if( list_num[category] )
@@ -709,142 +893,284 @@ void gui_draw()
 			}
 			else
 			{
-				if(alpha_preview < 245) alpha_preview += 5;
-				if(preview_scale < 330) preview_scale += 10;
+			    if ( ! video_playing )
+			    {
+                    if( alpha_preview < 245 ) alpha_preview += 5;
+                    if( preview_scale < gui->preview_pic_w ) preview_scale += 10;
 
-				if( tmp_preview != NULL )
-				{
-					GLES2D_SetTextureAlpha ( tmp_preview, alpha_preview );
-					GLES2D_DrawTextureScaledCentered( tmp_preview, gui->preview_pic_x, gui->preview_pic_y, preview_scale, \
-						preview_scale / 1.666 );
-				}
-				else
-				{
-					GLES2D_SetTextureAlpha ( no_preview, alpha_preview );
-					GLES2D_DrawTextureScaledCentered( no_preview, gui->preview_pic_x, gui->preview_pic_y, preview_scale, \
-						preview_scale / 1.666 );
-				}
+                    if( tmp_preview != NULL )
+                    {
+                        GLES2D_SetTextureAlpha ( tmp_preview, alpha_preview );
+                        GLES2D_DrawTextureScaledCentered( tmp_preview, gui->preview_pic_x, gui->preview_pic_y, preview_scale, \
+                            preview_scale / 1.666 );
+                    }
+                    else
+                    {
+                        GLES2D_SetTextureAlpha ( no_preview, alpha_preview );
+                        GLES2D_DrawTextureScaledCentered( no_preview, gui->preview_pic_x, gui->preview_pic_y, preview_scale, \
+                            preview_scale / 1.666 );
+                    }
+			    }
 			}
 		}
 
 	}
-	else if ( category == SETTINGS )
-	{
-        settings_draw();
-	}
 
-	if( alpha_up )
-		alpha += 5;
-	else
-		alpha -= 5;
+    if ( gui->highlight_enabled )
+    {
+        if( alpha_up )
+            alpha += 5;
+        else
+            alpha -= 5;
 
-	if( alpha > 250 )
-		alpha_up = 0;
-	else if(alpha < 50 )
-		alpha_up = 1;
+        if( alpha > 250 )
+            alpha_up = 0;
+        else if(alpha < 50 )
+            alpha_up = 1;
 
-    GLES2D_SetTextureAlpha ( highlight, alpha );
-	GLES2D_DrawTextureCentered( highlight, category_icon_x[category], category_icon_y[category] );
-
+        GLES2D_SetTextureAlpha ( highlight, alpha );
+        GLES2D_DrawTextureCentered( highlight, category_icon_x[category], category_icon_y[category] );
+    }
 
 	int i;
 	for ( i = 0; i < CATEGORY_COUNT; i++ )
 	{
-        GLES2D_DrawTextureCentered( category_icon[i], category_icon_x[i], category_icon_y[i] );
-
-        if ( gui->show_category_title )
-        {
-            GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
-            GLES2D_DrawFontCentered( small, category_icon[i]->dst->x + category_icon[i]->dst->w / 2, category_icon[i]->dst->y + category_icon[i]->dst->h + 10, gui->category_title[i] );
-        }
+	    if ( category == i )
+	    {
+            GLES2D_DrawTextureCentered( category_icon_highlight[i], category_icon_x[i], category_icon_y[i] );
+            if ( gui->show_category_title )
+            {
+                GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+                GLES2D_DrawFontCentered( fnt[SMALL], category_icon_highlight[i]->dst->x + category_icon_highlight[i]->dst->w / 2, category_icon_highlight[i]->dst->y + category_icon_highlight[i]->dst->h + 10, gui->title[i] );
+            }
+	    }
+	    else
+	    {
+            GLES2D_DrawTextureCentered( category_icon[i], category_icon_x[i], category_icon_y[i] );
+            if ( gui->show_category_title )
+            {
+                GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+                GLES2D_DrawFontCentered( fnt[SMALL], category_icon[i]->dst->x + category_icon[i]->dst->w / 2, category_icon[i]->dst->y + category_icon[i]->dst->h + 10, gui->title[i] );
+            }
+	    }
 	}
 
 
     char cpu_char[16];
     memset( cpu_char, 0, 16 );
 //    sprintf( cpu_char, "%.0f%%", cpuUsage()*100 );
-//    GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
     sprintf( cpu_char, "%i", pmenu->cpu_mhz );
-    GLES2D_DrawFont( small, 152, 450, cpu_char );
-	GLES2D_DrawTextureSimple( cpu_icon, 110, 440 );
+    GLES2D_DrawFont( fnt[CPU], gui->cpu_text_x, gui->cpu_text_y, cpu_char );
+	GLES2D_DrawTextureSimple( cpu_icon, gui->cpu_icon_x, gui->cpu_icon_y );
 
-    GLES2D_DrawFont(small, 542, 450, get_time_string(TIME_24) );
-    GLES2D_DrawTextureSimple( clock_icon, 500, 440 );
+    GLES2D_DrawFont( fnt[CLOCK], gui->clock_text_x, gui->clock_text_y, get_time_string(TIME_24) );
+    GLES2D_DrawTextureSimple( clock_icon, gui->clock_icon_x, gui->clock_icon_y );
 
-    GLES2D_DrawTextureSimple( sd1_icon, 200, 440 );
-    GLES2D_DrawFont( small, 242, 450, disk_space( cfg_fav_path[0] ) );
+    GLES2D_DrawTextureSimple( sd1_icon, gui->sd1_icon_x, gui->sd1_icon_y );
+    GLES2D_DrawFont( fnt[SD1], gui->sd1_text_x, gui->sd1_text_y, disk_space( cfg_fav_path[0] ) );
 
-    GLES2D_DrawTextureSimple( sd2_icon, 350, 440 );
-    GLES2D_DrawFont( small, 392, 450, disk_space( cfg_fav_path[1] ) );
+    GLES2D_DrawTextureSimple( sd2_icon, gui->sd2_icon_x, gui->sd2_icon_y );
+    GLES2D_DrawFont( fnt[SD2], gui->sd2_text_x, gui->sd2_text_y, disk_space( cfg_fav_path[1] ) );
 
-}
-
-void gui_draw_application_box(int item)
-{
-    printf(" gui_draw_application_box\n");
-    int done = 0;
-    char tmpString[256];
-
-    while( !done )
-	{
-        GLES2D_HandleEvents( 90 );
-
-        if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed( XK_o ) )
-            done = 1;
-
-        gui_draw();
-
-
-//        SDL_SetRenderDrawBlendMode(SDL_BLENDMODE_MASK);
-//        SDL_SetRenderDrawColor( 153, 204, 50, 240 );
-        GLES2D_SetDrawingColor( 153, 204, 50, 240 );
-        GLES2D_DrawRectangle( 40, 40, 760, 440 );
-//        SDL_SetRenderDrawBlendMode(SDL_BLENDMODE_BLEND);
-
-//        GLES2D_SetDrawingColor( 255, 255, 255, 255 );
-        sprintf( tmpString, "Title: %s", applications[category]->name[item] );
-        GLES2D_DrawFont( big, 50, 50, tmpString );
-
-        sprintf( tmpString, "Description: %s", applications[category]->description[item] );
-        GLES2D_DrawFontBox( big, 50, 70, 200, 100, tmpString );
-        //GLES2D_DrawText( normal, tmpString, 50, 50 );
-
-        GLES2D_SwapBuffers();
-	}
-    SDL_Delay( 60 );
 }
 
 void gui_change_category( int requested_cat )
 {
     debug_start();
 
-	category = requested_cat;
-	if( category != SETTINGS )
-	{
-		alpha = 0.0f;
-		alpha_up = 1;
-		reset_scroll_count = 1;
+    if( category != SETTINGS )
+        gui_unload_preview();
 
-		if( list_num[category] )
-		{
-			debug_infof("Number of item in category[%i] : %i\n", category, list_num[category]);
-			reset_preview_timer();
-		}
-		else
-		{
-			if( tmp_preview != NULL )
-			{
-				GLES2D_FreeTexture( tmp_preview );
-				tmp_preview = NULL;
-			}
-		}
-	}
-	else
+	category = requested_cat;
+
+    if( category != SETTINGS )
+    {
+        alpha = 0.0f;
+        alpha_up = 1;
+        reset_scroll_count = 1;
+    }
+
+	if( category == SETTINGS )
 	{
         get_skins_list ();
         load_skin_preview();
 	}
+	else if( category == MEDIA )
+	{
+        get_media_list( now_path );
+	}
+
 	debug_end();
+}
+
+void gui_pad_left()
+{
+    if ( ( category == SETTINGS ) && ( setting_current == MENU_SKIN ) )
+    {
+        if ( skin_current > 0 )
+        {
+            skin_current--;
+        }
+
+        load_skin_preview();
+    }
+    else if ( category == MEDIA )
+    {
+        if ( list_curpos[MEDIA] > gui->media_max_files_per_page - 1 )
+        {
+            page[MEDIA] -= 1;
+            list_curpos[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+            list_start[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+            reset_scroll_count = 1;
+        }
+        else
+        {
+            list_curpos[category] = 0;
+            list_start[category] = 0;
+            reset_scroll_count = 1;
+        }
+    }
+    else
+    {
+        gui_unload_preview();
+
+        if ( list_curpos[category] > gui->max_app_per_page - 1 )
+        {
+            page[category] -= 1;
+            list_curpos[category] = page[category] * gui->max_app_per_page;
+            list_start[category] = page[category] * gui->max_app_per_page;
+            reset_scroll_count = 1;
+        }
+        else
+        {
+            list_curpos[category] = 0;
+            list_start[category] = 0;
+            reset_scroll_count = 1;
+        }
+    }
+}
+
+void gui_pad_right()
+{
+    if ( ( category == SETTINGS ) && ( setting_current == MENU_SKIN ) )
+    {
+        if ( skin_current < skin_count - 1 )
+        {
+            skin_current++;
+        }
+
+        load_skin_preview();
+    }
+    else if ( category == MEDIA )
+    {
+        if ( ( gui->media_max_files_per_page * ( page[MEDIA] + 1 ) ) < list_num[MEDIA] )
+        {
+            page[MEDIA] += 1;
+            list_curpos[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+            list_start[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+            reset_scroll_count = 1;
+        }
+    }
+    else
+    {
+        if ( ( gui->max_app_per_page * ( page[category] + 1 ) ) < list_num[category] )
+        {
+            gui_unload_preview();
+            page[category] += 1;
+            list_curpos[category] = page[category] * gui->max_app_per_page;
+            list_start[category] = page[category] * gui->max_app_per_page;
+            reset_scroll_count = 1;
+        }
+    }
+}
+
+void gui_pad_up()
+{
+    if ( category == SETTINGS )
+    {
+        if ( setting_current > 0 )
+            setting_current--;
+    }
+    else if ( category == MEDIA )
+    {
+        if ( list_curpos[MEDIA] > 0 )
+        {
+            if ( list_curpos[MEDIA] == ( page[MEDIA] * gui->media_max_files_per_page ) )
+            {
+                page[MEDIA] -= 1;
+                list_curpos[MEDIA] -= 1;
+                list_start[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+            }
+            else
+            {
+                list_curpos[MEDIA] -= 1;
+            }
+        }
+    }
+    else
+    {
+        if ( list_curpos[category] > 0 )
+        {
+            gui_unload_preview();
+
+            if ( list_curpos[category] == ( page[category] * gui->max_app_per_page ) )
+            {
+                page[category] -= 1;
+                list_curpos[category] -= 1;
+                list_start[category] = page[category] * gui->max_app_per_page;
+            }
+            else
+            {
+                list_curpos[category] -= 1;
+            }
+
+            reset_scroll_count = 1;
+        }
+    }
+}
+
+void gui_pad_down()
+{
+    if ( category == SETTINGS )
+    {
+        if ( setting_current < SETTINGS_COUNT - 1 )
+            setting_current++;
+    }
+    else if ( category == MEDIA )
+    {
+        if (list_curpos[MEDIA] < list_num[MEDIA] - 1 )
+        {
+            if (list_curpos[MEDIA] == ( gui->media_max_files_per_page + ( page[MEDIA] * gui->media_max_files_per_page ) ) - 1)
+            {
+                page[MEDIA] += 1;
+                list_curpos[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+                list_start[MEDIA] = page[MEDIA] * gui->media_max_files_per_page;
+            }
+            else
+            {
+                list_curpos[MEDIA] += 1;
+            }
+        }
+    }
+    else
+    {
+        if (list_curpos[category] < list_num[category] - 1 )
+        {
+            gui_unload_preview();
+
+            if (list_curpos[category] == ( gui->max_app_per_page + (page[category] * gui->max_app_per_page) ) - 1)
+            {
+                page[category] += 1;
+                list_curpos[category] = page[category] * gui->max_app_per_page;
+                list_start[category] = page[category] * gui->max_app_per_page;
+            }
+            else
+            {
+                list_curpos[category] += 1;
+            }
+            reset_scroll_count = 1;
+        }
+    }
 }
 
 void handle_dpad()
@@ -856,162 +1182,63 @@ void handle_dpad()
         do_quit = 1;
     }
 
-        if( GLES2D_PadHold ( PAD_LEFT ) )
-        {
-            if ( category == SETTINGS )
-            {
-                if ( setting_current == MENU_CPU )
-                {
-                    if ( pmenu->cpu_mhz > 30 )
-                        pmenu->cpu_mhz-=5;
-                }
-            }
-        }
-
-        if( GLES2D_PadPressed ( PAD_LEFT ) || GLES2D_KeyboardPressed( XK_Left ) )
-        {
-            if ( category == SETTINGS )
-            {
-                if ( setting_current == MENU_SKIN )
-                {
-                    if ( skin_current > 0 )
-                    {
-                        skin_previous = skin_current;
-                        skin_current--;
-                    }
-
-                    load_skin_preview();
-                }
-            }
-
-            else
-            {
-                if ( list_curpos[category] > gui->max_app_per_page - 1 )
-                {
-                    page[category] -= 1;
-                    list_curpos[category] = page[category] * gui->max_app_per_page;
-                    list_start[category] = page[category] * gui->max_app_per_page;
-                    reset_scroll_count = 1;
-                    reset_preview_timer();
-                }
-                else
-                {
-                    list_curpos[category] = 0;
-                    list_start[category] = 0;
-                    reset_scroll_count = 1;
-                    reset_preview_timer();
-                }
-            }
-        }
-
-        if( GLES2D_PadHold ( PAD_RIGHT ) )
-        {
-            if ( category == SETTINGS )
-            {
-                if ( setting_current == MENU_CPU )
-                {
-                    if ( pmenu->cpu_mhz < 800 )
-                        pmenu->cpu_mhz+=5;
-                }
-            }
-        }
-
-        if( GLES2D_PadPressed ( PAD_RIGHT ) || GLES2D_KeyboardPressed( XK_Right ) )
-        {
-            if ( category == SETTINGS )
-            {
-                if ( setting_current == MENU_SKIN )
-                {
-                    if ( skin_current < skin_count - 1 )
-                    {
-                        skin_previous = skin_current;
-                        skin_current++;
-                    }
-
-                    load_skin_preview();
-                }
-            }
-            else
-            {
-                if ( ( gui->max_app_per_page * ( page[category] + 1 ) ) < list_num[category] )
-                {
-                    page[category] += 1;
-                    list_curpos[category] = page[category] * gui->max_app_per_page;
-                    list_start[category] = page[category] * gui->max_app_per_page;
-                    reset_scroll_count = 1;
-                    reset_preview_timer();
-                }
-            }
-        }
-
-        if( GLES2D_PadHold ( PAD_UP ) || GLES2D_KeyboardHold( XK_Up ) )
-        {
-            if ( category == SETTINGS )
-            {
-                if ( setting_current > 0 )
-                    setting_current--;
-            }
-            else
-            {
-                if ( list_curpos[category] > 0 )
-                {
-                    if ( list_curpos[category] == ( page[category] * gui->max_app_per_page ) )
-                    {
-                        page[category] -= 1;
-                        list_curpos[category] -= 1;
-                        list_start[category] = page[category] * gui->max_app_per_page;
-                    }
-                    else
-                    {
-                        list_curpos[category] -= 1;
-                    }
-
-                    reset_scroll_count = 1;
-                    reset_preview_timer();
-                }
-            }
-        }
-
-        if( GLES2D_PadHold ( PAD_DOWN ) || GLES2D_KeyboardHold( XK_Down ) )
-        {
-            if ( category == SETTINGS )
-            {
-                if ( setting_current < SETTINGS_COUNT - 1 )
-                    setting_current++;
-            }
-            else
-            {
-                if (list_curpos[category] < list_num[category] - 1 )
-                {
-                    if (list_curpos[category] == ( gui->max_app_per_page + (page[category] * gui->max_app_per_page) ) - 1)
-                    {
-                        page[category] += 1;
-                        list_curpos[category] = page[category] * gui->max_app_per_page;
-                        list_start[category] = page[category] * gui->max_app_per_page;
-                    }
-                    else
-                    {
-                        list_curpos[category] += 1;
-                    }
-                    reset_scroll_count = 1;
-                    reset_preview_timer();
-                }
-            }
-        }
-
-    if ( GLES2D_PadPressed ( L ) || GLES2D_KeyboardHold( XK_F1 ) )
+    else if ( GLES2D_PadPressed ( L ) || GLES2D_KeyboardPressed( XK_F1 ) )
     {
         if( category > 0) gui_change_category( category - 1 );
             else gui_change_category( CATEGORY_COUNT - 1 );
     }
 
-    if ( GLES2D_PadPressed ( R ) || GLES2D_KeyboardHold( XK_F2 ) )
+    else if ( GLES2D_PadPressed ( R ) || GLES2D_KeyboardPressed( XK_F2 ) )
     {
         if( category < CATEGORY_COUNT - 1) gui_change_category( category + 1 );
             else gui_change_category( 0 );
     }
 
-    if ( GLES2D_PadPressed ( A ) )
+    else if( GLES2D_PadHold ( PAD_LEFT ) )
+    {
+        if ( category == SETTINGS )
+        {
+            if ( setting_current == MENU_CPU )
+            {
+                if ( pmenu->cpu_mhz > 30 )
+                    pmenu->cpu_mhz-=5;
+            }
+        }
+    }
+
+    else if( GLES2D_PadPressed ( PAD_LEFT ) || GLES2D_KeyboardPressed( XK_Left ) )
+    {
+        gui_pad_left();
+    }
+
+    else if( GLES2D_PadHold ( PAD_RIGHT ) )
+    {
+        if ( category == SETTINGS )
+        {
+            if ( setting_current == MENU_CPU )
+            {
+                if ( pmenu->cpu_mhz < 800 )
+                    pmenu->cpu_mhz+=5;
+            }
+        }
+    }
+
+    else if( GLES2D_PadPressed ( PAD_RIGHT ) || GLES2D_KeyboardPressed( XK_Right ) )
+    {
+        gui_pad_right();
+    }
+
+    else if( GLES2D_PadHold ( PAD_UP ) || GLES2D_KeyboardPressed( XK_Up ) )
+    {
+        gui_pad_up();
+    }
+
+    else if( GLES2D_PadHold ( PAD_DOWN ) || GLES2D_KeyboardPressed( XK_Down ) )
+    {
+        gui_pad_down();
+    }
+
+    else if ( GLES2D_PadPressed ( A ) )
     {
         GLES2D_Pad[ A ] = 0;
 
@@ -1021,20 +1248,33 @@ void handle_dpad()
                 gui_app_exec( list_curpos[ category ] );
         }
     }
-/*
-    if ( GLES2D_PadPressed ( B ) || GLES2D_KeyboardPressed( XK_b ) )
+
+    else if ( GLES2D_KeyboardPressed( XK_n ) )
     {
-        if ( category == FAVORITES )
+        if ( now_depth > 0 )
         {
-        }
-        else
-        {
-            if ( list_num[category] )
-                gui_draw_application_box( list_curpos[ category ] );
+            int i;
+
+            for( i = 0; i < MAX_PATH; i++ )
+                if ( now_path[i] == 0 ) break;
+
+            i--;
+
+            while( i > 4 )
+            {
+                if ( now_path[i-1] == '/' )
+                {
+                    now_path[i] = 0;
+                    break;
+                }
+                i--;
+            }
+            now_depth--;
+            get_media_list( now_path );
         }
     }
-*/
-    if ( GLES2D_PadPressed ( X ) || GLES2D_KeyboardPressed( XK_space ) )
+
+    else if ( GLES2D_PadPressed ( X ) || GLES2D_KeyboardPressed( XK_space ) )
     {
         if ( category == FAVORITES )
         {
@@ -1051,25 +1291,25 @@ void handle_dpad()
         {
             if ( setting_current == MENU_SKIN )
             {
-                cfg_pmenu_update_skin_path( skin[skin_current]->path );
-                cfg_pmenu_read();
-                gui_clean_skin();
-
-                if ( ! gui_load_skin() )
-                {
-                    cfg_pmenu_update_skin_path( skin[skin_previous]->path );
-                    cfg_pmenu_read();
-                    gui_clean_skin();
-                    gui_load_skin();
-
-                }
-
-                load_skin_preview();
+                gui_change_skin();
             }
             else if ( setting_current == MENU_CPU )
             {
                 cfg_pmenu_update_cpu_mhz( pmenu->cpu_mhz );
                 set_cpu( pmenu->cpu_mhz );
+            }
+        }
+        else if ( category == MEDIA )
+        {
+            if ( now_depth < MAX_DEPTH )
+            {
+                if ( applications[MEDIA]->type[list_curpos[MEDIA]] == IS_DIR )
+                {
+                    strcat( now_path, "/" );
+                    strcat( now_path, applications[MEDIA]->name[list_curpos[MEDIA]] );
+                    now_depth++;
+                    get_media_list( now_path );
+                }
             }
         }
         else
@@ -1138,8 +1378,7 @@ int main( )
     nh_countdown = 60;
     debug_func = 0;
 
-
-//    debug_errorf( "R:%i G:%i B:%i", HEXTOR(color), HEXTOG(color), HEXTOB(color) );
+    strcpy( now_path, getenv("HOME") );
 
 	while( ! gui_done )
 	{
@@ -1147,7 +1386,7 @@ int main( )
         check_rediscover();
 
 		gui_draw();
-        GLES2D_DrawFont( small, 750, 0, GLES2D_GetFpsChar() );
+        GLES2D_DrawFont( fnt[SMALL], 750, 0, GLES2D_GetFpsChar() );
 
 		handle_dpad();
 
@@ -1162,9 +1401,10 @@ int main( )
 	gui_clean();
 
 	int i;
-	for(i = EMULATORS; i < APPLICATIONS+1; i++)
+    for( i = 0; i < CATEGORY_COUNT - 1; i++ )
 	{
-		free(applications[i]);
+	    if ( applications[i] != NULL )
+            free( applications[i] );
 	}
 
 	return 0;

@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "cpuLoad.h"
+#include "utils_cpu.h"
 
 static int initialized_ = NO;
 

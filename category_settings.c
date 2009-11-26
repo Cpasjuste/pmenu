@@ -8,14 +8,12 @@
 
 #include "main.h"
 #include "get_apps.h"
-#include "menu_settings.h"
-#include "gui_config.h"
-#include "pmenu_config.h"
+#include "category_settings.h"
+#include "config_skin.h"
+#include "config_pmenu.h"
 #include "common.h"
 
 GLES2D_Texture *skin_preview_pic;
-
-int setting_y[SETTINGS_COUNT] = { 130, 160, 190, 220 };
 
 int load_skin_preview()
 {
@@ -64,7 +62,7 @@ int get_skins_list ( )
             if ( ep->d_name[0] == '.' ) continue;
 
             char _path[512];
-            sprintf( _path, "skins/%s/gui.cfg", ep->d_name );
+            sprintf( _path, "skins/%s/skin.cfg", ep->d_name );
 
             if ( access ( _path, R_OK ) != 0 ) continue;
 
@@ -98,20 +96,22 @@ char *setting_string[SETTINGS_COUNT] =
     "Exit"
 };
 
-void settings_draw()
+void menu_settings_draw()
 {
     int i;
+    int setting_y = gui->applications_box_y + 5;
+    int x = gui->applications_box_x + 5;
 
     for ( i = 0; i < SETTINGS_COUNT; i++ )
     {
-        GLES2D_DrawFont( small, 50, setting_y[i], setting_string[i] );
+        GLES2D_DrawFont( fnt[SMALL], x, setting_y, setting_string[i] );
 
         if ( i == setting_current )
-            GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
+            GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
 
         if ( i == MENU_SKIN )
         {
-            GLES2D_DrawFont( small, GLES2D_GetTextWidth( small, setting_string[i] ) + 55, setting_y[i], skin[skin_current]->name );
+            GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, skin[skin_current]->name );
 
             if ( skin_preview_pic != NULL )
                 GLES2D_DrawTextureScaledCentered( skin_preview_pic, gui->preview_pic_x, gui->preview_pic_y, 330, \
@@ -122,10 +122,12 @@ void settings_draw()
             char cpu_str[3];
             sprintf( cpu_str, "%i", pmenu->cpu_mhz );
 
-            GLES2D_DrawFont( small, GLES2D_GetTextWidth( small, setting_string[i] ) + 55, setting_y[i], cpu_str );
+            GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, cpu_str );
         }
 
-        GLES2D_SetFontColor( small, HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+        GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+
+        setting_y += gui->settings_text_spacing;
     }
 }
 

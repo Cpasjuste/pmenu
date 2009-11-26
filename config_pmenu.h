@@ -1,5 +1,5 @@
-#ifndef __PMENU_CONFIG_H__
-#define __PMENU_CONFIG_H__
+#ifndef __CONFIG_PMENU_H__
+#define __CONFIG_PMENU_H__
 
 #include "libconfig.h"
 #include "get_apps.h"

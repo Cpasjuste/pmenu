@@ -23,8 +23,9 @@ CFLAGS += -O3 -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfloat-abi=softfp
 # code
 TARGET = pmenu
 LIBCONFIG = libconfig/.libs/libconfig.a
-ALLOBJ = cpuLoad.o fav_config.o get_apps.o gui_config.o main.o \
-		menu_settings.o pmenu_config.o utils.o
+ALLOBJ = category_media.o category_settings.o config_favourite.o \
+	config_pmenu.o config_skin.o get_apps.o main.o utils.o \
+	utils_cpu.o utils_mplayer.o
 
 all: ${TARGET}
 

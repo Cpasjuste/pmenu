@@ -1,52 +1,67 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="i386" />
-	<File name="common.h" open="0" top="0" tabpos="2">
-		<Cursor position="1301" topLine="40" />
+	<File name="category_media.c" open="1" top="1" tabpos="2">
+		<Cursor position="2157" topLine="44" />
 	</File>
-	<File name="cpuLoad.c" open="0" top="0" tabpos="2">
-		<Cursor position="4439" topLine="106" />
+	<File name="category_media.h" open="1" top="0" tabpos="3">
+		<Cursor position="77" topLine="0" />
 	</File>
-	<File name="fav_config.c" open="0" top="0" tabpos="4">
-		<Cursor position="12773" topLine="166" />
+	<File name="category_settings.c" open="0" top="0" tabpos="8">
+		<Cursor position="1308" topLine="34" />
 	</File>
-	<File name="fav_config.h" open="0" top="0" tabpos="5">
-		<Cursor position="385" topLine="0" />
+	<File name="category_settings.h" open="0" top="0" tabpos="9">
+		<Cursor position="64" topLine="0" />
 	</File>
-	<File name="get_apps.c" open="0" top="0" tabpos="6">
-		<Cursor position="650" topLine="12" />
+	<File name="common.h" open="0" top="0" tabpos="7">
+		<Cursor position="607" topLine="0" />
 	</File>
-	<File name="get_apps.h" open="0" top="0" tabpos="7">
-		<Cursor position="285" topLine="0" />
+	<File name="config_favourite.c" open="0" top="0" tabpos="4">
+		<Cursor position="405" topLine="130" />
 	</File>
-	<File name="gui_config.c" open="0" top="0" tabpos="10">
-		<Cursor position="6167" topLine="176" />
+	<File name="config_favourite.h" open="0" top="0" tabpos="10">
+		<Cursor position="63" topLine="0" />
 	</File>
-	<File name="gui_config.h" open="0" top="0" tabpos="6">
-		<Cursor position="724" topLine="5" />
+	<File name="config_pmenu.c" open="0" top="0" tabpos="6">
+		<Cursor position="1199" topLine="45" />
+	</File>
+	<File name="config_pmenu.h" open="0" top="0" tabpos="9">
+		<Cursor position="53" topLine="0" />
+	</File>
+	<File name="config_skin.c" open="1" top="0" tabpos="4">
+		<Cursor position="22309" topLine="715" />
+	</File>
+	<File name="config_skin.h" open="1" top="0" tabpos="5">
+		<Cursor position="1501" topLine="30" />
+	</File>
+	<File name="get_apps.c" open="0" top="0" tabpos="7">
+		<Cursor position="2427" topLine="79" />
+	</File>
+	<File name="get_apps.h" open="1" top="0" tabpos="9">
+		<Cursor position="439" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="18555" topLine="433" />
+		<Cursor position="21844" topLine="819" />
 	</File>
-	<File name="main.h" open="0" top="0" tabpos="8">
-		<Cursor position="67" topLine="0" />
+	<File name="main.h" open="1" top="0" tabpos="7">
+		<Cursor position="293" topLine="0" />
 	</File>
-	<File name="menu_settings.c" open="1" top="0" tabpos="2">
-		<Cursor position="2107" topLine="9" />
+	<File name="utils.c" open="0" top="0" tabpos="2">
+		<Cursor position="204" topLine="0" />
 	</File>
-	<File name="menu_settings.h" open="1" top="0" tabpos="3">
-		<Cursor position="166" topLine="0" />
+	<File name="utils.h" open="0" top="0" tabpos="8">
+		<Cursor position="315" topLine="0" />
 	</File>
-	<File name="pmenu_config.c" open="1" top="0" tabpos="4">
-		<Cursor position="1853" topLine="91" />
+	<File name="utils_cpu.c" open="0" top="0" tabpos="2">
+		<Cursor position="4439" topLine="106" />
 	</File>
-	<File name="pmenu_config.h" open="1" top="0" tabpos="5">
-		<Cursor position="292" topLine="0" />
+	<File name="utils_cpu.h" open="0" top="0" tabpos="0">
+		<Cursor position="1088" topLine="0" />
 	</File>
-	<File name="utils.c" open="1" top="1" tabpos="6">
-		<Cursor position="2518" topLine="69" />
+	<File name="utils_mplayer.c" open="0" top="0" tabpos="3">
+		<Cursor position="161" topLine="0" />
 	</File>
-	<File name="utils.h" open="1" top="0" tabpos="7">
-		<Cursor position="255" topLine="0" />
+	<File name="utils_mplayer.h" open="0" top="0" tabpos="4">
+		<Cursor position="279" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

@@ -15,8 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef CPULOAD_H
-#define CPULOAD_H
+#ifndef UTILS_CPU_H
+#define UTILS_CPU_H
 
 #include <stdio.h>
 #include <sys/time.h>  // for gettimeoftheday
