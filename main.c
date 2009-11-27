@@ -357,10 +357,20 @@ void gui_clean_skin()
 
     int i;
 
-    if ( background != NULL )
+    if ( background_applications != NULL )
     {
-        GLES2D_FreeTexture( background );
-        background = NULL;
+        GLES2D_FreeTexture( background_applications );
+        background_applications = NULL;
+    }
+    if ( background_media != NULL )
+    {
+        GLES2D_FreeTexture( background_media );
+        background_media = NULL;
+    }
+    if ( background_settings != NULL )
+    {
+        GLES2D_FreeTexture( background_settings );
+        background_settings = NULL;
     }
 
     if ( highlight != NULL )
@@ -452,9 +462,25 @@ int gui_load_skin()
 
     char tmp[512];
 
-    memset ( tmp, 0, 512 );
-    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->background );
-	if ( ( background = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->background_applications );
+	if ( ( background_applications = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->background_media );
+	if ( ( background_media = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->background_settings );
+	if ( ( background_settings = GLES2D_CreateTexture( tmp, 0 ) ) == NULL )
 	{
         debug_errorf( "Could not load image (%s)", tmp );
         debug_end();
@@ -646,71 +672,78 @@ int gui_load_skin()
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
-    if ( ( fnt[BIG] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_big_size ) ) == NULL )
+    if ( ( fnt[BIG] = GLES2D_CreateFont( tmp, gui->font_big_style, gui->font_big_size ) ) == NULL )
     {
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
     }
+    GLES2D_SetFontFiltering( fnt[BIG], gui->font_big_aliasing );
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
-	if ( ( fnt[SMALL] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->font_small_size ) ) == NULL )
+	if ( ( fnt[SMALL] = GLES2D_CreateFont( tmp, gui->font_small_style, gui->font_small_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
+	GLES2D_SetFontFiltering( fnt[SMALL], gui->font_small_aliasing );
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->clock_text_font );
-	if ( ( fnt[CLOCK] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->clock_text_size ) ) == NULL )
+	if ( ( fnt[CLOCK] = GLES2D_CreateFont( tmp, gui->clock_text_style, gui->clock_text_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
 	GLES2D_SetFontColor( fnt[CLOCK], HEXTOR(gui->clock_text_color), HEXTOG(gui->clock_text_color), HEXTOB(gui->clock_text_color), HEXTOA(gui->clock_text_color) );
+    GLES2D_SetFontFiltering( fnt[CLOCK], gui->clock_text_aliasing );
 
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->sd1_text_font );
-	if ( ( fnt[SD1] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->sd1_text_size ) ) == NULL )
+	if ( ( fnt[SD1] = GLES2D_CreateFont( tmp, gui->sd1_text_style, gui->sd1_text_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
 	GLES2D_SetFontColor( fnt[SD1], HEXTOR(gui->sd1_text_color), HEXTOG(gui->sd1_text_color), HEXTOB(gui->sd1_text_color), HEXTOA(gui->sd1_text_color) );
+    GLES2D_SetFontFiltering( fnt[SD1], gui->sd1_text_aliasing );
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->sd2_text_font );
-	if ( ( fnt[SD2] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->sd2_text_size ) ) == NULL )
+	if ( ( fnt[SD2] = GLES2D_CreateFont( tmp, gui->sd2_text_style, gui->sd2_text_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
 	GLES2D_SetFontColor( fnt[SD2], HEXTOR(gui->sd2_text_color), HEXTOG(gui->sd2_text_color), HEXTOB(gui->sd2_text_color), HEXTOA(gui->sd2_text_color) );
+    GLES2D_SetFontFiltering( fnt[SD2], gui->sd2_text_aliasing );
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->cpu_text_font );
-	if ( ( fnt[CPU] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->cpu_text_size ) ) == NULL )
+	if ( ( fnt[CPU] = GLES2D_CreateFont( tmp, gui->cpu_text_style, gui->cpu_text_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
 	GLES2D_SetFontColor( fnt[CPU], HEXTOR(gui->cpu_text_color), HEXTOG(gui->cpu_text_color), HEXTOB(gui->cpu_text_color), HEXTOA(gui->cpu_text_color) );
+    GLES2D_SetFontFiltering( fnt[CPU], gui->cpu_text_aliasing );
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->media_text_font );
-	if ( ( fnt[MEDIA_FNT] = GLES2D_CreateFont( tmp, TTF_STYLE_NORMAL, gui->media_text_size ) ) == NULL )
+	if ( ( fnt[MEDIA_FNT] = GLES2D_CreateFont( tmp, gui->media_text_style, gui->media_text_size ) ) == NULL )
 	{
         debug_errorf( "Could not load font (%s)", tmp );
         debug_end();
         return 0;
 	}
 	GLES2D_SetFontColor( fnt[MEDIA_FNT], HEXTOR(gui->media_text_color), HEXTOG(gui->media_text_color), HEXTOB(gui->media_text_color), HEXTOA(gui->media_text_color) );
+    GLES2D_SetFontFiltering( fnt[MEDIA_FNT], gui->media_text_aliasing );
 
 	debug_end();
 	return 1;
@@ -809,7 +842,12 @@ int gui_confirm_box( char *msg )
 
 void gui_draw()
 {
-    GLES2D_DrawTextureSimple ( background, 0, 0 );
+    if ( category == SETTINGS )
+        GLES2D_DrawTextureSimple ( background_settings, 0, 0 );
+    else if ( category == MEDIA )
+        GLES2D_DrawTextureSimple ( background_media, 0, 0 );
+    else
+        GLES2D_DrawTextureSimple ( background_applications, 0, 0 );
 
     if ( category == MEDIA )
     {
@@ -826,21 +864,16 @@ void gui_draw()
         int y = gui->applications_box_y;
 		int i = list_start[category];
 
-		char tmpStr[256];
-
 		while (i < ( list_start[category]+gui->max_app_per_page ) )
 		{
 			if ( i < list_num[category] )
 			{
 				if ( i == list_curpos[category] )
 				{
-					memset( tmpStr, 0, 256 );
-					strncpy( tmpStr, applications[category]->name[i], 29 );
-
 					GLES2D_DrawTextureSimple ( app_highlight, gui->applications_box_x, y );
 
                     GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color_highlight), HEXTOG(gui->font_big_color_highlight), HEXTOB(gui->font_big_color_highlight), HEXTOA(gui->font_big_color_highlight) );
-					GLES2D_DrawFont( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, tmpStr );
+					GLES2D_DrawFontCut( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, gui->applications_box_x + gui->applications_box_w, applications[category]->name[i] );
 					GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
 
                     y += fnt[BIG]->lineskip;
@@ -854,7 +887,7 @@ void gui_draw()
                         reset_scroll_count = 0;
                         scroll_wait = 0;
                     }
-                    GLES2D_DrawFontScroll( fnt[SMALL], scroll_count, y + 5, gui->applications_box_x + gui->icon_scale_max + 10, gui->applications_box_x + gui->icon_scale_max + 10 + gui->applications_box_w,  applications[category]->description[i] );
+                    GLES2D_DrawFontScroll( fnt[SMALL], scroll_count, y + 5, gui->applications_box_x + gui->icon_scale_max + 10, gui->applications_box_x + gui->applications_box_w,  applications[category]->description[i] );
 
                     if ( scroll_wait > 60 ) scroll_count--;
                     scroll_wait++;
@@ -864,14 +897,10 @@ void gui_draw()
 				    GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
 				    GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
 
-					memset(tmpStr, 0, 256);
-					strncpy(tmpStr, applications[category]->name[i], 29);
-					GLES2D_DrawFont( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, tmpStr );
+					GLES2D_DrawFontCut( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, gui->applications_box_x + gui->applications_box_w, applications[category]->name[i] );
 					y += fnt[BIG]->lineskip;
 
-                    memset(tmpStr, 0, 256);
-					strncpy(tmpStr, applications[category]->description[i], 40 );
-					GLES2D_DrawFont( fnt[SMALL], gui->applications_box_x + gui->icon_scale_max + 10, y + 5, tmpStr );
+					GLES2D_DrawFontCut( fnt[SMALL], gui->applications_box_x + gui->icon_scale_max + 10, y + 5, gui->applications_box_x + gui->applications_box_w, applications[category]->description[i] );
 				}
 
 				if ( icon[category][i] != NULL )

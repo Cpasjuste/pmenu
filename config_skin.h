@@ -9,7 +9,9 @@ struct config_t cfg;
 
 typedef struct
 {
-    char background[512];
+    char background_applications[512];
+	char background_media[512];
+	char background_settings[512];
     char highlight[512];
     int highlight_enabled;
     char application_highlight[512];
@@ -37,9 +39,13 @@ typedef struct
     int font_small_size;
     int font_small_color;
     int font_small_color_highlight;
+    int font_small_aliasing;
+    int font_small_style;
     int font_big_size;
     int font_big_color;
     int font_big_color_highlight;
+    int font_big_aliasing;
+    int font_big_style;
 	int applications_box_x;
 	int applications_box_y;
 	int applications_box_w;
@@ -60,6 +66,8 @@ typedef struct
 	int media_text_size;
 	int media_text_color;
 	int media_text_color_highlight;
+	int media_text_aliasing;
+	int media_text_style;
 	int media_max_files_per_page;
 	int favorites_icon_x;
 	int favorites_icon_y;
@@ -73,6 +81,8 @@ typedef struct
     char cpu_text_font[512];
 	int cpu_text_size;
 	int cpu_text_color;
+	int cpu_text_aliasing;
+	int cpu_text_style;
     int sd1_icon_x;
 	int sd1_icon_y;
 	int sd1_text_x;
@@ -80,6 +90,8 @@ typedef struct
     char sd1_text_font[512];
 	int sd1_text_size;
 	int sd1_text_color;
+	int sd1_text_aliasing;
+	int sd1_text_style;
     int sd2_icon_x;
 	int sd2_icon_y;
 	int sd2_text_x;
@@ -87,6 +99,8 @@ typedef struct
     char sd2_text_font[512];
 	int sd2_text_size;
 	int sd2_text_color;
+	int sd2_text_aliasing;
+	int sd2_text_style;
     int clock_icon_x;
 	int clock_icon_y;
 	int clock_text_x;
@@ -94,6 +108,8 @@ typedef struct
     char clock_text_font[512];
 	int clock_text_size;
 	int clock_text_color;
+	int clock_text_aliasing;
+	int clock_text_style;
     int show_category_title;
 	int max_app_per_page;
 	int settings_text_spacing;

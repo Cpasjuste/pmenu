@@ -75,17 +75,18 @@ char *disk_space(char *path)
     static char space_str[12] = {0};
     struct statvfs fiData;
 
-    if((statvfs(path,&fiData)) < 0 )
+    if( ( statvfs( path, &fiData ) ) < 0 )
     {
         sprintf( space_str, "No info" );
         return space_str;
     }
     else
     {
-        float totalspace=((float) fiData.f_bsize)*((float) fiData.f_blocks);
+        //float totalspace=((float) fiData.f_bsize)*((float) fiData.f_blocks);
         float freespace=((float) fiData.f_bsize)*((float) fiData.f_bavail);
 
-        sprintf( space_str, "%.0fMB/%.0fMB", (totalspace/(1024.0*1024.0)) - (freespace/(1024.0*1024.0)), totalspace/(1024.0*1024.0) );
+        //sprintf( space_str, "%.0fMB/%.0fMB", (totalspace/(1024.0*1024.0)) - (freespace/(1024.0*1024.0)), totalspace/(1024.0*1024.0) );
+        sprintf( space_str, "%.0fMB Free", (freespace/(1024.0*1024.0)) );
 
         return space_str;
 /*

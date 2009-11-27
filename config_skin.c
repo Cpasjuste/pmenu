@@ -41,22 +41,46 @@ int cfg_gui_read()
 		{
 			error("config_lookup() failed\n");
 			config_destroy(&cfg);
-	debug_end();
+            debug_end();
 			return -1;
 		}
 		else
 		{
             /* skin data files */
-		    config_setting_t *tmp = config_setting_get_member(search, "background");
+		    config_setting_t *tmp = config_setting_get_member(search, "background_applications");
             if(tmp)
             {
-                    strcpy( gui->background, config_setting_get_string(tmp));
+                    strcpy( gui->background_applications, config_setting_get_string(tmp));
             }
             else
             {
-                debug_errorf( "could not find background in %s", cfg_file );
+                debug_errorf( "could not find background_applications in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member(search, "background_media");
+            if(tmp)
+            {
+                    strcpy( gui->background_media, config_setting_get_string(tmp));
+            }
+            else
+            {
+                debug_errorf( "could not find background_media in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member(search, "background_settings");
+            if(tmp)
+            {
+                    strcpy( gui->background_settings, config_setting_get_string(tmp));
+            }
+            else
+            {
+                debug_errorf( "could not find background_settings in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
                 return 0;
             }
 
@@ -338,7 +362,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find clock_icon in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -351,7 +375,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_big in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -364,7 +388,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_small in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -377,7 +401,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_small_size in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -390,7 +414,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_small_color in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -403,7 +427,31 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_small_color_highlight in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "font_small_aliasing" );
+			if(tmp)
+			{
+				gui->font_small_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find font_small_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "font_small_style" );
+			if(tmp)
+			{
+				gui->font_small_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find font_small_style in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
                 return 0;
             }
 
@@ -416,7 +464,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_big_size in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -429,7 +477,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_big_color in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -442,7 +490,31 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find font_big_color_highlight in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "font_big_aliasing" );
+			if(tmp)
+			{
+				gui->font_big_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find font_big_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "font_big_style" );
+			if(tmp)
+			{
+				gui->font_big_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find font_big_style in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
                 return 0;
             }
 
@@ -763,6 +835,30 @@ int cfg_gui_read()
                 debug_end();
                 return 0;
             }
+            tmp = config_setting_get_member( search, "media_text_aliasing" );
+			if(tmp)
+			{
+				gui->media_text_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find media_text_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "media_text_style" );
+			if(tmp)
+			{
+				gui->media_text_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find media_text_style in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
 
             tmp = config_setting_get_member(search, "media_max_files_per_page");
             if(tmp)
@@ -828,7 +924,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find settings_icon_x in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -842,7 +938,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find settings_icon_y in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -936,6 +1032,30 @@ int cfg_gui_read()
                 debug_end();
                 return 0;
             }
+            tmp = config_setting_get_member( search, "cpu_text_aliasing" );
+			if(tmp)
+			{
+				gui->cpu_text_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find cpu_text_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "cpu_text_style" );
+			if(tmp)
+			{
+				gui->cpu_text_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find cpu_text_style in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
 
 
 			/*sd1 infos*/
@@ -948,7 +1068,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find sd1_icon_x in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -961,7 +1081,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find sd1_icon_y in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -974,7 +1094,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find sd1_text_x in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -987,7 +1107,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find sd1_text_y in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -1023,6 +1143,30 @@ int cfg_gui_read()
 			else
             {
                 debug_errorf( "could not find sd1_text_color in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "sd1_text_aliasing" );
+			if(tmp)
+			{
+				gui->sd1_text_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find sd1_text_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "sd1_text_style" );
+			if(tmp)
+			{
+				gui->sd1_text_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find sd1_text_style in %s", cfg_file );
                 config_destroy(&cfg);
                 debug_end();
                 return 0;
@@ -1119,6 +1263,30 @@ int cfg_gui_read()
                 debug_end();
                 return 0;
             }
+            tmp = config_setting_get_member( search, "sd2_text_aliasing" );
+			if(tmp)
+			{
+				gui->sd2_text_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find sd2_text_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "sd2_text_style" );
+			if(tmp)
+			{
+				gui->sd2_text_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find sd2_text_style in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
 
 			/*clock infos*/
             tmp = config_setting_get_member(search, "clock_icon_x");
@@ -1210,6 +1378,31 @@ int cfg_gui_read()
                 debug_end();
                 return 0;
             }
+            tmp = config_setting_get_member( search, "clock_text_aliasing" );
+			if(tmp)
+			{
+				gui->clock_text_aliasing = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find clock_text_aliasing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member( search, "clock_text_style" );
+			if(tmp)
+			{
+				gui->clock_text_style = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find clock_text_style in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+
 
             tmp = config_setting_get_member(search, "settings_title");
             if(tmp)
@@ -1220,10 +1413,9 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find settings_title in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
-
 
 			tmp = config_setting_get_member(search, "show_category_title");
 			if(tmp)
@@ -1234,7 +1426,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find show_category_title in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
