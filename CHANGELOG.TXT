@@ -1,3 +1,14 @@
+pmenu_i386_20091209:
+- Added : settings for "Media" section in the skin configuration file (gui.cfg)
+- Added : "applications_title_description_y" setting in gui.cfg, to set where the text start withing the application_box
+- Fixed : the small font in the application list does not honor the highlight color when selected.
+- Fixed : the media list runs off the right side - it does not honor the width specified for the application list.
+- Fixed : Partially fixed fonts ( except for the scrolling one )
+- Fixed : The skin preview image does not honor the maximum width for the preview area.
+- Fixed : The confirm box's confirm_box_x and confirm_box_y attributes don't appear to affect anything.
+- Fixed : The dialog says "to your favorites applications" instead of "to your favourite applications"
+- Fixed : The scrolling text under applications has a visual glitch when glyphs leave to the left: they disappear one glyph at a time instead of linearly fading away.
+
 pmenu_i386_20091127_r2:
 - Added Text Aliasing option to the skin configuration file (gui.cfg)
 - Added Text Bold Italic Normal option to the skin configuration file (gui.cfg)

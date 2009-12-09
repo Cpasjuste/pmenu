@@ -11,7 +11,10 @@ int cfg_pmenu_read()
 {
 	config_init(&cfg);
 
-	if ( !config_read_file( &cfg, "pmenu.cfg" ) )
+	char cfg_path[512];
+	sprintf( cfg_path, "%s%s", PMENU_PATH, "pmenu.cfg" );
+
+	if ( !config_read_file( &cfg, cfg_path ) )
 	{
 		printf ("config_read_file() failed (line %d of %s)\n", (__LINE__ -1), __FILE__);;
 		config_destroy(&cfg);
@@ -64,7 +67,10 @@ int cfg_pmenu_update_skin_path( char *skin_path )
 	/* Initialize the configuration */
 	config_init(&cfg);
 
-	if ( !config_read_file( &cfg, "pmenu.cfg" ) )
+    char cfg_path[512];
+	sprintf( cfg_path, "%s%s", PMENU_PATH, "pmenu.cfg" );
+
+	if ( !config_read_file( &cfg, cfg_path ) )
 	{
 		printf ("config_read_file() failed (line %d of %s)\n", (__LINE__ -1), __FILE__);;
 		config_destroy(&cfg);
@@ -89,7 +95,7 @@ int cfg_pmenu_update_skin_path( char *skin_path )
 			}
     }
 	/* Write configuration */
-	config_write_file( &cfg, "pmenu.cfg" );
+	config_write_file( &cfg, cfg_path );
 
 	/* Free the configuration */
 	config_destroy( &cfg );
@@ -104,7 +110,10 @@ int cfg_pmenu_update_cpu_mhz( int mhz )
 	/* Initialize the configuration */
 	config_init(&cfg);
 
-	if ( !config_read_file( &cfg, "pmenu.cfg" ) )
+    char cfg_path[512];
+	sprintf( cfg_path, "%s%s", PMENU_PATH, "pmenu.cfg" );
+
+	if ( !config_read_file( &cfg, cfg_path ) )
 	{
 		debug_error( "config_read_file(pmenu.cfg) failed" );;
 		config_destroy(&cfg);
@@ -129,7 +138,7 @@ int cfg_pmenu_update_cpu_mhz( int mhz )
 			}
     }
 	/* Write configuration */
-	config_write_file( &cfg, "pmenu.cfg" );
+	config_write_file( &cfg, cfg_path );
 
 	/* Free the configuration */
 	config_destroy( &cfg );

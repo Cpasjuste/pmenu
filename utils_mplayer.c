@@ -11,6 +11,8 @@
 #include "common.h"
 #include "config_pmenu.h"
 #include "utils_mplayer.h"
+#include "config_skin.h"
+#include "main.h"
 
 extern void gui_draw();
 
@@ -54,7 +56,7 @@ void video_play( char *filename )
 
     system( "mkfifo /tmp/mplayer-input" );
 
-    sprintf( cmd, "mplayer -slave -input file=/tmp/mplayer-input -geometry 435:175 -monitoraspect 1.6666 -display :0 -zoom -xy 330 %s &", filename );
+    sprintf( cmd, "mplayer -slave -input file=/tmp/mplayer-input -geometry %i:%i -monitoraspect 1.6666 -display :0 -zoom -x %i -y %i %s &", gui->preview_pic_x - gui->preview_pic_w / 2, (int) ( gui->preview_pic_y - ( gui->preview_pic_w / 1.666 ) / 2 ) + 5, gui->preview_pic_w, (int)(gui->preview_pic_w / 1.666) - 5, filename );
 
     system( cmd );
 
@@ -104,7 +106,8 @@ void video_play_preview( char *filename )
 
     system( "mkfifo /tmp/mplayer-input" );
 
-    sprintf( cmd, "mplayer -slave -input file=/tmp/mplayer-input -geometry 435:175 -monitoraspect 1.6666 -display :0 -zoom -xy 330 %s &", filename );
+    sprintf( cmd, "mplayer -slave -input file=/tmp/mplayer-input -geometry %i:%i -monitoraspect 1.6666 -display :0 -zoom -x %i -y %i %s &", gui->preview_pic_x - gui->preview_pic_w / 2, (int) ( gui->preview_pic_y - ( gui->preview_pic_w / 1.666 ) / 2 ) + 5, gui->preview_pic_w, (int)(gui->preview_pic_w / 1.666) - 5, filename );
+    debug_infof( "%s", cmd );
 
     system( cmd );
 

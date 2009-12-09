@@ -122,11 +122,11 @@ int pnd_app_get_list( void )
 
  			if ( d -> main_category )
 			{
-				if((strcasecmp(d -> main_category, "emulators") == 0) | (strcasecmp(d -> main_category, "emulator") == 0))
+				if( ( strcasecmp(d -> main_category, "emulators") == 0 ) | ( strcasecmp( d -> main_category, "emulator" ) == 0 ) )
 				{
 					tmpSection = EMULATORS;
 				}
-				else if((strcasecmp(d -> main_category, "games") == 0) | (strcasecmp(d -> main_category, "game") == 0))
+				else if( strcasecmp( d -> main_category, "game" ) == 0 )
 				{
 					tmpSection = GAMES;
 				}
@@ -153,6 +153,7 @@ int pnd_app_get_list( void )
                 strncpy(applications[tmpSection]->name[applications_count[tmpSection]], d -> title_en, strlen(d -> title_en) );
                 debug_infof ( "[%i] -> Name: %s", applications_count[tmpSection], \
                     applications[tmpSection]->name[applications_count[tmpSection]]);
+
             }
             if ( d -> unique_id )
             {

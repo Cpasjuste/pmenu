@@ -62,6 +62,8 @@ typedef struct
 	int misc_icon_y;
     int media_icon_x;
 	int media_icon_y;
+    char media_file_icon[512];
+	char media_folder_icon[512];
 	char media_text_font[512];
 	int media_text_size;
 	int media_text_color;
@@ -74,6 +76,7 @@ typedef struct
     int settings_icon_x;
 	int settings_icon_y;
 	char title[CATEGORY_COUNT][256];
+	GLES2D_FontCache *title_cache[CATEGORY_COUNT];
 	int cpu_icon_x;
 	int cpu_icon_y;
 	int cpu_text_x;
@@ -117,6 +120,7 @@ typedef struct
 	int icon_scale_max;
 	int icon_scale_min;
 	int applications_spacing;
+	int applications_title_description_y;
 
 } GUI_CONFIG;
 

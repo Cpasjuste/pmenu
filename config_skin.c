@@ -249,6 +249,30 @@ int cfg_gui_read()
                 debug_end();
                 return 0;
             }
+            tmp = config_setting_get_member(search, "media_file_icon");
+            if(tmp)
+            {
+                    strcpy( gui->media_file_icon, config_setting_get_string(tmp));
+            }
+            else
+            {
+                debug_errorf( "could not find media_file_icon in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+            tmp = config_setting_get_member(search, "media_folder_icon");
+            if(tmp)
+            {
+                    strcpy( gui->media_folder_icon, config_setting_get_string(tmp));
+            }
+            else
+            {
+                debug_errorf( "could not find media_folder_icon in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
 
             tmp = config_setting_get_member(search, "settings_icon");
             if(tmp)
@@ -1491,6 +1515,19 @@ int cfg_gui_read()
 			else
             {
                 debug_errorf( "could not find applications_spacing in %s", cfg_file );
+                config_destroy(&cfg);
+                debug_end();
+                return 0;
+            }
+
+            tmp = config_setting_get_member(search, "applications_title_description_y" );
+			if(tmp)
+			{
+				gui->applications_title_description_y = config_setting_get_int(tmp);
+			}
+			else
+            {
+                debug_errorf( "could not find applications_title_description_y in %s", cfg_file );
                 config_destroy(&cfg);
                 debug_end();
                 return 0;

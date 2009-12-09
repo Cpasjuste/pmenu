@@ -1,3 +1,54 @@
-DONE -> 1 - Text Aliasing
-DONE -> 2 - Text Weight Bold Regular Italic Normal
+1 - The small font in the application list does not honor the highlight color when selected.
+-> Fixed
+
+2 - The icons in the application list start out at the default 32px, even when you specify a different max or min size in the skin.cfg
+-> That's "normal". I can't do all dynamic for now, would need a lot more work. For now you can just set the minimal/maximum scaling like the configuration name say ( icon_scale_max ). When pmenu will be "stable", and that i will have cleaned the code, i will work on stuff like that.
+
+3 - Because of bug 2 - You can't specify a icon size of 0 (no icons in app list) because on first load the list displays an icon on the first entry anyways.
+-> Same as 2, it will show the "no icon" for code simplicity.
+
+4 - The media list runs off the right side - it does not honor the width specified for the application list.
+-> Fixed
+
+5 - The skin preview image does not honor the maximum width for the preview area. It does not scale to match the area requested. If you make the preview area any smaller or larger than the default, the skin preview image does not look right at all.
+-> Fixed
+
+6 - The confirm box's confirm_box_x and confirm_box_y attributes are ambiguous. Do they specify the height and width of the confirm box area? Or do they specify the position the confirm box should center on? Either way, they don't appear to affect anything.
+-> Fixed ( yes it's the center x/y postition, was not working )
+
+7 - The PND loader does not respect the standard; the categories are read incorrectly.
+-> Todo with skeezix
+
+8 - The dialog says "to your favorites applications" instead of "to your favorite applications"
+-> Fixed ( favourite )
+
+9 - There's no way to specify the text margin for the dialog box
+-> See 2
+
+10 - There's no indicator in the applications menu for that there are more entries if you scroll down
+-> Good idea, i leave that in the todo list
+
+11 - You cannot use a mouse/touchscreen.
+-> See 2
+
+12 - Fonts aren't aligned properly; glyphs tend to overlap and look misplaced.
+-> Partially fixed, fonts will now be correctly rendered, except for the scrolling line.
+
+13 - The scrolling text under applications scrolls once and then disappears
+-> Never saw that ! Did someone spot this problem too ?
+
+14 - The scrolling text under applications has a visual glitch when glyphs leave to the left: they disappear one glyph at a time instead of linearly fading away.
+-> Fixed in GLES2D
+
+15 - Animations are sequential which makes the UI look and feel slow
+-> Not sure what you mean, but i bet it's a problem with the PVR emulator or something like that, nothing i can do.
+
+16 - Things that should fade do instead disappear/reappear instantly e.g. when you go down in the applications menu, the selector moves to the new application instantly. Same for categories.
+-> It's a good idea, will try to add that later
+
+
+17 - Not really a bugs, but featurettes that I hope to see soon:
+The confirm box should have it's own font settings, or at the very least it's own color.
+If bug 6 specifies height and width. The confirm box should be placeable. I can fudge it by adding blank pixels to the margins, but this is less than ideal.
+-> In fact this confirm box should have the width/height i want it to be, because i'm writing information text to it, and don't want to resize it automatically to not loose buttons or something else ratio etc.
 

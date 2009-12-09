@@ -215,6 +215,18 @@ int cfg_fav_del( int fav )
         icon[FAVORITES][fav] = NULL;
     }
 
+    if ( applications[FAVORITES]->name_cached[fav] != NULL )
+    {
+        GLES2D_FreeFontCache (  applications[FAVORITES]->name_cached[fav] );
+         applications[FAVORITES]->name_cached[fav]= NULL;
+    }
+
+    if ( applications[FAVORITES]->description_cached[fav] != NULL )
+    {
+        GLES2D_FreeFontCache (  applications[FAVORITES]->description_cached[fav] );
+         applications[FAVORITES]->description_cached[fav]= NULL;
+    }
+
     gui_clean_fav();
     cfg_fav_read();
     gui_load_fav();
@@ -350,7 +362,16 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
                 icon[FAVORITES][applications_count[FAVORITES]] = NULL;
                 icon[FAVORITES][applications_count[FAVORITES]] = GLES2D_CreateTexture( applications[FAVORITES]->icon[applications_count[FAVORITES]], 0  );
 
-                applications[FAVORITES]->scale[applications_count[FAVORITES]] = 32;
+                applications[FAVORITES]->scale[applications_count[FAVORITES]] = gui->icon_scale_min;
+
+                char tmp[512];
+                memset ( tmp, 0, 512 );
+                sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
+                applications[FAVORITES]->name_cached[applications_count[FAVORITES]] = GLES2D_CreateFontCache( tmp, applications[FAVORITES]->name[applications_count[FAVORITES]], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+
+                memset ( tmp, 0, 512 );
+                sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+                applications[FAVORITES]->description_cached[applications_count[FAVORITES]] = GLES2D_CreateFontCache( tmp, applications[FAVORITES]->description[applications_count[FAVORITES]], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
 
                 applications_count[FAVORITES] += 1;
 

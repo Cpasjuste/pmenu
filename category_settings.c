@@ -62,13 +62,14 @@ int get_skins_list ( )
             if ( ep->d_name[0] == '.' ) continue;
 
             char _path[512];
-            sprintf( _path, "skins/%s/skin.cfg", ep->d_name );
+
+            sprintf( _path, "%sskins/%s/skin.cfg", PMENU_PATH, ep->d_name );
 
             if ( access ( _path, R_OK ) != 0 ) continue;
 
             strcpy ( skin[skin_count]->cfg_path, _path );
             strcpy ( skin[skin_count]->name, ep->d_name );
-            sprintf ( skin[skin_count]->path, "skins/%s", ep->d_name );
+            sprintf ( skin[skin_count]->path, "%sskins/%s", PMENU_PATH, ep->d_name );
 
             debug_infof( "Skin found ( Num: %i, Name: %s, Path: %s, Config Path: %s )", skin_count, skin[skin_count]->name, skin[skin_count]->path, skin[skin_count]->cfg_path );
 
@@ -114,8 +115,8 @@ void menu_settings_draw()
             GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, skin[skin_current]->name );
 
             if ( skin_preview_pic != NULL )
-                GLES2D_DrawTextureScaledCentered( skin_preview_pic, gui->preview_pic_x, gui->preview_pic_y, 330, \
-                    200 );
+                GLES2D_DrawTextureScaledCentered( skin_preview_pic, gui->preview_pic_x, gui->preview_pic_y, gui->preview_pic_w, gui->preview_pic_w / 1.666 );
+
         }
         if ( i == MENU_CPU )
         {

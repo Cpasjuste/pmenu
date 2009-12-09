@@ -148,34 +148,34 @@ const char *mystristr(const char *haystack, const char *needle)
 
 int is_avi( char *filename )
 {
-    debug_start();
-    debug_infof( "%s", filename );
+//    debug_start();
+//    debug_infof( "%s", filename );
     const char *avi = mystristr( filename, ".avi" );
 
     if ( avi )
     {
-        debug_end();
+//        debug_end();
         return 1;
     }
 
-    debug_end();
+//    debug_end();
     return 0;
 }
 
 int is_img( char *filename )
 {
-    debug_start();
-    debug_infof( "%s", filename );
+//    debug_start();
+//    debug_infof( "%s", filename );
     const char *png = mystristr( filename, ".png" );
     const char *bmp = mystristr( filename, ".bmp" );
 
     if ( png || bmp )
     {
-        debug_end();
+//        debug_end();
         return 1;
     }
 
-    debug_end();
+//    debug_end();
     return 0;
 }
 

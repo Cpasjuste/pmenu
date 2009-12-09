@@ -125,47 +125,47 @@ int gui_init()
 
 void gui_change_skin()
 {
-                int alpha;
-                for ( alpha = 0; alpha < 245; alpha+=10 )
-                {
-                    gui_draw();
-                    GLES2D_SetDrawingColor( 0, 0, 0, alpha );
-                    GLES2D_DrawRectangle ( 0, 0, 800, 480 );
-                    GLES2D_SwapBuffers();
-                }
+    int alpha;
+    for ( alpha = 0; alpha < 245; alpha+=10 )
+    {
+        gui_draw();
+        GLES2D_SetDrawingColor( 0, 0, 0, alpha );
+        GLES2D_DrawRectangle ( 0, 0, 800, 480 );
+        GLES2D_SwapBuffers();
+    }
 
-                char prev_skin[512];
-                memset( prev_skin, 0, 512 );
-                strcpy( prev_skin, pmenu->skin_dir );
+    char prev_skin[512];
+    memset( prev_skin, 0, 512 );
+    strcpy( prev_skin, pmenu->skin_dir );
 
-                cfg_pmenu_update_skin_path( skin[skin_current]->path );
+    cfg_pmenu_update_skin_path( skin[skin_current]->path );
 
-                if ( ! cfg_gui_read() )
-                {
-                    cfg_pmenu_update_skin_path( prev_skin );
-                    cfg_gui_read();
-                }
-                else
-                {
-                    gui_clean_skin();
+    if ( ! cfg_gui_read() )
+    {
+        cfg_pmenu_update_skin_path( prev_skin );
+        cfg_gui_read();
+    }
+    else
+    {
+        gui_clean_skin();
 
-                    if ( ! gui_load_skin() )
-                    {
-                        cfg_pmenu_update_skin_path( prev_skin );
-                        gui_clean_skin();
-                        gui_load_skin();
-                    }
-                }
+        if ( ! gui_load_skin() )
+        {
+            cfg_pmenu_update_skin_path( prev_skin );
+               gui_clean_skin();
+            gui_load_skin();
+        }
+    }
 
-                for ( alpha = 255; alpha > 10; alpha-=10 )
-                {
-                    gui_draw();
-                    GLES2D_SetDrawingColor( 0, 0, 0, alpha );
-                    GLES2D_DrawRectangle ( 0, 0, 800, 480 );
-                    GLES2D_SwapBuffers();
-                }
+    for ( alpha = 255; alpha > 10; alpha-=10 )
+    {
+        gui_draw();
+        GLES2D_SetDrawingColor( 0, 0, 0, alpha );
+        GLES2D_DrawRectangle ( 0, 0, 800, 480 );
+        GLES2D_SwapBuffers();
+    }
 
-                load_skin_preview();
+    load_skin_preview();
 }
 
 void gui_load_icon()
@@ -174,7 +174,7 @@ void gui_load_icon()
 
     int i, j;
 
-    for( i = 0; i < CATEGORY_COUNT - 2; i++ )
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
 	{
 		for( j = 0; j < list_num[i]; j++ )
 		{
@@ -200,7 +200,7 @@ void gui_clean_icon()
 
     int i, j;
 
-	for( i = 0; i < CATEGORY_COUNT-3; i++ )
+	for( i = 0; i < CATEGORY_COUNT - 3; i++ )
 	{
 		for(j = 0; j < list_num[i]; j++)
 		{
@@ -210,7 +210,7 @@ void gui_clean_icon()
                     icon[i][j] = NULL;
             }
 		}
-		list_num[i] = 0;
+//		list_num[i] = 0;
 	}
 	debug_end();
 }
@@ -329,11 +329,20 @@ void gui_load_preview( int cat, int n )
 void gui_load_fav()
 {
     int i;
+    char tmp[512];
 
     for(i = 0; i < list_num[FAVORITES]; i++)
     {
         icon[FAVORITES][i] = NULL;
         icon[FAVORITES][i] = GLES2D_CreateTexture( applications[FAVORITES]->icon[i], 0  );
+
+        memset ( tmp, 0, 512 );
+        sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
+        applications[FAVORITES]->name_cached[i] = GLES2D_CreateFontCache( tmp, applications[FAVORITES]->name[i], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+
+        memset ( tmp, 0, 512 );
+        sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+        applications[FAVORITES]->description_cached[i] = GLES2D_CreateFontCache( tmp, applications[FAVORITES]->description[i], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
     }
 }
 
@@ -347,6 +356,16 @@ void gui_clean_fav()
         {
                 GLES2D_FreeTexture( icon[FAVORITES][i] );
                 icon[FAVORITES][i] = NULL;
+        }
+        if ( applications[FAVORITES]->name_cached[i] != NULL )
+        {
+            GLES2D_FreeFontCache( applications[FAVORITES]->name_cached[i] );
+            applications[FAVORITES]->name_cached[i] = NULL;
+        }
+        if ( applications[FAVORITES]->description_cached[i] != NULL )
+        {
+            GLES2D_FreeFontCache( applications[FAVORITES]->description_cached[i] );
+            applications[FAVORITES]->description_cached[i] = NULL;
         }
 	}
 }
@@ -452,6 +471,21 @@ void gui_clean_skin()
             fnt[i] = NULL;
         }
 	}
+
+	int j;
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+    {
+        for( j = 0; j < list_num[i]; j++ )
+        {
+            if ( applications[i]->name_cached[j] != NULL )
+                GLES2D_FreeFontCache(  applications[i]->name_cached[j] );
+            applications[i]->name_cached[j] = NULL;
+
+            if ( applications[i]->description_cached[j] != NULL )
+                GLES2D_FreeFontCache(  applications[i]->description_cached[j] );
+            applications[i]->description_cached[j] = NULL;
+        }
+    }
 
     debug_end();
 }
@@ -589,6 +623,23 @@ int gui_load_skin()
         debug_end();
         return 0;
 	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->media_file_icon );
+	if ( ( media_file_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+	memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->media_folder_icon );
+	if ( ( media_folder_icon = GLES2D_CreateTexture( tmp, 0  ) ) == NULL )
+	{
+        debug_errorf( "Could not load image (%s)", tmp );
+        debug_end();
+        return 0;
+	}
+
 
 	memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->settings_icon );
@@ -745,6 +796,30 @@ int gui_load_skin()
 	GLES2D_SetFontColor( fnt[MEDIA_FNT], HEXTOR(gui->media_text_color), HEXTOG(gui->media_text_color), HEXTOB(gui->media_text_color), HEXTOA(gui->media_text_color) );
     GLES2D_SetFontFiltering( fnt[MEDIA_FNT], gui->media_text_aliasing );
 
+    memset ( tmp, 0, 512 );
+    sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+
+    int i, j;
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+    {
+        for( j = 0; j < list_num[i]; j++ )
+        {
+            char tmp[512];
+            memset ( tmp, 0, 512 );
+            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
+            applications[i]->name_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->name[j], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+
+            memset ( tmp, 0, 512 );
+            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+            applications[i]->description_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->description[j], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+        }
+    }
+
+    for ( i = 0; i < CATEGORY_COUNT; i++ )
+	{
+	    gui->title_cache[i] = GLES2D_CreateFontCache( tmp, gui->title[i], gui->font_small_style, gui->font_small_size, 800 );
+	}
+
 	debug_end();
 	return 1;
 }
@@ -814,9 +889,9 @@ int gui_confirm_box( char *msg )
 {
 	int done = 0;
 
-    GLES2D_DrawTextureSimple( confirm_box, 300, 125 );
+    GLES2D_DrawTextureCentered( confirm_box, gui->confirm_box_x, gui->confirm_box_y );
     GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
-    GLES2D_DrawFontBox ( fnt[SMALL], 300, 125, confirm_box->dst->w, confirm_box->dst->h, msg );
+    GLES2D_DrawFontBox ( fnt[SMALL], confirm_box->dst->x, confirm_box->dst->y, confirm_box->dst->w, confirm_box->dst->h, msg );
 
     GLES2D_SwapBuffers();
 
@@ -872,11 +947,10 @@ void gui_draw()
 				{
 					GLES2D_DrawTextureSimple ( app_highlight, gui->applications_box_x, y );
 
-                    GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color_highlight), HEXTOG(gui->font_big_color_highlight), HEXTOB(gui->font_big_color_highlight), HEXTOA(gui->font_big_color_highlight) );
-					GLES2D_DrawFontCut( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, gui->applications_box_x + gui->applications_box_w, applications[category]->name[i] );
-					GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
+                    GLES2D_SetFontCacheColor( applications[category]->name_cached[i], HEXTOR(gui->font_big_color_highlight), HEXTOG(gui->font_big_color_highlight), HEXTOB(gui->font_big_color_highlight), HEXTOA(gui->font_big_color_highlight) );
+					GLES2D_DrawFontCache( applications[category]->name_cached[i], gui->applications_box_x + gui->icon_scale_max + 10, y + gui->applications_title_description_y );
 
-                    y += fnt[BIG]->lineskip;
+                    y += applications[category]->name_cached[i]->height;
 
 					if ( scroll_count < gui->applications_box_x - GLES2D_GetTextWidth ( fnt[SMALL], applications[category]->description[i] ) )
                         scroll_count = gui->applications_box_x + gui->icon_scale_max + gui->applications_box_w + 10;
@@ -887,20 +961,22 @@ void gui_draw()
                         reset_scroll_count = 0;
                         scroll_wait = 0;
                     }
-                    GLES2D_DrawFontScroll( fnt[SMALL], scroll_count, y + 5, gui->applications_box_x + gui->icon_scale_max + 10, gui->applications_box_x + gui->applications_box_w,  applications[category]->description[i] );
+
+                    GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
+                    GLES2D_DrawFontScroll( fnt[SMALL], scroll_count, y + gui->applications_title_description_y, gui->applications_box_x + gui->icon_scale_max + 10, gui->applications_box_x + gui->applications_box_w - 10,  applications[category]->description[i] );
 
                     if ( scroll_wait > 60 ) scroll_count--;
                     scroll_wait++;
 				}
 				else
 				{
-				    GLES2D_SetFontColor( fnt[BIG], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
-				    GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+				    GLES2D_SetFontCacheColor( applications[category]->name_cached[i], HEXTOR(gui->font_big_color), HEXTOG(gui->font_big_color), HEXTOB(gui->font_big_color), HEXTOA(gui->font_big_color) );
+					GLES2D_DrawFontCache( applications[category]->name_cached[i], gui->applications_box_x + gui->icon_scale_max + 10, y + gui->applications_title_description_y );
 
-					GLES2D_DrawFontCut( fnt[BIG], gui->applications_box_x + gui->icon_scale_max + 10, y + 10, gui->applications_box_x + gui->applications_box_w, applications[category]->name[i] );
-					y += fnt[BIG]->lineskip;
+					y += applications[category]->name_cached[i]->height;
 
-					GLES2D_DrawFontCut( fnt[SMALL], gui->applications_box_x + gui->icon_scale_max + 10, y + 5, gui->applications_box_x + gui->applications_box_w, applications[category]->description[i] );
+                    GLES2D_SetFontCacheColor( applications[category]->description_cached[i], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+					GLES2D_DrawFontCache( applications[category]->description_cached[i], gui->applications_box_x + gui->icon_scale_max + 10, y + gui->applications_title_description_y );
 				}
 
 				if ( icon[category][i] != NULL )
@@ -969,8 +1045,8 @@ void gui_draw()
             GLES2D_DrawTextureCentered( category_icon_highlight[i], category_icon_x[i], category_icon_y[i] );
             if ( gui->show_category_title )
             {
-                GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
-                GLES2D_DrawFontCentered( fnt[SMALL], category_icon_highlight[i]->dst->x + category_icon_highlight[i]->dst->w / 2, category_icon_highlight[i]->dst->y + category_icon_highlight[i]->dst->h + 10, gui->title[i] );
+                GLES2D_SetFontCacheColor( gui->title_cache[i], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+                GLES2D_DrawFontCacheCentered( gui->title_cache[i], category_icon_highlight[i]->dst->x + category_icon_highlight[i]->dst->w / 2, category_icon_highlight[i]->dst->y + category_icon_highlight[i]->dst->h + 15 );
             }
 	    }
 	    else
@@ -978,8 +1054,8 @@ void gui_draw()
             GLES2D_DrawTextureCentered( category_icon[i], category_icon_x[i], category_icon_y[i] );
             if ( gui->show_category_title )
             {
-                GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
-                GLES2D_DrawFontCentered( fnt[SMALL], category_icon[i]->dst->x + category_icon[i]->dst->w / 2, category_icon[i]->dst->y + category_icon[i]->dst->h + 10, gui->title[i] );
+                GLES2D_SetFontCacheColor( gui->title_cache[i], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );
+                GLES2D_DrawFontCacheCentered( gui->title_cache[i], category_icon[i]->dst->x + category_icon[i]->dst->w / 2, category_icon[i]->dst->y + category_icon[i]->dst->h + 15 );
             }
 	    }
 	}
@@ -1267,7 +1343,7 @@ void handle_dpad()
         gui_pad_down();
     }
 
-    else if ( GLES2D_PadPressed ( A ) )
+    else if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed( XK_l ) )
     {
         GLES2D_Pad[ A ] = 0;
 
@@ -1291,7 +1367,7 @@ void handle_dpad()
 
             while( i > 4 )
             {
-                if ( now_path[i-1] == '/' )
+                if ( now_path[i] == '/' )
                 {
                     now_path[i] = 0;
                     break;
@@ -1310,7 +1386,7 @@ void handle_dpad()
                 if ( list_num[category] )
                 {
                     char tmpStr[512];
-                    sprintf(tmpStr, "Do you want to remove %s from your favorites applications ?", applications[category]->name[list_curpos[ category ]] );
+                    sprintf(tmpStr, "Do you want to remove %s from your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
 
                     if( gui_confirm_box( tmpStr ) )
                         cfg_fav_del( list_curpos[ category ] );
@@ -1348,7 +1424,7 @@ void handle_dpad()
                 if ( applications_count[FAVORITES] < FAV_MAX )
                 {
                     char tmpString[256];
-                    sprintf(tmpString, "Do you want to add %s to your favorites applications ?", applications[category]->name[list_curpos[ category ]] );
+                    sprintf(tmpString, "Do you want to add %s to your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
 
                     if (  gui_confirm_box( tmpString ) )
                     {
@@ -1366,7 +1442,7 @@ void handle_dpad()
                 }
                 else
                 {
-                    gui_confirm_box("Favorites are full, please remove a favorite before adding one by going under the favorite screen.");
+                    gui_confirm_box("Favorites are full, please remove a favourite before adding one by going under the favourite screen.");
                 }
             }
         }
@@ -1411,10 +1487,9 @@ int main( )
 
 	while( ! gui_done )
 	{
-
         check_rediscover();
 
-		gui_draw();
+        gui_draw();
         GLES2D_DrawFont( fnt[SMALL], 750, 0, GLES2D_GetFpsChar() );
 
 		handle_dpad();
@@ -1424,7 +1499,6 @@ int main( )
         GLES2D_FpsCounterUpdate();
 
 		if(do_quit) gui_done = 1;
-
 	}
 
 	gui_clean();

@@ -23,6 +23,12 @@
 #define CYAN		6
 #define	WHITE		7
 
+#ifdef I386
+#define PMENU_PATH "./"
+#else
+#define PMENU_PATH "/etc/pandora/pmenu/"
+#endif
+
 void textcolor( int attr, int fg );
 int debug_func;
 int debug_func_count;

@@ -2,6 +2,7 @@
 #define __GET_APPS_H__
 
 #include <pnd_pndfiles.h>
+#include <GLES2D/GLES2D.h>
 
 #define MAXDIRNUM 1024
 #define MAXPATH 64
@@ -48,6 +49,9 @@ typedef struct
 	char preview_pic2[256][256];
 	int scale[256];
 	int type[256];
+	GLES2D_FontCache *name_cached[256];
+	GLES2D_FontCache *description_cached[256];
+
 } PND_APP;
 
 PND_APP *applications[CATEGORY_COUNT-1];
