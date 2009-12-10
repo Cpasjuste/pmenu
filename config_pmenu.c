@@ -16,7 +16,7 @@ int cfg_pmenu_read()
 
 	if ( !config_read_file( &cfg, cfg_path ) )
 	{
-		printf ("config_read_file() failed (line %d of %s)\n", (__LINE__ -1), __FILE__);;
+		printf ("config_read_file() failed : %s (line %d of %s)\n", cfg_path, (__LINE__ -1), __FILE__);;
 		config_destroy(&cfg);
 		return -1;
 	}

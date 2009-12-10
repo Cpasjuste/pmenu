@@ -1110,14 +1110,17 @@ void gui_change_category( int requested_cat )
 
 void gui_pad_left()
 {
-    if ( ( category == SETTINGS ) && ( setting_current == MENU_SKIN ) )
+    if ( category == SETTINGS )
     {
-        if ( skin_current > 0 )
+        if ( setting_current == MENU_SKIN )
         {
-            skin_current--;
-        }
+            if ( skin_current > 0 )
+            {
+                skin_current--;
+            }
 
-        load_skin_preview();
+            load_skin_preview();
+        }
     }
     else if ( category == MEDIA )
     {
@@ -1157,14 +1160,17 @@ void gui_pad_left()
 
 void gui_pad_right()
 {
-    if ( ( category == SETTINGS ) && ( setting_current == MENU_SKIN ) )
+    if ( category == SETTINGS )
     {
-        if ( skin_current < skin_count - 1 )
+        if ( setting_current == MENU_SKIN )
         {
-            skin_current++;
-        }
+            if ( skin_current < skin_count - 1 )
+            {
+                skin_current++;
+            }
 
-        load_skin_preview();
+            load_skin_preview();
+        }
     }
     else if ( category == MEDIA )
     {
