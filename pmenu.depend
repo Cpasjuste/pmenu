@@ -300,7 +300,7 @@
 1258620753 /home/cpasjuste/dev/pandora/pmenu/fav_config.h
 	"libconfig.h"
 
-1259424728 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
+1260786785 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -423,7 +423,7 @@
 1234445172 /home/cpasjuste/dev/pandora/pmenu/include/libconfig.h
 	<stdio.h>
 
-1260440400 source:/home/cpasjuste/dev/pandora/pmenu/main.c
+1260441916 source:/home/cpasjuste/dev/pandora/pmenu/main.c
 	<string.h>
 	<unistd.h>
 	<stdlib.h>
@@ -1276,21 +1276,21 @@
 1234932726 /home/cpasjuste/dev/pandora/pmenu/libconfig/libconfig.h
 	<stdio.h>
 
-1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_pndfiles.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_pndfiles.h
 
-1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_conf.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_conf.h
 
-1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_container.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_container.h
 
-1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_apps.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_apps.h
 
-1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_pxml.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_pxml.h
 
-1257953688 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_discovery.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_discovery.h
 
-1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_locate.h
+1260787349 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_locate.h
 
-1260372929 /home/cpasjuste/dev/pandora/pmenu/common.h
+1260443833 /home/cpasjuste/dev/pandora/pmenu/common.h
 
 1257786396 /home/cpasjuste/dev/pandora/pmenu/libpnd/pnd_notify.h
 
@@ -1429,7 +1429,7 @@
 	"libconfig.h"
 	"get_apps.h"
 
-1260372978 source:/home/cpasjuste/dev/pandora/pmenu/category_settings.c
+1260444348 source:/home/cpasjuste/dev/pandora/pmenu/category_settings.c
 	<string.h>
 	<unistd.h>
 	<stdlib.h>
@@ -1470,7 +1470,7 @@
 1259229514 /home/cpasjuste/dev/pandora/pmenu/config_favourite.h
 	"libconfig.h"
 
-1260436684 source:/home/cpasjuste/dev/pandora/pmenu/config_pmenu.c
+1260444013 source:/home/cpasjuste/dev/pandora/pmenu/config_pmenu.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>

@@ -120,6 +120,8 @@ pnd_conf_handle pnd_conf_fetch_by_path ( char *fullpath );
  * Returns NULL on error, otherwise a READ ONLY char* reference to the value.
  */
 char *pnd_conf_get_as_char ( pnd_conf_handle c, char *key );
+#define PND_CONF_BADNUM (-31337) /* really lame hack, I know */
+int pnd_conf_get_as_int ( pnd_conf_handle c, char *key );
 
 #ifdef __cplusplus
 } /* "C" */

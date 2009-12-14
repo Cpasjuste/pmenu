@@ -118,7 +118,7 @@ int gui_init()
 #else
 	putenv ("SDL_MOUSEDRV=TSLIB");
 	putenv ("DISPLAY=:0");
-    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
+    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_FB );
 #endif
 	return 0;
 }
@@ -292,6 +292,7 @@ void gui_load_preview( int cat, int n )
                 }
                 else
                 {
+                    /*
                     pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
                     pnd_mounted = 1;
 
@@ -309,6 +310,7 @@ void gui_load_preview( int cat, int n )
                         debug_errorf("Preview pic do not exist (%s)", applications[cat]->preview_pic1[n]);
                         debug_info("Will use fail safe preview pic");
                     }
+                    */
                 }
             }
             else
@@ -1140,20 +1142,23 @@ void gui_pad_left()
     }
     else
     {
-        gui_unload_preview();
+        if (  list_curpos[category] != 0 )
+        {
+            gui_unload_preview();
 
-        if ( list_curpos[category] > gui->max_app_per_page - 1 )
-        {
-            page[category] -= 1;
-            list_curpos[category] = page[category] * gui->max_app_per_page;
-            list_start[category] = page[category] * gui->max_app_per_page;
-            reset_scroll_count = 1;
-        }
-        else
-        {
-            list_curpos[category] = 0;
-            list_start[category] = 0;
-            reset_scroll_count = 1;
+            if ( list_curpos[category] > gui->max_app_per_page - 1 )
+            {
+                page[category] -= 1;
+                list_curpos[category] = page[category] * gui->max_app_per_page;
+                list_start[category] = page[category] * gui->max_app_per_page;
+                reset_scroll_count = 1;
+            }
+            else
+            {
+                list_curpos[category] = 0;
+                list_start[category] = 0;
+                reset_scroll_count = 1;
+            }
         }
     }
 }

@@ -25,10 +25,17 @@ extern "C" {
 #define PND_MOUNT_PATH "/mnt/pnd/" /* all mounted PND images should be here.. /mnt/apps/UNIQUE-ID/... */
 
 // .desktop support
-#define PND_DOTDESKTOP_KEY "dotfiles.dotdesktoppath"
-#define PND_DOTDESKTOPICONS_KEY "dotfiles.iconpath"
-#define PND_DOTDESKTOP_DEFAULT "~/.applications"
-#define PND_DOTDESKTOPICONS_DEFAULT "~/.applications"
+#define PND_DESKTOP_DOTDESKTOP_PATH_KEY "desktop.dotdesktoppath"
+#define PND_DESKTOP_ICONS_PATH_KEY "desktop.iconpath"
+#define PND_DESKTOP_SEARCH_KEY "desktop.searchpath"
+
+#define PND_MENU_DOTDESKTOP_PATH_KEY "menu.dotdesktoppath"
+#define PND_MENU_ICONS_PATH_KEY "menu.iconpath"
+#define PND_MENU_SEARCH_KEY "menu.searchpath"
+
+#define PND_DESKTOP_DOTDESKTOP_PATH_DEFAULT "~/.applications"
+#define PND_DESKTOP_ICONS_PATH_DEFAULT "~/.applications"
+#define PND_DESKTOP_SEARCH_PATH_DEFAULT "/media/*/pandora/desktop:/usr/pandora/apps"
 
 // apps
 #define PND_DEFAULT_WORKDIR "./"
@@ -42,7 +49,7 @@ extern "C" {
  * NOTE: if specified, clock speed will be set prior to invoking the script, and set back on exit
  * NOTE: No values can be except clockspeed; a 0 clockspeed means 'leave alone'. Set startdoir to "." instead of NULL.
  * fork() is implied; calling this function does not kill this process :)
- * NOTE: PAss in the full path to the awesomeapp.pnd or to the directory containing PXML.xml (not the PXML.xml itself.)
+ * NOTE: Pass in the full path to the awesomeapp.pnd or to the directory containing PXML.xml (not the PXML.xml itself.)
  * Options is a set of boolean flags, derived from the #define's below; OR them together.
  *   option-block, when set, suggests the launch should wait until the invoked application exits (disregarding why app exits)
  *   example: options = PND_EXEC_OPTION_BLOCK | PND_EXEC_OPTION_2;

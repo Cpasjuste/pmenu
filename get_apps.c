@@ -274,7 +274,7 @@ int pnd_app_get_list( void )
                              if ( access ( icon_cache, R_OK ) == 0 )
                                 strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], icon_cache );
                             else
-                                debug_infof( "Could acces icon_cache (%s)", icon_cache );
+                                debug_infof( "Could not acces icon_cache (%s)", icon_cache );
                         }
                         else
                         {

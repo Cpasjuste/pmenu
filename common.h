@@ -26,7 +26,7 @@
 #ifdef I386
 #define PMENU_PATH "./"
 #else
-#define PMENU_PATH "/etc/pandora/pmenu/"
+#define PMENU_PATH "/etc/pandora/pmenu"
 #endif
 
 void textcolor( int attr, int fg );

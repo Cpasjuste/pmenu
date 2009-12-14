@@ -12,7 +12,7 @@ int cfg_pmenu_read()
 	config_init(&cfg);
 
 	char cfg_path[512];
-	sprintf( cfg_path, "%s%s", PMENU_PATH, "pmenu.cfg" );
+	sprintf( cfg_path, "%s/%s", PMENU_PATH, "pmenu.cfg" );
 
 	if ( !config_read_file( &cfg, cfg_path ) )
 	{
@@ -43,7 +43,14 @@ int cfg_pmenu_read()
             tmp = config_setting_get_member(search, "skin_dir");
             if(tmp)
             {
-                strcpy( pmenu->skin_dir, config_setting_get_string(tmp));
+#ifdef I386
+                strcpy( pmenu->skin_dir, config_setting_get_string(tmp) );
+#else
+                char skin_path[512];
+                sprintf( skin_path, "%s/%s", PMENU_PATH, config_setting_get_string(tmp) );
+                strcpy( pmenu->skin_dir, skin_path );
+                printf( "pmenu->skin_dir : %s\n", skin_path );
+#endif
             }
 
             tmp = config_setting_get_member(search, "cpu_mhz");
@@ -68,7 +75,7 @@ int cfg_pmenu_update_skin_path( char *skin_path )
 	config_init(&cfg);
 
     char cfg_path[512];
-	sprintf( cfg_path, "%s%s", PMENU_PATH, "pmenu.cfg" );
+	sprintf( cfg_path, "%s/%s", PMENU_PATH, "pmenu.cfg" );
 
 	if ( !config_read_file( &cfg, cfg_path ) )
 	{
@@ -111,7 +118,7 @@ int cfg_pmenu_update_cpu_mhz( int mhz )
 	config_init(&cfg);
 
     char cfg_path[512];
-	sprintf( cfg_path, "%s%s", PMENU_PATH, "pmenu.cfg" );
+	sprintf( cfg_path, "%s/%s", PMENU_PATH, "pmenu.cfg" );
 
 	if ( !config_read_file( &cfg, cfg_path ) )
 	{

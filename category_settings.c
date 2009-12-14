@@ -54,7 +54,8 @@ int get_skins_list ( )
         skin[i] = (SKIN_CONFIG *) malloc(sizeof(SKIN_CONFIG));
     }
 
-    dp = opendir ("skins");
+    dp = opendir ( PMENU_PATH"/skins" );
+
     if ( dp != NULL )
     {
         while ( ( ep = readdir (dp) ) )
@@ -63,13 +64,13 @@ int get_skins_list ( )
 
             char _path[512];
 
-            sprintf( _path, "%sskins/%s/skin.cfg", PMENU_PATH, ep->d_name );
+            sprintf( _path, PMENU_PATH"/skins/%s/skin.cfg", ep->d_name );
 
             if ( access ( _path, R_OK ) != 0 ) continue;
 
             strcpy ( skin[skin_count]->cfg_path, _path );
             strcpy ( skin[skin_count]->name, ep->d_name );
-            sprintf ( skin[skin_count]->path, "%sskins/%s", PMENU_PATH, ep->d_name );
+            sprintf ( skin[skin_count]->path, PMENU_PATH"/skins/%s", ep->d_name );
 
             debug_infof( "Skin found ( Num: %i, Name: %s, Path: %s, Config Path: %s )", skin_count, skin[skin_count]->name, skin[skin_count]->path, skin[skin_count]->cfg_path );
 
