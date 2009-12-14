@@ -47,7 +47,7 @@ int cfg_pmenu_read()
                 strcpy( pmenu->skin_dir, config_setting_get_string(tmp) );
 #else
                 char skin_path[512];
-                sprintf( skin_path, "%s/%s", PMENU_PATH, config_setting_get_string(tmp) );
+                sprintf( skin_path, "%s", config_setting_get_string(tmp) );
                 strcpy( pmenu->skin_dir, skin_path );
                 printf( "pmenu->skin_dir : %s\n", skin_path );
 #endif

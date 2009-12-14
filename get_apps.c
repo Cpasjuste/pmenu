@@ -123,14 +123,24 @@ int pnd_app_get_list( void )
 
  			if ( d -> main_category )
 			{
-				if( ( strcasecmp(d -> main_category, "emulators") == 0 ) | ( strcasecmp( d -> main_category, "emulator" ) == 0 ) )
-				{
-					tmpSection = EMULATORS;
-				}
-				else if( strcasecmp( d -> main_category, "game" ) == 0 )
-				{
-					tmpSection = GAMES;
-				}
+			    if( ( strcasecmp( d -> main_category, "game" ) == 0 ) | ( strcasecmp( d -> main_category, "games" ) == 0 ) )
+                {
+                    if ( d->main_category1 )
+                    {
+                        if ( ( strcasecmp( d -> main_category1, "emulator" ) == 0 ) | ( strcasecmp( d -> main_category1, "emulators" ) == 0 ) )
+                        {
+                            tmpSection = EMULATORS;
+                        }
+                        else
+                        {
+                            tmpSection = GAMES;
+                        }
+                    }
+                    else
+                    {
+                        tmpSection = GAMES;
+                    }
+                }
 				else
                 {
                     tmpSection = MISC;
@@ -147,7 +157,6 @@ int pnd_app_get_list( void )
                 debug_infof ( "[%i] -> Category: %s", applications_count[tmpSection], \
                     applications[tmpSection]->category[applications_count[tmpSection]] );
             }
-
 
             if ( d -> title_en )
             {
