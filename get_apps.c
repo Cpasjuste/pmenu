@@ -106,6 +106,7 @@ int pnd_app_get_list( void )
 	{
 		applications[i] = (PND_APP *) malloc(sizeof(PND_APP));
 		applications_count[i] = 0;
+		list_num[i] = 0;
 	}
 
 	// list the found apps (if any)

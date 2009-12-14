@@ -38,6 +38,8 @@ void gui_unload_preview();
 void gui_draw();
 void gui_clean_skin();
 int gui_load_skin();
+void gui_load_apps_font_cache();
+void gui_clean_apps_font_cache();
 
 void app_scale()
 {
@@ -67,7 +69,9 @@ void rediscover()
 
     gui_clean_icon();
 
-    for( i = 0; i < CATEGORY_COUNT-1; i++ )
+    gui_clean_apps_font_cache();
+
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
 	{
 	    if ( applications[i] != NULL )
             free( applications[i] );
@@ -75,9 +79,12 @@ void rediscover()
 
 	pnd_app_get_list();
 
+    gui_load_apps_font_cache();
+
     gui_load_icon();
 
 	list_curpos[category] = 0;
+
 	gui_unload_preview();
 
 	gui_clean_fav();
@@ -202,7 +209,7 @@ void gui_clean_icon()
 
 	for( i = 0; i < CATEGORY_COUNT - 3; i++ )
 	{
-		for(j = 0; j < list_num[i]; j++)
+		for( j = 0; j < list_num[i]; j++ )
 		{
 			if ( icon[i][j] != NULL )
             {
@@ -372,6 +379,46 @@ void gui_clean_fav()
 	}
 }
 
+
+void gui_load_apps_font_cache()
+{
+    int i, j;
+
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+    {
+        for( j = 0; j < list_num[i]; j++ )
+        {
+            char tmp[512];
+            memset ( tmp, 0, 512 );
+            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
+            applications[i]->name_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->name[j], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+
+            memset ( tmp, 0, 512 );
+            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+            applications[i]->description_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->description[j], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+        }
+    }
+
+}
+
+void gui_clean_apps_font_cache()
+{
+  	int i, j;
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+    {
+        for( j = 0; j < list_num[i]; j++ )
+        {
+            if ( applications[i]->name_cached[j] != NULL )
+                GLES2D_FreeFontCache(  applications[i]->name_cached[j] );
+            applications[i]->name_cached[j] = NULL;
+
+            if ( applications[i]->description_cached[j] != NULL )
+                GLES2D_FreeFontCache(  applications[i]->description_cached[j] );
+            applications[i]->description_cached[j] = NULL;
+        }
+    }
+}
+
 void gui_clean_skin()
 {
     debug_start();
@@ -474,20 +521,7 @@ void gui_clean_skin()
         }
 	}
 
-	int j;
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-    {
-        for( j = 0; j < list_num[i]; j++ )
-        {
-            if ( applications[i]->name_cached[j] != NULL )
-                GLES2D_FreeFontCache(  applications[i]->name_cached[j] );
-            applications[i]->name_cached[j] = NULL;
-
-            if ( applications[i]->description_cached[j] != NULL )
-                GLES2D_FreeFontCache(  applications[i]->description_cached[j] );
-            applications[i]->description_cached[j] = NULL;
-        }
-    }
+    gui_clean_apps_font_cache();
 
     debug_end();
 }
@@ -801,26 +835,13 @@ int gui_load_skin()
     memset ( tmp, 0, 512 );
     sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
 
-    int i, j;
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-    {
-        for( j = 0; j < list_num[i]; j++ )
-        {
-            char tmp[512];
-            memset ( tmp, 0, 512 );
-            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
-            applications[i]->name_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->name[j], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
-
-            memset ( tmp, 0, 512 );
-            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
-            applications[i]->description_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->description[j], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
-        }
-    }
-
+    int i;
     for ( i = 0; i < CATEGORY_COUNT; i++ )
 	{
 	    gui->title_cache[i] = GLES2D_CreateFontCache( tmp, gui->title[i], gui->font_small_style, gui->font_small_size, 800 );
 	}
+
+    gui_load_apps_font_cache();
 
 	debug_end();
 	return 1;
