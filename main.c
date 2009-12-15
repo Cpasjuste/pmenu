@@ -125,7 +125,7 @@ int gui_init()
 #else
 	putenv ("SDL_MOUSEDRV=TSLIB");
 	putenv ("DISPLAY=:0");
-    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_FB );
+    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
 #endif
 	return 0;
 }
@@ -1536,7 +1536,7 @@ int main( )
 	gui_clean();
 
 	int i;
-    for( i = 0; i < CATEGORY_COUNT - 1; i++ )
+    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
 	{
 	    if ( applications[i] != NULL )
             free( applications[i] );

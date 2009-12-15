@@ -123,30 +123,33 @@ int pnd_app_get_list( void )
 
  			if ( d -> main_category )
 			{
-			    if( ( strcasecmp( d -> main_category, "game" ) == 0 ) | ( strcasecmp( d -> main_category, "games" ) == 0 ) )
+			    if( ( strcasecmp( d -> main_category, "game" ) == 0 ) || ( strcasecmp( d -> main_category, "games" ) == 0 ) )
                 {
-                    if ( d->main_category1 )
+                    if ( d -> main_category1 )
                     {
-                        if ( ( strcasecmp( d -> main_category1, "emulator" ) == 0 ) | ( strcasecmp( d -> main_category1, "emulators" ) == 0 ) )
+                        if ( ( strcasecmp( d -> main_category1, "emulator" ) == 0 ) || ( strcasecmp( d -> main_category1, "emulators" ) == 0 ) )
                         {
                             tmpSection = EMULATORS;
+                            strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "EMULATORS" );
                         }
                         else
                         {
                             tmpSection = GAMES;
+                            strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "GAMES" );
                         }
                     }
                     else
                     {
                         tmpSection = GAMES;
+                        strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "GAMES" );
                     }
                 }
 				else
                 {
                     tmpSection = MISC;
+                    strcpy( applications[tmpSection]->category[applications_count[tmpSection]], "MISC" );
                 }
 
-                strcpy(applications[tmpSection]->category[applications_count[tmpSection]], d -> main_category);
 				debug_infof ( "[%i] -> Category: %s", applications_count[tmpSection], \
 					applications[tmpSection]->category[applications_count[tmpSection]] );
 			}
@@ -310,16 +313,19 @@ int pnd_app_get_list( void )
 
             applications_count[tmpSection]++;
 
+            printf( "\n" );
+
 			d = pnd_box_get_next ( d );
 		}
 
 		for( i = 0; i < CATEGORY_COUNT - 3; i++ )
         {
-            list_num[tmpSection] = applications_count[tmpSection];
-            if (list_start[tmpSection] >= list_num[tmpSection]) { list_start[tmpSection] = list_num[tmpSection]-1; }
-            if (list_start[tmpSection] < 0) { list_start[tmpSection]  = 0; }
-            if (list_curpos[tmpSection] >= list_num[tmpSection]) { list_curpos[tmpSection] = list_num[tmpSection]-1; }
-			if (list_curpos[tmpSection] < 0) { list_curpos[tmpSection] = 0; }
+            list_num[i] = applications_count[i];
+            if ( list_start[i] >= list_num[i] ) { list_start[i] = list_num[i] - 1; }
+            if ( list_start[i] < 0 ) { list_start[i]  = 0; }
+            if ( list_curpos[i] >= list_num[i] ) { list_curpos[i] = list_num[i] - 1; }
+			if ( list_curpos[i] < 0 ) { list_curpos[i] = 0; }
+
         }
 
 	}

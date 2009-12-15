@@ -20,8 +20,8 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="jeff.sample.1" xsi:noN
   <osversion major="1" minor="0" release="0" build="0"/><!--The minimum OS version required-->
 
   <categories>
-    <category name="MainCategory"><!--category like "Games", "Graphics", "Internet" etc-->
-      <subcategory name="Subcategory1"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
+    <category name="Games"><!--category like "Games", "Graphics", "Internet" etc-->
+      <subcategory name="Emulators"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
       <subcategory name="Subcategory2"/>
     </category>
     <category name="AlternativeCategory">
