@@ -23,7 +23,7 @@
 pnd_notify_handle nh;
 int nh_countdown = 60;
 
-static int gui_done = 0, do_quit = 0, preview_timer = 30;
+static int gui_done = 0, do_quit = 0, preview_timer = 100;
 int preview_scale = 0;
 int page[CATEGORY_COUNT-1] = { 0, 0, 0, 0, 0 };
 int scroll_wait = 0;
@@ -50,12 +50,16 @@ void app_scale()
         if ( i == list_curpos[category] )
         {
             if ( applications[category]->scale[i] < gui->icon_scale_max )
-                applications[category]->scale[i]+=1;
+                applications[category]->scale[i] += 1;
+            else if ( applications[category]->scale[i] > gui->icon_scale_max )
+                applications[category]->scale[i] = gui->icon_scale_max;
         }
         else
         {
             if ( applications[category]->scale[i] > gui->icon_scale_min )
-                applications[category]->scale[i]-=1;
+                applications[category]->scale[i] -= 1;
+            else if ( applications[category]->scale[i] < gui->icon_scale_min )
+                applications[category]->scale[i] = gui->icon_scale_min;
         }
     }
 
@@ -133,7 +137,7 @@ int gui_init()
 void gui_change_skin()
 {
     int alpha;
-    for ( alpha = 0; alpha < 245; alpha+=10 )
+    for ( alpha = 0; alpha < 245; alpha += 10 )
     {
         gui_draw();
         GLES2D_SetDrawingColor( 0, 0, 0, alpha );
@@ -195,7 +199,7 @@ void gui_load_icon()
             {
                 debug_errorf( "Could not load icon (%s);", applications[i]->icon[j] );
             }
-            applications[i]->scale[j] = 32;
+            applications[i]->scale[j] = gui->icon_scale_min;
 		}
 	}
 	debug_end();
@@ -243,7 +247,7 @@ void gui_unload_preview()
         }
     }
 
-    preview_timer = 50;
+    preview_timer = 100;
 
     debug_end();
 }
@@ -299,7 +303,6 @@ void gui_load_preview( int cat, int n )
                 }
                 else
                 {
-                    /*
                     pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
                     pnd_mounted = 1;
 
@@ -317,7 +320,6 @@ void gui_load_preview( int cat, int n )
                         debug_errorf("Preview pic do not exist (%s)", applications[cat]->preview_pic1[n]);
                         debug_info("Will use fail safe preview pic");
                     }
-                    */
                 }
             }
             else
@@ -1023,7 +1025,7 @@ void gui_draw()
 			{
 			    if ( ! video_playing )
 			    {
-                    if( alpha_preview < 245 ) alpha_preview += 5;
+                    if( alpha_preview < 250 ) alpha_preview += 5;
                     if( preview_scale < gui->preview_pic_w ) preview_scale += 10;
 
                     if( tmp_preview != NULL )
@@ -1340,6 +1342,11 @@ void handle_dpad()
                 if ( pmenu->cpu_mhz > 30 )
                     pmenu->cpu_mhz-=5;
             }
+            else if ( setting_current == MENU_BRIGHTNESS )
+            {
+                if ( pmenu->brightness > 5 )
+                    pmenu->brightness -= 5;
+            }
         }
     }
 
@@ -1355,7 +1362,12 @@ void handle_dpad()
             if ( setting_current == MENU_CPU )
             {
                 if ( pmenu->cpu_mhz < 800 )
-                    pmenu->cpu_mhz+=5;
+                    pmenu->cpu_mhz += 5;
+            }
+            else if ( setting_current == MENU_BRIGHTNESS )
+            {
+                if ( pmenu->brightness < 51 )
+                    pmenu->brightness += 5;
             }
         }
     }

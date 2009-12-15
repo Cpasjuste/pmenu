@@ -10,6 +10,7 @@ typedef struct
 {
 	char skin_dir[512];
 	int cpu_mhz;
+	int brightness;
 
 } PMENU_CONFIG;
 

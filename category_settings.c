@@ -101,11 +101,16 @@ char *setting_string[SETTINGS_COUNT] =
 void menu_settings_draw()
 {
     int i;
-    int setting_y = gui->applications_box_y + 5;
+    int setting_y = gui->applications_box_y + 5 + gui->settings_text_spacing * 2;
     int x = gui->applications_box_x + 5;
 
     for ( i = 0; i < SETTINGS_COUNT; i++ )
     {
+        GLES2D_DrawFont( fnt[SMALL], x, gui->applications_box_y + 5, "Press X to apply setting" );
+
+        if ( ( i == setting_current && i == MENU_EXIT ) )
+            GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
+
         GLES2D_DrawFont( fnt[SMALL], x, setting_y, setting_string[i] );
 
         if ( i == setting_current )
@@ -119,12 +124,19 @@ void menu_settings_draw()
                 GLES2D_DrawTextureScaledCentered( skin_preview_pic, gui->preview_pic_x, gui->preview_pic_y, gui->preview_pic_w, gui->preview_pic_w / 1.666 );
 
         }
-        if ( i == MENU_CPU )
+        else if ( i == MENU_CPU )
         {
             char cpu_str[3];
             sprintf( cpu_str, "%i", pmenu->cpu_mhz );
 
             GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, cpu_str );
+        }
+        else if ( i == MENU_BRIGHTNESS )
+        {
+            char brightness_str[3];
+            sprintf( brightness_str, "%i", pmenu->brightness );
+
+            GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, brightness_str );
         }
 
         GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );

@@ -53,10 +53,24 @@ int cfg_pmenu_read()
 #endif
             }
 
-            tmp = config_setting_get_member(search, "cpu_mhz");
-            if(tmp)
+            tmp = config_setting_get_member( search, "cpu_mhz" );
+            if( tmp )
             {
                 pmenu->cpu_mhz = config_setting_get_int( tmp );
+            }
+            else
+            {
+                pmenu->cpu_mhz = 600;
+            }
+
+            tmp = config_setting_get_member( search, "brightness" );
+            if( tmp )
+            {
+                pmenu->brightness = config_setting_get_int( tmp );
+            }
+            else
+            {
+                pmenu->brightness = 51;
             }
 		}
 	}
