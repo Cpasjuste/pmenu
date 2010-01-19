@@ -129,13 +129,15 @@ int gui_init()
 #else
 	putenv ("SDL_MOUSEDRV=TSLIB");
 	putenv ("DISPLAY=:0");
-    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
+    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_FB );
 #endif
 	return 0;
 }
 
 void gui_change_skin()
 {
+    debug_start();
+
     int alpha;
     for ( alpha = 0; alpha < 245; alpha += 10 )
     {
@@ -147,8 +149,9 @@ void gui_change_skin()
 
     char prev_skin[512];
     memset( prev_skin, 0, 512 );
-    strcpy( prev_skin, pmenu->skin_dir );
+    strcpy( prev_skin, pmenu->skin_dir_relative );
 
+    debug_infof( "Updating skin path : %s\n", skin[skin_current]->path );
     cfg_pmenu_update_skin_path( skin[skin_current]->path );
 
     if ( ! cfg_gui_read() )
@@ -163,7 +166,7 @@ void gui_change_skin()
         if ( ! gui_load_skin() )
         {
             cfg_pmenu_update_skin_path( prev_skin );
-               gui_clean_skin();
+            gui_clean_skin();
             gui_load_skin();
         }
     }
@@ -177,6 +180,8 @@ void gui_change_skin()
     }
 
     load_skin_preview();
+
+    debug_end();
 }
 
 void gui_load_icon()
@@ -1088,8 +1093,8 @@ void gui_draw()
 
     char cpu_char[16];
     memset( cpu_char, 0, 16 );
-//    sprintf( cpu_char, "%.0f%%", cpuUsage()*100 );
-    sprintf( cpu_char, "%i", pmenu->cpu_mhz );
+    sprintf( cpu_char, "%.0f%%", cpuUsage()*100 );
+    //sprintf( cpu_char, "%i", pmenu->cpu_mhz );
     GLES2D_DrawFont( fnt[CPU], gui->cpu_text_x, gui->cpu_text_y, cpu_char );
 	GLES2D_DrawTextureSimple( cpu_icon, gui->cpu_icon_x, gui->cpu_icon_y );
 
@@ -1543,6 +1548,8 @@ int main( )
         GLES2D_FpsCounterUpdate();
 
 		if(do_quit) gui_done = 1;
+
+		usleep( 10000 );
 	}
 
 	gui_clean();

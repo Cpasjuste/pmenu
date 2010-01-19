@@ -43,14 +43,9 @@ int cfg_pmenu_read()
             tmp = config_setting_get_member(search, "skin_dir");
             if(tmp)
             {
-#ifdef I386
-                strcpy( pmenu->skin_dir, config_setting_get_string(tmp) );
-#else
-                char skin_path[512];
-                sprintf( skin_path, "%s", config_setting_get_string(tmp) );
-                strcpy( pmenu->skin_dir, skin_path );
-                printf( "pmenu->skin_dir : %s\n", skin_path );
-#endif
+                strcpy( pmenu->skin_dir_relative, config_setting_get_string(tmp) );
+                sprintf( pmenu->skin_dir, "%s/%s", PMENU_PATH, config_setting_get_string(tmp) );
+                printf( "pmenu->skin_dir : %s\n", pmenu->skin_dir );
             }
 
             tmp = config_setting_get_member( search, "cpu_mhz" );
@@ -82,9 +77,6 @@ int cfg_pmenu_read()
 
 int cfg_pmenu_update_skin_path( char *skin_path )
 {
-
-    strcpy( pmenu->skin_dir, skin_path );
-
 	/* Initialize the configuration */
 	config_init(&cfg);
 
@@ -121,6 +113,9 @@ int cfg_pmenu_update_skin_path( char *skin_path )
 	/* Free the configuration */
 	config_destroy( &cfg );
 
+
+    sprintf( pmenu->skin_dir, "%s/%s", PMENU_PATH, skin_path );
+
 	return 0;
 }
 
@@ -147,7 +142,7 @@ int cfg_pmenu_update_cpu_mhz( int mhz )
 
 		if ( !item )
 		{
-			debug_error("cfg_pmenu_update_skin_path: config_lookup failed");
+			debug_error("cfg_pmenu_update_cpu_mhz: config_lookup failed");
 		}
 			else
 			{

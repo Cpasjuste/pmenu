@@ -20,7 +20,7 @@ int load_skin_preview()
     debug_start();
 
     char preview_path[512];
-    sprintf( preview_path, "%s/preview.bmp", skin[skin_current]->path );
+    sprintf( preview_path, "%s/%s/preview.bmp", PMENU_PATH, skin[skin_current]->path );
 
     if ( skin_preview_pic != NULL )
         GLES2D_FreeTexture( skin_preview_pic );
@@ -70,7 +70,7 @@ int get_skins_list ( )
 
             strcpy ( skin[skin_count]->cfg_path, _path );
             strcpy ( skin[skin_count]->name, ep->d_name );
-            sprintf ( skin[skin_count]->path, PMENU_PATH"/skins/%s", ep->d_name );
+            sprintf ( skin[skin_count]->path, "skins/%s", ep->d_name );
 
             debug_infof( "Skin found ( Num: %i, Name: %s, Path: %s, Config Path: %s )", skin_count, skin[skin_count]->name, skin[skin_count]->path, skin[skin_count]->cfg_path );
 

@@ -9,6 +9,7 @@ struct config_t cfg;
 typedef struct
 {
 	char skin_dir[512];
+	char skin_dir_relative[512];
 	int cpu_mhz;
 	int brightness;
 

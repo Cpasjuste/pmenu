@@ -308,7 +308,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find confirm_box in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -321,7 +321,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find no_icon in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -334,7 +334,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find no_preview in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -347,7 +347,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find cpu_icon in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -360,7 +360,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find sd1_icon in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 
@@ -373,7 +373,7 @@ int cfg_gui_read()
             {
                 debug_errorf( "could not find sd2_icon in %s", cfg_file );
                 config_destroy(&cfg);
-	debug_end();
+                debug_end();
                 return 0;
             }
 

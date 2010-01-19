@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
-	<File name="category_media.c" open="0" top="0" tabpos="2">
+	<File name="category_media.c" open="1" top="0" tabpos="8">
 		<Cursor position="3246" topLine="0" />
 	</File>
 	<File name="category_media.h" open="0" top="0" tabpos="8">
 		<Cursor position="77" topLine="0" />
 	</File>
-	<File name="category_settings.c" open="0" top="0" tabpos="3">
-		<Cursor position="1605" topLine="31" />
+	<File name="category_settings.c" open="1" top="0" tabpos="4">
+		<Cursor position="480" topLine="1" />
 	</File>
-	<File name="category_settings.h" open="0" top="0" tabpos="9">
+	<File name="category_settings.h" open="1" top="0" tabpos="5">
 		<Cursor position="64" topLine="0" />
 	</File>
-	<File name="common.h" open="0" top="0" tabpos="8">
-		<Cursor position="483" topLine="0" />
+	<File name="common.h" open="1" top="0" tabpos="7">
+		<Cursor position="454" topLine="2" />
 	</File>
 	<File name="config_favourite.c" open="0" top="0" tabpos="4">
 		<Cursor position="13070" topLine="235" />
@@ -22,26 +22,26 @@
 	<File name="config_favourite.h" open="0" top="0" tabpos="10">
 		<Cursor position="63" topLine="0" />
 	</File>
-	<File name="config_pmenu.c" open="0" top="0" tabpos="1">
-		<Cursor position="1089" topLine="15" />
+	<File name="config_pmenu.c" open="1" top="1" tabpos="2">
+		<Cursor position="2559" topLine="0" />
 	</File>
-	<File name="config_pmenu.h" open="0" top="0" tabpos="9">
-		<Cursor position="53" topLine="0" />
+	<File name="config_pmenu.h" open="1" top="0" tabpos="6">
+		<Cursor position="184" topLine="0" />
 	</File>
-	<File name="config_skin.c" open="0" top="0" tabpos="2">
-		<Cursor position="312" topLine="0" />
+	<File name="config_skin.c" open="1" top="0" tabpos="3">
+		<Cursor position="280" topLine="0" />
 	</File>
 	<File name="config_skin.h" open="0" top="0" tabpos="6">
-		<Cursor position="2912" topLine="76" />
+		<Cursor position="2981" topLine="85" />
 	</File>
-	<File name="get_apps.c" open="1" top="1" tabpos="2">
-		<Cursor position="12137" topLine="271" />
+	<File name="get_apps.c" open="1" top="0" tabpos="9">
+		<Cursor position="2609" topLine="0" />
 	</File>
-	<File name="get_apps.h" open="1" top="0" tabpos="4">
-		<Cursor position="467" topLine="11" />
+	<File name="get_apps.h" open="1" top="0" tabpos="10">
+		<Cursor position="1141" topLine="8" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2918" topLine="120" />
+		<Cursor position="3533" topLine="133" />
 	</File>
 	<File name="main.h" open="0" top="0" tabpos="8">
 		<Cursor position="243" topLine="0" />
