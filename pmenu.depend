@@ -1470,7 +1470,7 @@
 1259229514 /home/cpasjuste/dev/pandora/pmenu/config_favourite.h
 	"libconfig.h"
 
-1263894176 source:/home/cpasjuste/dev/pandora/pmenu/config_pmenu.c
+1263895640 source:/home/cpasjuste/dev/pandora/pmenu/config_pmenu.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>

@@ -22,8 +22,8 @@
 	<File name="config_favourite.h" open="0" top="0" tabpos="10">
 		<Cursor position="63" topLine="0" />
 	</File>
-	<File name="config_pmenu.c" open="1" top="1" tabpos="2">
-		<Cursor position="2559" topLine="0" />
+	<File name="config_pmenu.c" open="1" top="0" tabpos="2">
+		<Cursor position="19" topLine="0" />
 	</File>
 	<File name="config_pmenu.h" open="1" top="0" tabpos="6">
 		<Cursor position="184" topLine="0" />
@@ -40,8 +40,8 @@
 	<File name="get_apps.h" open="1" top="0" tabpos="10">
 		<Cursor position="1141" topLine="8" />
 	</File>
-	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="3533" topLine="133" />
+	<File name="main.c" open="1" top="1" tabpos="1">
+		<Cursor position="44864" topLine="1520" />
 	</File>
 	<File name="main.h" open="0" top="0" tabpos="8">
 		<Cursor position="243" topLine="0" />
