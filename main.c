@@ -901,7 +901,7 @@ void gui_clean()
     debug_end();
 }
 
-void gui_app_exec(int n)
+void gui_app_exec( int n )
 {
 	gui_clean();
 
@@ -1560,6 +1560,8 @@ int main( )
 	    if ( applications[i] != NULL )
             free( applications[i] );
 	}
+
+	system( "echo startxfce4 > /tmp/gui.load" );
 
 	return 0;
 }
