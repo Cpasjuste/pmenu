@@ -9,6 +9,7 @@ char *disk_space(char *path);
 void set_cpu( int mhz );
 int is_avi( char *filename );
 int is_img( char *filename );
+void set_brightness( int level );
 
 #define TIME_24   1
 #define TIME_12   0

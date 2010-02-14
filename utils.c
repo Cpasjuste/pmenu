@@ -116,6 +116,17 @@ void set_cpu( int mhz )
     }
 }
 
+void set_brightness( int level )
+{
+    char command[256];
+    memset( command, 0, 256 );
+
+    sprintf( command, "/usr/pandora/scripts/op_bright.sh %i", level );
+
+    int ret;
+    ret = system( command );
+}
+
 const char *mystristr(const char *haystack, const char *needle)
 {
    if ( !*needle )

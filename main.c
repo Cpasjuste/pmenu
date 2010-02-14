@@ -1345,12 +1345,18 @@ void handle_dpad()
             if ( setting_current == MENU_CPU )
             {
                 if ( pmenu->cpu_mhz > 30 )
+                {
                     pmenu->cpu_mhz-=5;
+                    set_cpu( pmenu->cpu_mhz );
+                }
             }
             else if ( setting_current == MENU_BRIGHTNESS )
             {
-                if ( pmenu->brightness > 5 )
+                if ( pmenu->brightness > 10 )
+                {
                     pmenu->brightness -= 5;
+                    set_brightness( pmenu->brightness );
+                }
             }
         }
     }
@@ -1367,12 +1373,18 @@ void handle_dpad()
             if ( setting_current == MENU_CPU )
             {
                 if ( pmenu->cpu_mhz < 800 )
+                {
                     pmenu->cpu_mhz += 5;
+                    set_cpu( pmenu->cpu_mhz );
+                }
             }
             else if ( setting_current == MENU_BRIGHTNESS )
             {
-                if ( pmenu->brightness < 51 )
+                if ( pmenu->brightness < 56 )
+                {
                     pmenu->brightness += 5;
+                    set_brightness( pmenu->brightness );
+                }
             }
         }
     }
@@ -1451,6 +1463,10 @@ void handle_dpad()
             {
                 cfg_pmenu_update_cpu_mhz( pmenu->cpu_mhz );
                 set_cpu( pmenu->cpu_mhz );
+            }
+            else if ( setting_current == MENU_EXIT )
+            {
+                do_quit = 1;
             }
         }
         else if ( category == MEDIA )
