@@ -67,6 +67,16 @@ int cfg_pmenu_read()
             {
                 pmenu->brightness = 51;
             }
+
+            tmp = config_setting_get_member( search, "effect" );
+            if( tmp )
+            {
+                pmenu->effect = config_setting_get_int( tmp );
+            }
+            else
+            {
+                pmenu->effect = 1;
+            }
 		}
 	}
 
@@ -150,6 +160,51 @@ int cfg_pmenu_update_cpu_mhz( int mhz )
 				if( tmp )
 				{
 					config_setting_set_int( tmp, mhz );
+				}
+			}
+    }
+	/* Write configuration */
+	config_write_file( &cfg, cfg_path );
+
+	/* Free the configuration */
+	config_destroy( &cfg );
+
+	debug_end();
+
+	return 0;
+}
+
+int cfg_pmenu_update_effect( int value )
+{
+    debug_start();
+
+	/* Initialize the configuration */
+	config_init(&cfg);
+
+    char cfg_path[512];
+	sprintf( cfg_path, "%s/%s", PMENU_PATH, "pmenu.cfg" );
+
+	if ( !config_read_file( &cfg, cfg_path ) )
+	{
+		debug_error( "config_read_file(pmenu.cfg) failed" );;
+		config_destroy(&cfg);
+		return -1;
+	}
+	else
+	{
+		config_setting_t *item = NULL;
+		item = config_lookup( &cfg, "pmenu_main" );
+
+		if ( !item )
+		{
+			debug_error("cfg_pmenu_update_cpu_mhz: config_lookup failed");
+		}
+			else
+			{
+				config_setting_t *tmp = config_setting_get_member( item, "effect" );
+				if( tmp )
+				{
+					config_setting_set_int( tmp, value );
 				}
 			}
     }

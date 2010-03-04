@@ -22,8 +22,8 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="jeff.sample.2" xsi:noN
   <osversion major="1" minor="0" release="0" build="0"/><!--The minimum OS version required-->
 
   <categories>
-    <category name="Games"><!--category like "Games", "Graphics", "Internet" etc-->
-    <subcategory name="None"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
+    <category name="Main category"><!--category like "Games", "Graphics", "Internet" etc-->
+    <subcategory name="Subcategory 1"/><!--subcategory, like "Board Games", "Strategy", "First Person Shooters"-->
     <subcategory name="Subcategory 2"/>
     </category>
     <category name="Alternative category">

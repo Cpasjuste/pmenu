@@ -62,6 +62,7 @@ extern "C" {
 
 unsigned char pnd_apps_exec ( char *pndrun, char *fullpath, char *unique_id,
 			      char *rel_exec, char *rel_startdir,
+			      char *args,
 			      unsigned int clockspeed, unsigned int options );
 
 // should you wish to know where an app will get mounted, call this function to obtain a guess. The

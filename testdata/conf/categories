@@ -2,27 +2,22 @@
 # Open Pandora
 # dotdesktop configuration
 
-# this config file maps 'PXML' categories to free-desktop standard categories
-# ie: category 'Foo' could map to more standard 'Utility', thus making .desktop file
-# emitting a more useful thing
+# this conf file maps categories from PXML to categories emitted into .desktop files
+
+# in theory, this file could/should be empty, meaning that whatever categories are in
+# PXML we implicitly copy over to .desktop (all of them, including subcats.) We rather
+# assume the PXML.xml authors/tools will keep to useful freedesktop defined cats, and
+# if not the desktop environment will have behaviour to deal with rogue cats.
+
+# you can use this file to merge categories, or categories, or create your own
+# categories in PXML that in turn map back to freedesktop cats, etc.
+
+# if PXML.xml doesn't seem to include any cats, the default below is used.
 
 # the standard listing of categories is:
 # http://standards.freedesktop.org/menu-spec/latest/apa.html
 
-# note that 'map' section in the config is _required_ for a match to be found; this
-# is done to separate categories from (future) top-level directives
-
 default	Application;Utility;Network;
 
 [map]
-Subcategory1	Graphics
 Development	Development
-Education	Education
-Games	Game
-Graphics	Graphics
-Internet	Network
-Multimedia	AudioVideo
-Office	Office
-Settings	Settings
-System	System
-Utilities	Utility

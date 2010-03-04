@@ -95,6 +95,7 @@ char *setting_string[SETTINGS_COUNT] =
     "Skin:",
     "Cpu Speed:",
     "Brightness:",
+    "Full Effect:",
     "Exit"
 };
 
@@ -137,6 +138,13 @@ void menu_settings_draw()
             sprintf( brightness_str, "%i", pmenu->brightness );
 
             GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, brightness_str );
+        }
+        else if ( i == MENU_EFFECT )
+        {
+            char effect_str[3];
+            sprintf( effect_str, "%i", pmenu->effect );
+
+            GLES2D_DrawFont( fnt[SMALL], GLES2D_GetTextWidth( fnt[SMALL], setting_string[i] ) + x + 5, setting_y, effect_str );
         }
 
         GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color), HEXTOG(gui->font_small_color), HEXTOB(gui->font_small_color), HEXTOA(gui->font_small_color) );

@@ -6,8 +6,7 @@
 extern "C" {
 #endif
 
-unsigned char pnd_pxml_load ( const char* pFilename, pnd_pxml_t *app );
-unsigned char pnd_pxml_parse ( const char *pFilename, char *buffer, unsigned int length, pnd_pxml_t *app );
+unsigned char pnd_pxml_parse ( const char *pFilename, char *buffer, unsigned int length, pnd_pxml_t **apps );
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,6 @@ int pnd_mounted = 0;
 void gui_clean_fav();
 void gui_load_fav();
 void gui_clean_icon();
-void gui_load_icon();
 void gui_unload_preview();
 void gui_draw();
 void gui_clean_skin();
@@ -85,8 +84,6 @@ void rediscover()
 
     gui_load_apps_font_cache();
 
-    gui_load_icon();
-
 	list_curpos[category] = 0;
 
 	gui_unload_preview();
@@ -127,7 +124,7 @@ int gui_init()
 //    GLES2D_JoystickList();
 //    GLES2D_JoystickInit(0);
 #else
-	putenv ("SDL_MOUSEDRV=TSLIB");
+//	putenv ("SDL_MOUSEDRV=TSLIB");
 	putenv ("DISPLAY=:0");
     GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
 #endif
@@ -184,31 +181,6 @@ void gui_change_skin()
     debug_end();
 }
 
-void gui_load_icon()
-{
-    debug_start();
-
-    int i, j;
-
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-	{
-		for( j = 0; j < list_num[i]; j++ )
-		{
-		    if (  icon[i][j] != NULL )
-		    {
-                GLES2D_FreeTexture( icon[i][j] );
-                icon[i][j] = NULL;
-		    }
-
-            if ( ( icon[i][j] = GLES2D_CreateTexture( applications[i]->icon[j], 0  ) ) == NULL )
-            {
-                debug_errorf( "Could not load icon (%s);", applications[i]->icon[j] );
-            }
-            applications[i]->scale[j] = gui->icon_scale_min;
-		}
-	}
-	debug_end();
-}
 
 void gui_clean_icon()
 {
@@ -220,10 +192,10 @@ void gui_clean_icon()
 	{
 		for( j = 0; j < list_num[i]; j++ )
 		{
-			if ( icon[i][j] != NULL )
+			if ( applications[i]->icon[j] != NULL )
             {
-                    GLES2D_FreeTexture( icon[i][j] );
-                    icon[i][j] = NULL;
+                    GLES2D_FreeTexture( applications[i]->icon[j] );
+                    applications[i]->icon[j] = NULL;
             }
 		}
 //		list_num[i] = 0;
@@ -272,7 +244,12 @@ void gui_load_preview( int cat, int n )
 
 	if ( access ( applications[cat]->preview_pic1[n], R_OK ) == 0 )
 	{
-	    if ( is_img( applications[cat]->preview_pic1[n] ) )
+	    if ( is_avi( applications[cat]->preview_pic1[n] ) )
+	    {
+            debug_info( "Preview is a video" );
+            video_play_preview( applications[cat]->preview_pic1[n] );
+	    }
+	    else
 	    {
 	        debug_info( "Preview is a picture" );
             if ( ( tmp_preview = GLES2D_CreateTexture( applications[cat]->preview_pic1[n], 0 ) ) == NULL )
@@ -280,33 +257,18 @@ void gui_load_preview( int cat, int n )
                 debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
             }
 	    }
-	    else if ( is_avi( applications[cat]->preview_pic1[n] ) )
-	    {
-            debug_info( "Preview is a video" );
-            video_play_preview( applications[cat]->preview_pic1[n] );
-	    }
 	}
 	else
 	{
 	    if ( access ( applications[cat]->fullpath[n], R_OK ) == 0 )
 	    {
-            if ( applications[cat]->type[n] == 2 )
+            if ( applications[cat]->type[n] == IS_PND )
             {
                 char src[512];
                 memset ( src, 0, 512 );
                 sprintf( src, "/mnt/pnd/%s/%s", applications[cat]->id[n], applications[cat]->preview_pic1_name[n] );
 
-                if ( is_img( applications[cat]->preview_pic1_name[n] ) )
-                {
-                    pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
-
-                    if ( ( tmp_preview = GLES2D_CreateTexture( src, 0 ) ) == NULL )
-                    {
-                        debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
-                    }
-                    pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
-                }
-                else
+                if ( is_avi( applications[cat]->preview_pic1_name[n] ) )
                 {
                     pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
                     pnd_mounted = 1;
@@ -325,6 +287,22 @@ void gui_load_preview( int cat, int n )
                         debug_errorf("Preview pic do not exist (%s)", applications[cat]->preview_pic1[n]);
                         debug_info("Will use fail safe preview pic");
                     }
+                }
+                else
+                {
+                    debug_infof( "pnd_pnd_mount( pndrun, %s, %s );\n", applications[cat]->fullpath[n], applications[cat]->id[n] );
+                    pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                    debug_info( "Done : pnd_pnd_mount()\n" );
+
+                    debug_infof( "Creating preview texture from %s\n", src );
+                    if ( ( tmp_preview = GLES2D_CreateTexture( src, 0 ) ) == NULL )
+                    {
+                        debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
+                    }
+
+                    debug_info( "pnd_pnd_umount()\n" );
+                    pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                    debug_info( "Done : pnd_pnd_umount()\n" );
                 }
             }
             else
@@ -349,8 +327,8 @@ void gui_load_fav()
 
     for(i = 0; i < list_num[FAVORITES]; i++)
     {
-        icon[FAVORITES][i] = NULL;
-        icon[FAVORITES][i] = GLES2D_CreateTexture( applications[FAVORITES]->icon[i], 0  );
+//        icon[FAVORITES][i] = NULL;
+//        icon[FAVORITES][i] = GLES2D_CreateTexture( applications[FAVORITES]->icon[i], 0  );
 
         memset ( tmp, 0, 512 );
         sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
@@ -368,11 +346,13 @@ void gui_clean_fav()
 
     for(i = 0; i < list_num[FAVORITES]; i++)
     {
+        /*
         if ( icon[FAVORITES][i] != NULL )
         {
                 GLES2D_FreeTexture( icon[FAVORITES][i] );
                 icon[FAVORITES][i] = NULL;
         }
+        */
         if ( applications[FAVORITES]->name_cached[i] != NULL )
         {
             GLES2D_FreeFontCache( applications[FAVORITES]->name_cached[i] );
@@ -858,9 +838,10 @@ void gui_load()
 {
     debug_start();
 
+    pnd_app_get_list();
+    cfg_fav_read();
     cfg_gui_read();
     gui_load_skin();
-    gui_load_icon();
     gui_load_fav();
 
     if ( ! ( nh = pnd_notify_init() ) )
@@ -905,14 +886,39 @@ void gui_app_exec( int n )
 {
 	gui_clean();
 
-	pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
-		applications[category]->id[n], applications[category]->exec_name[n], \
-			applications[category]->fullpath[n], 600, PND_EXEC_OPTION_BLOCK);
+    if ( applications[category]->noX[n] )
+    {
 
-	gui_init();
-	gui_load();
+        pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
+            applications[category]->id[n], applications[category]->exec_name[n], \
+                applications[category]->fullpath[n], NULL, 600, applications[category]->noX[n] );
 
-	gui_load_preview( category, n );
+        int i;
+        for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+        {
+            if ( applications[i] != NULL )
+                free( applications[i] );
+        }
+
+        exit( 0 );
+    }
+    else
+    {
+        pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
+            applications[category]->id[n], applications[category]->exec_name[n], \
+                applications[category]->fullpath[n], NULL, 600, PND_EXEC_OPTION_BLOCK );
+
+        int i;
+        for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+        {
+            if ( applications[i] != NULL )
+                free( applications[i] );
+        }
+
+        gui_init();
+        gui_load();
+        gui_load_preview( category, n );
+    }
 }
 
 int gui_confirm_box( char *msg )
@@ -1009,8 +1015,8 @@ void gui_draw()
 					GLES2D_DrawFontCache( applications[category]->description_cached[i], gui->applications_box_x + gui->icon_scale_max + 10, y + gui->applications_title_description_y );
 				}
 
-				if ( icon[category][i] != NULL )
-					GLES2D_DrawTextureScaledCentered( icon[category][i], gui->applications_box_x + 5 + gui->icon_scale_max / 2, y + 4, applications[category]->scale[i], applications[category]->scale[i] );
+				if ( applications[category]->icon[i] != NULL )
+					GLES2D_DrawTextureScaledCentered( applications[category]->icon[i], gui->applications_box_x + 5 + gui->icon_scale_max / 2, y + 4, applications[category]->scale[i], applications[category]->scale[i] );
 				else
 					GLES2D_DrawTextureScaledCentered( no_icon, gui->applications_box_x + 5 + gui->icon_scale_max / 2, y + 4, applications[category]->scale[i], applications[category]->scale[i] );
 			}
@@ -1020,7 +1026,8 @@ void gui_draw()
 
 		if( list_num[category] )
 		{
-			if( preview_timer == 1 ) gui_load_preview( category, list_curpos[category] );
+			if( preview_timer == 1 )
+                gui_load_preview( category, list_curpos[category] );
 
 			if( preview_timer > 0 )
 			{
@@ -1330,12 +1337,24 @@ void handle_dpad()
     {
         if( category > 0) gui_change_category( category - 1 );
             else gui_change_category( CATEGORY_COUNT - 1 );
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
     else if ( GLES2D_PadPressed ( R ) || GLES2D_KeyboardPressed( XK_F2 ) )
     {
         if( category < CATEGORY_COUNT - 1) gui_change_category( category + 1 );
             else gui_change_category( 0 );
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
     else if( GLES2D_PadHold ( PAD_LEFT ) )
@@ -1358,12 +1377,28 @@ void handle_dpad()
                     set_brightness( pmenu->brightness );
                 }
             }
+            else if ( setting_current == MENU_EFFECT )
+            {
+                pmenu->effect = !pmenu->effect;
+            }
+        }
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
         }
     }
 
     else if( GLES2D_PadPressed ( PAD_LEFT ) || GLES2D_KeyboardPressed( XK_Left ) )
     {
         gui_pad_left();
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
     else if( GLES2D_PadHold ( PAD_RIGHT ) )
@@ -1386,36 +1421,70 @@ void handle_dpad()
                     set_brightness( pmenu->brightness );
                 }
             }
+            else if ( setting_current == MENU_EFFECT )
+            {
+                pmenu->effect = !pmenu->effect;
+            }
+        }
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
         }
     }
 
     else if( GLES2D_PadPressed ( PAD_RIGHT ) || GLES2D_KeyboardPressed( XK_Right ) )
     {
         gui_pad_right();
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
     else if( GLES2D_PadHold ( PAD_UP ) || GLES2D_KeyboardPressed( XK_Up ) )
     {
         gui_pad_up();
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
     else if( GLES2D_PadHold ( PAD_DOWN ) || GLES2D_KeyboardPressed( XK_Down ) )
     {
         gui_pad_down();
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
     else if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed( XK_l ) )
     {
         GLES2D_Pad[ A ] = 0;
 
-        if( category != SETTINGS )
+        if( ( category != SETTINGS ) && ( category != MEDIA ) )
         {
             if ( list_num[category] )
                 gui_app_exec( list_curpos[ category ] );
         }
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
     }
 
-    else if ( GLES2D_KeyboardPressed( XK_n ) )
+    else if ( GLES2D_PadPressed ( B ) )
     {
         if ( now_depth > 0 )
         {
@@ -1464,6 +1533,10 @@ void handle_dpad()
                 cfg_pmenu_update_cpu_mhz( pmenu->cpu_mhz );
                 set_cpu( pmenu->cpu_mhz );
             }
+            else if ( setting_current == MENU_EFFECT )
+            {
+                cfg_pmenu_update_effect( pmenu->effect );
+            }
             else if ( setting_current == MENU_EXIT )
             {
                 do_quit = 1;
@@ -1475,10 +1548,21 @@ void handle_dpad()
             {
                 if ( applications[MEDIA]->type[list_curpos[MEDIA]] == IS_DIR )
                 {
-                    strcat( now_path, "/" );
-                    strcat( now_path, applications[MEDIA]->name[list_curpos[MEDIA]] );
-                    now_depth++;
-                    get_media_list( now_path );
+                    if ( list_num[MEDIA] )
+                    {
+                        strcat( now_path, "/" );
+                        strcat( now_path, applications[MEDIA]->name[list_curpos[MEDIA]] );
+                        now_depth++;
+                        get_media_list( now_path );
+                    }
+                }
+                else if ( is_avi( applications[MEDIA]->name[list_curpos[MEDIA]] ) )
+                {
+                    char video_path[1024];
+                    strcpy( video_path, now_path );
+                    strcat( video_path, "/" );
+                    strcat( video_path, applications[MEDIA]->name[list_curpos[MEDIA]] );
+                    video_play( video_path );
                 }
             }
         }
@@ -1499,10 +1583,10 @@ void handle_dpad()
                             applications[category]->cache_path[list_curpos[ category ]], \
                             applications[category]->fullpath[list_curpos[ category ]], \
                             applications[category]->exec_name[list_curpos[ category ]], \
-                            applications[category]->icon[list_curpos[ category ]], \
+                            "null", \
                             applications[category]->description[list_curpos[ category ]], \
                             applications[category]->preview_pic1[list_curpos[ category ]], \
-                            applications[category]->preview_pic2[list_curpos[ category ]] );
+                            "null" );
                     }
                 }
                 else
@@ -1510,6 +1594,12 @@ void handle_dpad()
                     gui_confirm_box("Favorites are full, please remove a favourite before adding one by going under the favourite screen.");
                 }
             }
+        }
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
         }
     }
 }
@@ -1539,8 +1629,6 @@ int main( )
         exit(0);
     }
 
-	pnd_app_get_list();
-    cfg_fav_read();
 	gui_load();
 
 	GLES2D_FpsCounterInit();
@@ -1554,28 +1642,23 @@ int main( )
 	{
         check_rediscover();
 
-        gui_draw();
-        GLES2D_DrawFont( fnt[SMALL], 750, 0, GLES2D_GetFpsChar() );
-
 		handle_dpad();
 
-        GLES2D_SwapBuffers();
+		if ( pmenu->effect )
+		{
+            gui_draw();
+            GLES2D_DrawFont( fnt[SMALL], 750, 0, GLES2D_GetFpsChar() );
+            GLES2D_SwapBuffers();
+            GLES2D_FpsCounterUpdate();
+		}
 
-        GLES2D_FpsCounterUpdate();
-
-		if(do_quit) gui_done = 1;
+		if( do_quit )
+            gui_done = 1;
 
 		//usleep( 10000 );
 	}
 
 	gui_clean();
-
-	int i;
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-	{
-	    if ( applications[i] != NULL )
-            free( applications[i] );
-	}
 
 	system( "echo startxfce4 > /tmp/gui.load" );
 

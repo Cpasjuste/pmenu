@@ -17,12 +17,15 @@
 #include <pnd_pxml.h>
 #include <pnd_discovery.h>
 #include <pnd_locate.h>
+#include <pnd_desktop.h>
 
 #include "get_apps.h"
 #include "config_skin.h"
 #include "config_pmenu.h"
 #include "config_favourite.h"
 #include "common.h"
+
+#include <SDL/SDL_image.h>
 
 int copy( char *src, char *dst );
 
@@ -180,18 +183,20 @@ int pnd_app_get_list( void )
 
                 if( d -> object_type == 2 )
                 {
-                    applications[tmpSection]->type[applications_count[tmpSection]] = 2;
+                    applications[tmpSection]->type[applications_count[tmpSection]] = IS_PND;
                     strcpy( applications[tmpSection]->fullpath[applications_count[tmpSection]], pnd_box_get_key ( d ) );
 
                 }
                 else
                 {
+                    applications[tmpSection]->type[applications_count[tmpSection]] = 0;
                     strcpy( applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> object_path );
                 }
 
                 debug_infof( "[%i] -> fullpath: %s", applications_count[tmpSection], \
                     applications[tmpSection]->fullpath[applications_count[tmpSection]] );
 
+/*
                 int cut_lenght = 0;
 
                 for ( i = strlen( applications[tmpSection]->fullpath[applications_count[tmpSection]] ) - 2; i > 0; i-- )
@@ -211,7 +216,7 @@ int pnd_app_get_list( void )
                 {
                         mkdir ( applications[tmpSection]->cache_path[applications_count[tmpSection]], 0755 );
                 }
-
+*/
                 /* Crappy routine to detect a device (SD card) */
                 int new_device = 1;
                 for( i = 0; i < cfg_fav_count; i++ )
@@ -253,6 +258,7 @@ int pnd_app_get_list( void )
 
             if ( d -> preview_pic1 )
             {
+                /*
                 if( d -> object_type == 2 )
                 {
                     sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s/%s.%s", applications[tmpSection]->cache_path[applications_count[tmpSection]], applications[tmpSection]->id[applications_count[tmpSection]], d -> preview_pic1 );
@@ -260,12 +266,13 @@ int pnd_app_get_list( void )
                         applications[tmpSection]->preview_pic1[applications_count[tmpSection]]);
                 }
                 else
+                */
+                if( d -> object_type != 2 )
                 {
                     sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> preview_pic1 );
                     debug_infof( "[%i] -> Preview Pic : %s", applications_count[tmpSection], \
                         applications[tmpSection]->preview_pic1[applications_count[tmpSection]]);
                 }
-
                 strcpy ( applications[tmpSection]->preview_pic1_name[applications_count[tmpSection]], d -> preview_pic1 );
             }
             else
@@ -277,39 +284,38 @@ int pnd_app_get_list( void )
             {
                 if( d -> object_type == 2 )
                 {
-                    char icon_cache [ 512 ];
-                    sprintf( icon_cache, "%s/%s.png", applications[tmpSection]->cache_path[applications_count[tmpSection]], d -> unique_id );
+                    SDL_RWops *tmpmem;
+                    SDL_Surface *tmp;
+                    unsigned char *buffer;
+                    unsigned int *len = malloc(128);
+                    buffer = pnd_emit_icon_to_buffer( d, len );
+                    if ( buffer != NULL )
+                    {
+                        tmpmem = SDL_RWFromMem( buffer, (int)len );
+                        tmp = IMG_LoadPNG_RW( tmpmem );
 
-                    if ( access ( icon_cache, R_OK ) != 0 )
-                    {
-                        if ( pnd_emit_icon ( applications[tmpSection]->cache_path[applications_count[tmpSection]], d ) )
-                        {
-                             if ( access ( icon_cache, R_OK ) == 0 )
-                                strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], icon_cache );
-                            else
-                                debug_infof( "Could not acces icon_cache (%s)", icon_cache );
-                        }
-                        else
-                        {
-                            strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], "no icon" );
-                            debug_infof( "Could not emit icon to %s", icon_cache );
-                        }
+                        applications[tmpSection]->icon[applications_count[tmpSection]] = GLES2D_CreateTextureFromSurface( tmp, 0 );
+
+                        SDL_FreeSurface( tmp );
+                        free( buffer );
                     }
-                    else
-                    {
-                        debug_infof( "[%i] -> icon: Already extracted", applications_count[tmpSection] );
-                        strcpy(applications[tmpSection]->icon[applications_count[tmpSection]], icon_cache );
-                    }
+                    free( len );
                 }
                 else
                 {
-                    sprintf(applications[tmpSection]->icon[applications_count[tmpSection]], \
-                        "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> icon);
-                }
+                    char tmpPath[1024];
 
-                debug_infof( "[%i] -> icon: %s", applications_count[tmpSection], \
-                    applications[tmpSection]->icon[applications_count[tmpSection]] );
+                    sprintf( tmpPath, "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> icon );
+                    applications[tmpSection]->icon[applications_count[tmpSection]] = GLES2D_CreateTexture( tmpPath, 0  );
+                }
             }
+
+            if ( d -> option_no_x11 )
+                applications[tmpSection]->noX[applications_count[tmpSection]] = atoi( d -> option_no_x11 );
+            else
+                applications[tmpSection]->noX[applications_count[tmpSection]] = 0;
+
+            debug_infof( "[%i] -> noX: %i", applications_count[tmpSection], applications[tmpSection]->noX[applications_count[tmpSection]] );
 
             applications_count[tmpSection]++;
 

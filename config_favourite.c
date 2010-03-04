@@ -109,13 +109,13 @@ int _cfg_fav_read( char *fav_path )
 				{
                     strcpy( applications[FAVORITES]->cache_path[applications_count[FAVORITES]], config_setting_get_string(tmp));
 				}
-
+/*
 				tmp = config_setting_get_member(search, "icon");
                 if(tmp)
 				{
                     strcpy( applications[FAVORITES]->icon[applications_count[FAVORITES]], config_setting_get_string(tmp));
 				}
-
+*/
 				tmp = config_setting_get_member(search, "description");
                 if(tmp)
 				{
@@ -126,12 +126,6 @@ int _cfg_fav_read( char *fav_path )
                 if(tmp)
 				{
                     strcpy( applications[FAVORITES]->preview_pic1[applications_count[FAVORITES]], config_setting_get_string(tmp));
-				}
-
-				tmp = config_setting_get_member(search, "preview_pic2");
-                if(tmp)
-				{
-                    strcpy( applications[FAVORITES]->preview_pic2[applications_count[FAVORITES]], config_setting_get_string(tmp));
 				}
 
                 applications[FAVORITES]->scale[applications_count[FAVORITES]] = 32;
@@ -208,11 +202,11 @@ int cfg_fav_del( int fav )
     config_write_file( &cfg, fav_path );
     config_destroy( &cfg );
 
-    if ( icon[FAVORITES][fav] != NULL )
+    if ( applications[FAVORITES]->icon[fav] != NULL )
     {
         debug_infof( "Removing icon%i from memory\n", fav );
-        GLES2D_FreeTexture ( icon[FAVORITES][fav] );
-        icon[FAVORITES][fav] = NULL;
+        GLES2D_FreeTexture ( applications[FAVORITES]->icon[fav] );
+        applications[FAVORITES]->icon[fav] = NULL;
     }
 
     if ( applications[FAVORITES]->name_cached[fav] != NULL )
@@ -354,13 +348,12 @@ int cfg_fav_add( char *name, char *id, char *category, char *cache_path, char *f
                 strcpy( applications[FAVORITES]->category[applications_count[FAVORITES]], category );
 				strcpy( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], fullpath );
 				strcpy( applications[FAVORITES]->exec_name[applications_count[FAVORITES]], exec_name );
-				strcpy( applications[FAVORITES]->icon[applications_count[FAVORITES]], _icon );
+				//strcpy( applications[FAVORITES]->icon[applications_count[FAVORITES]], _icon );
 				strcpy( applications[FAVORITES]->description[applications_count[FAVORITES]], description );
                 strcpy( applications[FAVORITES]->preview_pic1[applications_count[FAVORITES]], preview_pic1 );
-				strcpy( applications[FAVORITES]->preview_pic2[applications_count[FAVORITES]], preview_pic2 );
 
-                icon[FAVORITES][applications_count[FAVORITES]] = NULL;
-                icon[FAVORITES][applications_count[FAVORITES]] = GLES2D_CreateTexture( applications[FAVORITES]->icon[applications_count[FAVORITES]], 0  );
+                applications[FAVORITES]->icon[applications_count[FAVORITES]] = NULL;
+//                applications[FAVORITES]->icon[applications_count[FAVORITES]] = GLES2D_CreateTexture( applications[FAVORITES]->icon[applications_count[FAVORITES]], 0  );
 
                 applications[FAVORITES]->scale[applications_count[FAVORITES]] = gui->icon_scale_min;
 

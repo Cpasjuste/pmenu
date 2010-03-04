@@ -63,6 +63,7 @@
 					<Add option="-lX11" />
 					<Add option="-lGLES_CM" />
 					<Add option="-lGLES2D" />
+					<Add option="-lts" />
 					<Add option="-lSDL" />
 					<Add option="-lSDL_image" />
 					<Add option="-lSDL_ttf" />

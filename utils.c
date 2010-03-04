@@ -179,8 +179,9 @@ int is_img( char *filename )
 //    debug_infof( "%s", filename );
     const char *png = mystristr( filename, ".png" );
     const char *bmp = mystristr( filename, ".bmp" );
+    const char *jpg = mystristr( filename, ".jpg" );
 
-    if ( png || bmp )
+    if ( png || bmp || jpg )
     {
 //        debug_end();
         return 1;

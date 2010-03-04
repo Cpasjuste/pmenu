@@ -42,13 +42,14 @@ typedef struct
 	char cache_path[256][256];
 	char fullpath[256][256];
 	char exec_name[256][256];
-	char icon[256][256];
 	char description[256][256];
 	char preview_pic1[256][256];
 	char preview_pic1_name[256][256];
-	char preview_pic2[256][256];
+	int noX[256];
 	int scale[256];
 	int type[256];
+
+	GLES2D_Texture *icon[256];
 	GLES2D_FontCache *name_cached[256];
 	GLES2D_FontCache *description_cached[256];
 

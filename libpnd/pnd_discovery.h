@@ -49,12 +49,14 @@ typedef struct {
   char *object_path;           // directory containing pnd or PXML.xml (does not include filename)
   char *object_filename;       // filename within object_path of the app: the PXML.xml or awesomeapp.pnd file itself
   unsigned int pnd_icon_pos;   // offset to the byte after end of PXML in a pnd file (should be icon if present)
+  unsigned char subapp_number; // # of app within PXML (ie: 0, 1, 2, 3, up to the number of apps within the PXML)
   // strdup'd from PXML -- hey, who was the idiot who thought it was a reat idea not to just re-use the pxml-struct?
   char *title_en;
   char *desc_en;
   char *unique_id;
   char *icon;
   char *exec;
+  char *execargs;
   char *clockspeed;
   char *startdir;
   char *option_no_x11;
@@ -66,19 +68,10 @@ typedef struct {
   char *alt_category2;
   char *preview_pic1;
   char *preview_pic2;
+  char *mkdir_sp;
 } pnd_disco_t;
 
 void pnd_disco_destroy ( pnd_disco_t *p ); // a function name that simply could not be avoided
-
-// emit_dotdesktop() will determine a filename and create a FILENAME.desktop file in the targetpath
-// TODO: Copy the icon into this directory as well, if its source is a .pnd or info is in the dico struct
-#define PND_DOTDESKTOP_HEADER "[Desktop Entry]"
-#define PND_DOTDESKTOP_SOURCE "_Source=libpnd"
-unsigned char pnd_emit_dotdesktop ( char *targetpath, char *pndrun, pnd_disco_t *p );
-
-// emit_icon() will attempt to copy the icon from a PXML directory, or from a pnd file if appended,
-// to the given directory; returns 1 on sucess, otherwise is a fail.
-unsigned char pnd_emit_icon ( char *targetpath, pnd_disco_t *p );
 
 // TODO: A way to release the disco-lists and reclaim RAM :)
 

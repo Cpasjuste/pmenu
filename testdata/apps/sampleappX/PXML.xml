@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PXML xmlns="http://openpandora.org/namespaces/PXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PXML_schema.xsd">
+
+  <application id="jeff.sample.X">
+    <title lang="en_US">Sample App X - Fullscreen</title>
+    <exec background="true" startdir="/usr/share/icons/" standalone="true" command="program.exe"/>
+    <description lang="en_US">This is the English Description of the file.</description>
+    <icon src="zeldaicon.png"/>
+  </application>
+
+  <application id="jeff.sample.X">
+    <title lang="en_US">Sample App X - Windowed</title>
+    <exec background="true" startdir="/usr/share/icons/" standalone="true" command="program.exe"/>
+    <description lang="en_US">This is the English Description of the file.</description>
+    <icon src="zeldaicon.png"/>
+  </application>
+
+  <application id="jeff.sample.X2">
+    <title lang="en_US">Sample App X - Other ID</title>
+    <exec background="true" startdir="/usr/share/icons/" standalone="true" command="program.exe"/>
+    <description lang="en_US">This is the English Description of the file.</description>
+    <icon src="zeldaicon.png"/>
+  </application>
+
+</PXML>

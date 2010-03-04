@@ -85,6 +85,11 @@ int get_media_list ( char *directory )
     return 1;
 }
 
+void menu_media_input()
+{
+
+}
+
 void menu_media_draw()
 {
         int y = gui->applications_box_y + 10;

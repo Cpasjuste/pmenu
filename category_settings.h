@@ -1,11 +1,12 @@
 #ifndef __CATEGORY_SETTINGS_H__
 #define __CATEGORY_SETTINGS_H__
 
-#define SETTINGS_COUNT 4
+#define SETTINGS_COUNT 5
 #define MENU_SKIN 0
 #define MENU_CPU 1
 #define MENU_BRIGHTNESS 2
-#define MENU_EXIT 3
+#define MENU_EFFECT 3
+#define MENU_EXIT 4
 
 void menu_settings_draw();
 int get_skins_list ();

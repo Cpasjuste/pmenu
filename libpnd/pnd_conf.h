@@ -68,6 +68,7 @@ typedef enum {
   pnd_conf_startup,        // provides list of startup applications, basic shell application, etc.
   pnd_conf_desktop,        // provides settings for the launchers
   pnd_conf_categories,     // provides mapping from PXML category to dot-desktop category
+  pnd_conf_evmap,          // provides mapping from event to sh-script
 } pnd_conf_filename_e;
 
 typedef struct {

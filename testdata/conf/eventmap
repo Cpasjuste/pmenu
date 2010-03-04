@@ -1,0 +1,23 @@
+
+# Open Pandora
+# Event-to-shscript map configuration
+
+[keys]
+a /usr/pandora/scripts/op_menu.sh
+
+[events]
+lid-toggle	/usr/pandora/scripts/op_lidtoggle.sh
+
+[pndevmapperd]
+# logging level 0 means to include debug; level 1 (regular), 2 (warnings), 3 (errors)
+loglevel	1
+minimum_separation	1	# 1 second minimum between a single event repeating
+
+[battery]
+# for LED-blinking when battery gets low
+threshold	   5		# in %age; at x%, we go into blink-mode as warning
+check_interval	   7		# in seconds to check threshold; should be a high 300s
+blink_interval	   2		# frequency of blink
+blink_duration	   50000	# how long a blink lasts, in uSecs
+shutdown_threshold 1		# battery %age we force a shutdown (to save the SD!)
+shutdown_script	   /usr/pandora/scripts/op_shutdown.sh

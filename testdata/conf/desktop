@@ -2,10 +2,15 @@
 # Open Pandora
 # Desktop configuration
 
-[dotfiles]
-#dotdesktoppath	./testdata/dotdesktop	# path for pndnotifyd to spit .desktop files into
-dotdesktoppath	~/.applications		# path for pndnotifyd to spit .desktop files into
-iconpath	./testdata/dotdesktop	# path for pndnotifyd to drop icons into (can be same as .desktop if WM permits)
+[desktop]
+searchpath	/mnt/sd?/pandora/desktop:./testdata/app?	# path to depth-search for PXMLs and pnd-files
+dotdesktoppath	./testdata/dotdesktop	# path for pndnotifyd to spit .desktop files into
+iconpath	./testdata/doticons	# path for pndnotifyd to drop icons into (can be same as dotdesktoppath if WM permits)
+
+[menu]
+searchpath	/mnt/sd?/pandora/menu:./testdata/menuapps	# path to depth-search for PXMLs and pnd-files
+dotdesktoppath	./testdata/menu		# path for pndnotifyd to spit .desktop files into
+iconpath	./testdata/menuicons	# path for pndnotifyd to drop icons into (can be same as dotdesktoppath if WM permits)
 
 [launcher]
 hupscript	pnd_hup.sh

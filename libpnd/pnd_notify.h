@@ -32,6 +32,14 @@ void pnd_notify_watch_path ( pnd_notify_handle h, char *fullpath, unsigned int f
  */
 unsigned char pnd_notify_rediscover_p ( pnd_notify_handle h );
 
+/* wait_until_ready() will loop (up to a max of secs_timeout) until inotify seems to
+ * be responding. Returns 0 if inotify is never ready during the interval, otherwise
+ * it suggests inotify is up and going.
+ * secs_timeout may be 0 which means 'forever'
+ * NOTE: This wastes some time, always
+ */
+unsigned char pnd_notify_wait_until_ready ( unsigned int secs_timeout );
+
 #ifdef __cplusplus
 } /* "C" */
 #endif
