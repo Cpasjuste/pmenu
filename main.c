@@ -1541,6 +1541,11 @@ void handle_dpad()
             {
                 do_quit = 1;
             }
+            else if ( setting_current == MENU_POWEROFF )
+            {
+		int ret;
+		ret = system( "poweroff" );
+		}
         }
         else if ( category == MEDIA )
         {

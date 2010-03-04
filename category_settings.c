@@ -96,7 +96,8 @@ char *setting_string[SETTINGS_COUNT] =
     "Cpu Speed:",
     "Brightness:",
     "Full Effect:",
-    "Exit"
+    "Exit",
+    "Power Off"
 };
 
 void menu_settings_draw()
@@ -110,6 +111,9 @@ void menu_settings_draw()
         GLES2D_DrawFont( fnt[SMALL], x, gui->applications_box_y + 5, "Press X to apply setting" );
 
         if ( ( i == setting_current && i == MENU_EXIT ) )
+            GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
+
+	if ( ( i == setting_current && i == MENU_POWEROFF ) )
             GLES2D_SetFontColor( fnt[SMALL], HEXTOR(gui->font_small_color_highlight), HEXTOG(gui->font_small_color_highlight), HEXTOB(gui->font_small_color_highlight), HEXTOA(gui->font_small_color_highlight) );
 
         GLES2D_DrawFont( fnt[SMALL], x, setting_y, setting_string[i] );
