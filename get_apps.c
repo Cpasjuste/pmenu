@@ -29,6 +29,38 @@
 
 int copy( char *src, char *dst );
 
+void pnd_app_clean_list()
+{
+    debug_start();
+
+    int i, j;
+
+	for( i = 0; i < CATEGORY_COUNT - 2; i++ )
+	{
+		for( j = 0; j < list_num[i]; j++ )
+		{
+			if ( applications[i]->icon[j] != NULL )
+            {
+                    GLES2D_FreeTexture( applications[i]->icon[j] );
+                    applications[i]->icon[j] = NULL;
+            }
+
+            if ( applications[i]->name_cached[j] != NULL )
+                GLES2D_FreeFontCache(  applications[i]->name_cached[j] );
+            applications[i]->name_cached[j] = NULL;
+
+            if ( applications[i]->description_cached[j] != NULL )
+                GLES2D_FreeFontCache(  applications[i]->description_cached[j] );
+            applications[i]->description_cached[j] = NULL;
+		}
+
+        if ( applications[i] != NULL )
+            free( applications[i] );
+	}
+
+	debug_end();
+}
+
 int pnd_app_get_list( void )
 {
     debug_start();
@@ -105,8 +137,12 @@ int pnd_app_get_list( void )
 
 	applist = pnd_disco_search ( appspath, overridespath );
 
-	for(i = 0; i < CATEGORY_COUNT - 3; i++)
+    // Free applications
+	for( i = 0; i < CATEGORY_COUNT - 2; i++ )
 	{
+	    if ( applications[i] != NULL )
+            free ( applications[i] );
+
 		applications[i] = (PND_APP *) malloc(sizeof(PND_APP));
 		applications_count[i] = 0;
 		list_num[i] = 0;
@@ -118,10 +154,11 @@ int pnd_app_get_list( void )
 		pnd_disco_t *d = pnd_box_get_head ( applist );
 
 		int tmpSection = 0;
-		cfg_fav_count = 0;
+		int is_favorite = 0;
 
 		while ( d )
 		{
+		    is_favorite = 0;
             tmpSection = 0;
 
  			if ( d -> main_category )
@@ -164,61 +201,60 @@ int pnd_app_get_list( void )
                     applications[tmpSection]->category[applications_count[tmpSection]] );
             }
 
+            if ( d -> unique_id )
+            {
+                strcpy( applications[tmpSection]->id[applications_count[tmpSection]], d -> unique_id );
+                debug_infof ( "[%i] -> Unique ID: %s", applications_count[tmpSection], \
+                    applications[tmpSection]->id[applications_count[tmpSection]] );
+
+                if ( cfg_fav_exist( d -> unique_id ) )
+                {
+                    // This unique id is saved as a favorite !
+                    is_favorite = 1;
+                    strcpy( applications[FAVORITES]->category[applications_count[FAVORITES]], "FAVORITES" );
+                    strcpy( applications[FAVORITES]->id[applications_count[FAVORITES]], d -> unique_id );
+                    debug_info ( "!! This application is a favorite one !!" )
+                }
+            }
+
             if ( d -> title_en )
             {
                 strncpy(applications[tmpSection]->name[applications_count[tmpSection]], d -> title_en, strlen(d -> title_en) );
                 debug_infof ( "[%i] -> Name: %s", applications_count[tmpSection], \
                     applications[tmpSection]->name[applications_count[tmpSection]]);
 
+                if ( is_favorite )
+                    strncpy(applications[FAVORITES]->name[applications_count[FAVORITES]], d -> title_en, strlen(d -> title_en) );
             }
-            if ( d -> unique_id )
-            {
-                strcpy(applications[tmpSection]->id[applications_count[tmpSection]], d -> unique_id);
-                debug_infof ( "[%i] -> Unique ID: %s", applications_count[tmpSection], \
-                    applications[tmpSection]->id[applications_count[tmpSection]] );
-            }
+
             if ( d -> object_path )
             {
-                int i;
-
-                if( d -> object_type == 2 )
+                if( d -> object_type == pnd_object_type_pnd )
                 {
                     applications[tmpSection]->type[applications_count[tmpSection]] = IS_PND;
                     strcpy( applications[tmpSection]->fullpath[applications_count[tmpSection]], pnd_box_get_key ( d ) );
+
+                    if ( is_favorite )
+                    {
+                        applications[FAVORITES]->type[applications_count[FAVORITES]] = IS_PND;
+                        strcpy( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], pnd_box_get_key ( d ) );
+                    }
 
                 }
                 else
                 {
                     applications[tmpSection]->type[applications_count[tmpSection]] = 0;
                     strcpy( applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> object_path );
+
+                    if ( is_favorite )
+                    {
+                        applications[FAVORITES]->type[applications_count[FAVORITES]] = 0;
+                        strcpy( applications[FAVORITES]->fullpath[applications_count[FAVORITES]], d -> object_path );
+                    }
                 }
 
                 debug_infof( "[%i] -> fullpath: %s", applications_count[tmpSection], \
                     applications[tmpSection]->fullpath[applications_count[tmpSection]] );
-
-                /* Crappy routine to detect a device (SD card) */
-                int new_device = 1;
-                for( i = 0; i < cfg_fav_count; i++ )
-                {
-                    if ( cfg_fav_count >= 9 )
-                    {
-                        new_device = 0;
-                        break;
-                    }
-
-                    if ( strstr ( cfg_fav_path[i], applications[tmpSection]->cache_path[applications_count[tmpSection]] ) != NULL )
-                    {
-                        new_device = 0;
-                        break;
-                    }
-                }
-                if ( new_device )
-                {
-                    strcpy( cfg_fav_path[cfg_fav_count], applications[tmpSection]->cache_path[applications_count[tmpSection]] );
-                    debug_infof( "[%i] -> New device detected : %s", applications_count[tmpSection], cfg_fav_path[cfg_fav_count] );
-                    cfg_fav_count++;
-                }
-                /* End Crappy routine */
             }
 
             if ( d -> exec )
@@ -226,6 +262,9 @@ int pnd_app_get_list( void )
                 strcpy(applications[tmpSection]->exec_name[applications_count[tmpSection]], d -> exec );
                 debug_infof( "[%i] -> Exec Name : %s", applications_count[tmpSection], \
                     applications[tmpSection]->exec_name[applications_count[tmpSection]]);
+
+                if ( is_favorite )
+                    strcpy(applications[FAVORITES]->exec_name[applications_count[FAVORITES]], d -> exec );
             }
 
             if ( d -> desc_en )
@@ -233,12 +272,18 @@ int pnd_app_get_list( void )
                 strcpy(applications[tmpSection]->description[applications_count[tmpSection]], d -> desc_en );
                 debug_infof( "[%i] -> Description : %s", applications_count[tmpSection], \
                     applications[tmpSection]->description[applications_count[tmpSection]]);
+
+                if ( is_favorite )
+                    strcpy(applications[FAVORITES]->description[applications_count[FAVORITES]], d -> desc_en );
             }
             else
             {
                 strcpy(applications[tmpSection]->description[applications_count[tmpSection]], "No Description available" );
                 debug_infof( "[%i] -> Description : %s", applications_count[tmpSection], \
                     applications[tmpSection]->description[applications_count[tmpSection]]);
+
+                if ( is_favorite )
+                    strcpy(applications[FAVORITES]->description[applications_count[FAVORITES]], "No Description available" );
             }
 
             if ( d -> clockspeed )
@@ -246,32 +291,47 @@ int pnd_app_get_list( void )
                 applications[tmpSection]->clock[applications_count[tmpSection]] = atoi( d -> clockspeed );
                 debug_infof( "[%i] -> Clock Speed : %i", applications_count[tmpSection], \
                     applications[tmpSection]->clock[applications_count[tmpSection]]);
+
+                if ( is_favorite )
+                    applications[FAVORITES]->clock[applications_count[FAVORITES]] = atoi( d -> clockspeed );
             }
             else
             {
                 applications[tmpSection]->clock[applications_count[tmpSection]] = 500;
                 debug_infof( "[%i] -> Clock Speed : %i", applications_count[tmpSection], \
                     applications[tmpSection]->clock[applications_count[tmpSection]]);
+
+                if ( is_favorite )
+                    applications[FAVORITES]->clock[applications_count[FAVORITES]] = 500;
             }
 
             if ( d -> preview_pic1 )
             {
-                if( d -> object_type != 2 )
+                if( d -> object_type == pnd_object_type_directory )
                 {
                     sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> preview_pic1 );
                     debug_infof( "[%i] -> Preview Pic : %s", applications_count[tmpSection], \
                         applications[tmpSection]->preview_pic1[applications_count[tmpSection]]);
+
+                    if ( is_favorite )
+                        sprintf( applications[FAVORITES]->preview_pic1[applications_count[FAVORITES]], "%s%s", applications[FAVORITES]->fullpath[applications_count[FAVORITES]], d -> preview_pic1 );
                 }
                 strcpy ( applications[tmpSection]->preview_pic1_name[applications_count[tmpSection]], d -> preview_pic1 );
+
+                if ( is_favorite )
+                    strcpy ( applications[FAVORITES]->preview_pic1_name[applications_count[FAVORITES]], d -> preview_pic1 );
             }
             else
             {
                 sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s/no_preview.bmp", pmenu->skin_dir );
+
+                if ( is_favorite )
+                    sprintf( applications[FAVORITES]->preview_pic1[applications_count[FAVORITES]], "%s/no_preview.bmp", pmenu->skin_dir );
             }
 
             if ( d -> icon )
             {
-                if( d -> object_type == 2 )
+                if( d -> object_type == pnd_object_type_pnd )
                 {
                     SDL_RWops *tmpmem;
                     SDL_Surface *tmp;
@@ -285,6 +345,9 @@ int pnd_app_get_list( void )
 
                         applications[tmpSection]->icon[applications_count[tmpSection]] = GLES2D_CreateTextureFromSurface( tmp, 0 );
 
+                        if ( is_favorite )
+                            applications[FAVORITES]->icon[applications_count[FAVORITES]] = GLES2D_CreateTextureFromSurface( tmp, 0 );
+
                         SDL_FreeSurface( tmp );
                         free( buffer );
                     }
@@ -296,33 +359,60 @@ int pnd_app_get_list( void )
 
                     sprintf( tmpPath, "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> icon );
                     applications[tmpSection]->icon[applications_count[tmpSection]] = GLES2D_CreateTexture( tmpPath, 0  );
+
+                    if ( is_favorite )
+                        applications[FAVORITES]->icon[applications_count[FAVORITES]] = GLES2D_CreateTexture( tmpPath, 0  );
                 }
             }
 
             if ( d -> option_no_x11 )
+            {
                 applications[tmpSection]->noX[applications_count[tmpSection]] = atoi( d -> option_no_x11 );
+
+                if ( is_favorite )
+                    applications[FAVORITES]->noX[applications_count[FAVORITES]] = atoi( d -> option_no_x11 );
+            }
             else
+            {
                 applications[tmpSection]->noX[applications_count[tmpSection]] = 0;
 
+                if ( is_favorite )
+                    applications[FAVORITES]->noX[applications_count[FAVORITES]] = 0;
+            }
             debug_infof( "[%i] -> noX: %i", applications_count[tmpSection], applications[tmpSection]->noX[applications_count[tmpSection]] );
 
             applications_count[tmpSection]++;
+
+             if ( is_favorite )
+                applications_count[FAVORITES]++;
 
             printf( "\n" );
 
 			d = pnd_box_get_next ( d );
 		}
 
-		for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+		for( i = 0; i < CATEGORY_COUNT - 2; i++ )
         {
+            int j;
+
             list_num[i] = applications_count[i];
             if ( list_start[i] >= list_num[i] ) { list_start[i] = list_num[i] - 1; }
             if ( list_start[i] < 0 ) { list_start[i]  = 0; }
             if ( list_curpos[i] >= list_num[i] ) { list_curpos[i] = list_num[i] - 1; }
 			if ( list_curpos[i] < 0 ) { list_curpos[i] = 0; }
 
-        }
+            for( j = 0; j < list_num[i]; j++ )
+            {
+                char tmp[512];
+                memset ( tmp, 0, 512 );
+                sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
+                applications[i]->name_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->name[j], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
 
+                memset ( tmp, 0, 512 );
+                sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
+                applications[i]->description_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->description[j], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
+            }
+        }
 	}
 	else
 	{

@@ -34,14 +34,14 @@
 	<File name="config_skin.h" open="0" top="0" tabpos="6">
 		<Cursor position="2981" topLine="85" />
 	</File>
-	<File name="get_apps.c" open="0" top="0" tabpos="1">
-		<Cursor position="8932" topLine="0" />
+	<File name="get_apps.c" open="1" top="0" tabpos="4">
+		<Cursor position="8838" topLine="215" />
 	</File>
-	<File name="get_apps.h" open="0" top="0" tabpos="3">
-		<Cursor position="929" topLine="8" />
+	<File name="get_apps.h" open="1" top="0" tabpos="2">
+		<Cursor position="937" topLine="12" />
 	</File>
 	<File name="main.c" open="1" top="1" tabpos="1">
-		<Cursor position="7020" topLine="267" />
+		<Cursor position="7250" topLine="273" />
 	</File>
 	<File name="main.h" open="0" top="0" tabpos="4">
 		<Cursor position="561" topLine="0" />

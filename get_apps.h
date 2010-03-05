@@ -12,8 +12,8 @@
 #define EMULATORS 0
 #define GAMES 1
 #define MISC 2
-#define MEDIA 3
-#define FAVORITES 4
+#define FAVORITES 3
+#define MEDIA 4
 #define SETTINGS 5
 
 #define IS_DIR 0
@@ -39,7 +39,6 @@ typedef struct
 	char name[256][256];
 	char id[256][256];
 	char category[256][256];
-	char cache_path[256][256];
 	char fullpath[256][256];
 	char exec_name[256][256];
 	char description[256][256];

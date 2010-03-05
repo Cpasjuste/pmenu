@@ -30,15 +30,11 @@ int scroll_wait = 0;
 
 int pnd_mounted = 0;
 
-void gui_clean_fav();
-void gui_load_fav();
-void gui_clean_icon();
+void pnd_app_clean_list();
 void gui_unload_preview();
 void gui_draw();
 void gui_clean_skin();
 int gui_load_skin();
-void gui_load_apps_font_cache();
-void gui_clean_apps_font_cache();
 
 void app_scale()
 {
@@ -68,29 +64,10 @@ void rediscover()
 {
     debug_start( );
 
-    int i;
-
-    gui_clean_icon();
-
-    gui_clean_apps_font_cache();
-
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-	{
-	    if ( applications[i] != NULL )
-            free( applications[i] );
-	}
-
+    pnd_app_clean_list();
 	pnd_app_get_list();
-
-    gui_load_apps_font_cache();
-
 	list_curpos[category] = 0;
-
 	gui_unload_preview();
-
-	gui_clean_fav();
-	cfg_fav_read();
-	gui_load_fav();
 
 	debug_end();
 }
@@ -179,28 +156,6 @@ void gui_change_skin()
     load_skin_preview();
 
     debug_end();
-}
-
-
-void gui_clean_icon()
-{
-    debug_start();
-
-    int i, j;
-
-	for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-	{
-		for( j = 0; j < list_num[i]; j++ )
-		{
-			if ( applications[i]->icon[j] != NULL )
-            {
-                    GLES2D_FreeTexture( applications[i]->icon[j] );
-                    applications[i]->icon[j] = NULL;
-            }
-		}
-//		list_num[i] = 0;
-	}
-	debug_end();
 }
 
 void gui_unload_preview()
@@ -296,14 +251,6 @@ void gui_load_preview( int cat, int n )
 
                     debug_infof( "Creating preview texture from %s\n", src );
 
-                    // Temp fix until libpnd get fixed
-                    SDL_Delay( 500 );
-
-                    if ( access ( src, R_OK ) == 0 )
-                        printf( "\t%s : exist", src );
-                    else
-                        printf( "\t%s : dont exist", src );
-
                     if ( ( tmp_preview = GLES2D_CreateTexture( src, 0 ) ) == NULL )
                     {
                         debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
@@ -327,92 +274,6 @@ void gui_load_preview( int cat, int n )
 	    }
 	}
 	debug_end();
-}
-
-void gui_load_fav()
-{
-    int i;
-    char tmp[512];
-
-    for(i = 0; i < list_num[FAVORITES]; i++)
-    {
-//        icon[FAVORITES][i] = NULL;
-//        icon[FAVORITES][i] = GLES2D_CreateTexture( applications[FAVORITES]->icon[i], 0  );
-
-        memset ( tmp, 0, 512 );
-        sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
-        applications[FAVORITES]->name_cached[i] = GLES2D_CreateFontCache( tmp, applications[FAVORITES]->name[i], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
-
-        memset ( tmp, 0, 512 );
-        sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
-        applications[FAVORITES]->description_cached[i] = GLES2D_CreateFontCache( tmp, applications[FAVORITES]->description[i], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
-    }
-}
-
-void gui_clean_fav()
-{
-	int i;
-
-    for(i = 0; i < list_num[FAVORITES]; i++)
-    {
-        /*
-        if ( icon[FAVORITES][i] != NULL )
-        {
-                GLES2D_FreeTexture( icon[FAVORITES][i] );
-                icon[FAVORITES][i] = NULL;
-        }
-        */
-        if ( applications[FAVORITES]->name_cached[i] != NULL )
-        {
-            GLES2D_FreeFontCache( applications[FAVORITES]->name_cached[i] );
-            applications[FAVORITES]->name_cached[i] = NULL;
-        }
-        if ( applications[FAVORITES]->description_cached[i] != NULL )
-        {
-            GLES2D_FreeFontCache( applications[FAVORITES]->description_cached[i] );
-            applications[FAVORITES]->description_cached[i] = NULL;
-        }
-	}
-}
-
-
-void gui_load_apps_font_cache()
-{
-    int i, j;
-
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-    {
-        for( j = 0; j < list_num[i]; j++ )
-        {
-            char tmp[512];
-            memset ( tmp, 0, 512 );
-            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_big );
-            applications[i]->name_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->name[j], gui->font_big_style, gui->font_big_size, gui->applications_box_w - gui->icon_scale_max - 20 );
-
-            memset ( tmp, 0, 512 );
-            sprintf( tmp, "%s/%s", pmenu->skin_dir, gui->font_small );
-            applications[i]->description_cached[j] = GLES2D_CreateFontCache( tmp, applications[i]->description[j], gui->font_small_style, gui->font_small_size, gui->applications_box_w - gui->icon_scale_max - 20 );
-        }
-    }
-
-}
-
-void gui_clean_apps_font_cache()
-{
-  	int i, j;
-    for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-    {
-        for( j = 0; j < list_num[i]; j++ )
-        {
-            if ( applications[i]->name_cached[j] != NULL )
-                GLES2D_FreeFontCache(  applications[i]->name_cached[j] );
-            applications[i]->name_cached[j] = NULL;
-
-            if ( applications[i]->description_cached[j] != NULL )
-                GLES2D_FreeFontCache(  applications[i]->description_cached[j] );
-            applications[i]->description_cached[j] = NULL;
-        }
-    }
 }
 
 void gui_clean_skin()
@@ -516,8 +377,6 @@ void gui_clean_skin()
             fnt[i] = NULL;
         }
 	}
-
-    gui_clean_apps_font_cache();
 
     debug_end();
 }
@@ -837,8 +696,6 @@ int gui_load_skin()
 	    gui->title_cache[i] = GLES2D_CreateFontCache( tmp, gui->title[i], gui->font_small_style, gui->font_small_size, 800 );
 	}
 
-    gui_load_apps_font_cache();
-
 	debug_end();
 	return 1;
 }
@@ -848,10 +705,8 @@ void gui_load()
     debug_start();
 
     pnd_app_get_list();
-    cfg_fav_read();
     cfg_gui_read();
     gui_load_skin();
-    gui_load_fav();
 
     if ( ! ( nh = pnd_notify_init() ) )
     {
@@ -874,8 +729,7 @@ void gui_clean()
     video_quit();
 
     gui_clean_skin();
-    gui_clean_icon();
-    gui_clean_fav();
+    pnd_app_clean_list();
 
     if( tmp_preview != NULL )
 	{
@@ -903,13 +757,6 @@ void gui_app_exec( int n )
             applications[category]->id[n], applications[category]->exec_name[n], \
                 applications[category]->fullpath[n], NULL, applications[category]->clock[n], PND_EXEC_OPTION_NOX11 );
 
-        int i;
-        for( i = 0; i < CATEGORY_COUNT - 3; i++ )
-        {
-            if ( applications[i] != NULL )
-                free( applications[i] );
-        }
-
         exit( 0 );
     }
     else
@@ -921,7 +768,7 @@ void gui_app_exec( int n )
                 applications[category]->fullpath[n], NULL, applications[category]->clock[n], PND_EXEC_OPTION_BLOCK );
 
         int i;
-        for( i = 0; i < CATEGORY_COUNT - 3; i++ )
+        for( i = 0; i < CATEGORY_COUNT - 2; i++ )
         {
             if ( applications[i] != NULL )
                 free( applications[i] );
@@ -1121,10 +968,10 @@ void gui_draw()
     GLES2D_DrawTextureSimple( clock_icon, gui->clock_icon_x, gui->clock_icon_y );
 
     GLES2D_DrawTextureSimple( sd1_icon, gui->sd1_icon_x, gui->sd1_icon_y );
-    GLES2D_DrawFont( fnt[SD1], gui->sd1_text_x, gui->sd1_text_y, disk_space( cfg_fav_path[0] ) );
+//    GLES2D_DrawFont( fnt[SD1], gui->sd1_text_x, gui->sd1_text_y, disk_space( cfg_fav_path[0] ) );
 
     GLES2D_DrawTextureSimple( sd2_icon, gui->sd2_icon_x, gui->sd2_icon_y );
-    GLES2D_DrawFont( fnt[SD2], gui->sd2_text_x, gui->sd2_text_y, disk_space( cfg_fav_path[1] ) );
+//    GLES2D_DrawFont( fnt[SD2], gui->sd2_text_x, gui->sd2_text_y, disk_space( cfg_fav_path[1] ) );
 
 }
 
@@ -1531,7 +1378,7 @@ void handle_dpad()
                     sprintf(tmpStr, "Do you want to remove %s from your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
 
                     if( gui_confirm_box( tmpStr ) )
-                        cfg_fav_del( list_curpos[ category ] );
+                        cfg_fav_del( applications[category]->id[list_curpos[ category ]] );
                 }
         }
         else if ( category == SETTINGS  )
@@ -1594,16 +1441,7 @@ void handle_dpad()
 
                     if (  gui_confirm_box( tmpString ) )
                     {
-                        cfg_fav_add( applications[category]->name[list_curpos[ category ]], \
-                            applications[category]->id[list_curpos[ category ]], \
-                            applications[category]->category[list_curpos[ category ]], \
-                            applications[category]->cache_path[list_curpos[ category ]], \
-                            applications[category]->fullpath[list_curpos[ category ]], \
-                            applications[category]->exec_name[list_curpos[ category ]], \
-                            "null", \
-                            applications[category]->description[list_curpos[ category ]], \
-                            applications[category]->preview_pic1[list_curpos[ category ]], \
-                            "null" );
+                        cfg_fav_add( applications[category]->id[list_curpos[ category ]] );
                     }
                 }
                 else
