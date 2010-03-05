@@ -18,9 +18,11 @@ extern void gui_draw();
 
 void video_quit( )
 {
-    system( "echo quit > /tmp/mplayer-input" );
-
-    system( "rm /tmp/mplayer-input" );
+    if ( access ( "/tmp/mplayer-input", R_OK ) == 0 )
+	{
+        system( "echo quit > /tmp/mplayer-input" );
+        system( "rm /tmp/mplayer-input" );
+	}
 
     video_playing = 0;
 }
