@@ -1487,7 +1487,7 @@ int main( )
     nh_countdown = 60;
     debug_func = 0;
 
-    strcpy( now_path, getenv("HOME") );
+    strcpy( now_path, "/media" );
 
 	while( ! gui_done )
 	{
