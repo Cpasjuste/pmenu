@@ -50,7 +50,6 @@
 					<Add option="-Wall" />
 					<Add option="-O3 -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ftree-vectorize -ffast-math -fomit-frame-pointer -fno-strict-aliasing -fsingle-precision-constant" />
 					<Add directory="/usr/local/pandora/arm-2007q3/usr/include" />
-					<Add directory="libconfig" />
 					<Add directory="libpnd" />
 				</Compiler>
 				<Linker>
@@ -63,17 +62,13 @@
 					<Add option="-lX11" />
 					<Add option="-lGLES_CM" />
 					<Add option="-lGLES2D" />
-					<Add option="-lts" />
+					<Add option="-lts-1.0" />
 					<Add option="-lSDL" />
 					<Add option="-lSDL_image" />
 					<Add option="-lSDL_ttf" />
-					<Add option="-lpng" />
-					<Add option="-ltiff" />
-					<Add option="-ljpeg" />
 					<Add option="-lfreetype" />
 					<Add option="-lpnd" />
 					<Add option="-lconfig" />
-					<Add option="-lz" />
 					<Add directory="/usr/local/pandora/arm-2007q3/usr/lib" />
 				</Linker>
 			</Target>

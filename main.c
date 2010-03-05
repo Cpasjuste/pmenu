@@ -295,6 +295,15 @@ void gui_load_preview( int cat, int n )
                     debug_info( "Done : pnd_pnd_mount()\n" );
 
                     debug_infof( "Creating preview texture from %s\n", src );
+
+                    // Temp fix until libpnd get fixed
+                    SDL_Delay( 500 );
+
+                    if ( access ( src, R_OK ) == 0 )
+                        printf( "\t%s : exist", src );
+                    else
+                        printf( "\t%s : dont exist", src );
+
                     if ( ( tmp_preview = GLES2D_CreateTexture( src, 0 ) ) == NULL )
                     {
                         debug_errorf( "GLES2D_CreateTexture(%s);", applications[cat]->preview_pic1[n] );
@@ -888,10 +897,11 @@ void gui_app_exec( int n )
 
     if ( applications[category]->noX[n] )
     {
+        printf( "Application ask noX\n" );
 
         pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
             applications[category]->id[n], applications[category]->exec_name[n], \
-                applications[category]->fullpath[n], NULL, 600, applications[category]->noX[n] );
+                applications[category]->fullpath[n], NULL, applications[category]->clock[n], PND_EXEC_OPTION_NOX11 );
 
         int i;
         for( i = 0; i < CATEGORY_COUNT - 3; i++ )
@@ -904,9 +914,11 @@ void gui_app_exec( int n )
     }
     else
     {
+        printf( "Application do not ask X shutdown\n" );
+
         pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
             applications[category]->id[n], applications[category]->exec_name[n], \
-                applications[category]->fullpath[n], NULL, 600, PND_EXEC_OPTION_BLOCK );
+                applications[category]->fullpath[n], NULL, applications[category]->clock[n], PND_EXEC_OPTION_BLOCK );
 
         int i;
         for( i = 0; i < CATEGORY_COUNT - 3; i++ )

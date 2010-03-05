@@ -45,6 +45,7 @@ typedef struct
 	char description[256][256];
 	char preview_pic1[256][256];
 	char preview_pic1_name[256][256];
+	int clock[256];
 	int noX[256];
 	int scale[256];
 	int type[256];

@@ -196,27 +196,6 @@ int pnd_app_get_list( void )
                 debug_infof( "[%i] -> fullpath: %s", applications_count[tmpSection], \
                     applications[tmpSection]->fullpath[applications_count[tmpSection]] );
 
-/*
-                int cut_lenght = 0;
-
-                for ( i = strlen( applications[tmpSection]->fullpath[applications_count[tmpSection]] ) - 2; i > 0; i-- )
-                {
-                    if ( applications[tmpSection]->fullpath[applications_count[tmpSection]][i] == '/' )
-                        break;
-
-                    cut_lenght++;
-                }
-
-                strncpy( applications[tmpSection]->cache_path[applications_count[tmpSection]], d -> object_path, strlen( applications[tmpSection]->fullpath[applications_count[tmpSection]] ) - cut_lenght - 6 );
-                strcat ( applications[tmpSection]->cache_path[applications_count[tmpSection]], "pmenu" );
-
-                debug_infof( "[%i] -> cache: %s", applications_count[tmpSection], applications[tmpSection]->cache_path[applications_count[tmpSection]] );
-
-                if ( access ( applications[tmpSection]->cache_path[applications_count[tmpSection]], R_OK ) != 0 )
-                {
-                        mkdir ( applications[tmpSection]->cache_path[applications_count[tmpSection]], 0755 );
-                }
-*/
                 /* Crappy routine to detect a device (SD card) */
                 int new_device = 1;
                 for( i = 0; i < cfg_fav_count; i++ )
@@ -255,18 +234,28 @@ int pnd_app_get_list( void )
                 debug_infof( "[%i] -> Description : %s", applications_count[tmpSection], \
                     applications[tmpSection]->description[applications_count[tmpSection]]);
             }
+            else
+            {
+                strcpy(applications[tmpSection]->description[applications_count[tmpSection]], "No Description available" );
+                debug_infof( "[%i] -> Description : %s", applications_count[tmpSection], \
+                    applications[tmpSection]->description[applications_count[tmpSection]]);
+            }
+
+            if ( d -> clockspeed )
+            {
+                applications[tmpSection]->clock[applications_count[tmpSection]] = atoi( d -> clockspeed );
+                debug_infof( "[%i] -> Clock Speed : %i", applications_count[tmpSection], \
+                    applications[tmpSection]->clock[applications_count[tmpSection]]);
+            }
+            else
+            {
+                applications[tmpSection]->clock[applications_count[tmpSection]] = 500;
+                debug_infof( "[%i] -> Clock Speed : %i", applications_count[tmpSection], \
+                    applications[tmpSection]->clock[applications_count[tmpSection]]);
+            }
 
             if ( d -> preview_pic1 )
             {
-                /*
-                if( d -> object_type == 2 )
-                {
-                    sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s/%s.%s", applications[tmpSection]->cache_path[applications_count[tmpSection]], applications[tmpSection]->id[applications_count[tmpSection]], d -> preview_pic1 );
-                    debug_infof( "[%i] -> Preview Pic : %s", applications_count[tmpSection], \
-                        applications[tmpSection]->preview_pic1[applications_count[tmpSection]]);
-                }
-                else
-                */
                 if( d -> object_type != 2 )
                 {
                     sprintf( applications[tmpSection]->preview_pic1[applications_count[tmpSection]], "%s%s", applications[tmpSection]->fullpath[applications_count[tmpSection]], d -> preview_pic1 );
