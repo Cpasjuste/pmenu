@@ -729,13 +729,8 @@ void gui_clean()
     video_quit();
 
     gui_clean_skin();
+    gui_unload_preview();
     pnd_app_clean_list();
-
-    if( tmp_preview != NULL )
-	{
-	    GLES2D_FreeTexture(tmp_preview);
-	    tmp_preview = NULL;
-	}
 
     pnd_notify_shutdown ( nh );
     doneStatusCalls();
@@ -747,15 +742,25 @@ void gui_clean()
 
 void gui_app_exec( int n )
 {
+    char fullpath[512];
+    strcpy( fullpath, applications[category]->fullpath[n] );
+
+    char id[512];
+    strcpy( id, applications[category]->id[n] );
+
+    char exec_name[512];
+    strcpy( exec_name, applications[category]->exec_name[n] );
+
+    int clock = applications[category]->clock[n];
+    int nox = applications[category]->noX[n];
+
 	gui_clean();
 
-    if ( applications[category]->noX[n] )
+    if ( nox )
     {
         printf( "Application ask noX\n" );
 
-        pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
-            applications[category]->id[n], applications[category]->exec_name[n], \
-                applications[category]->fullpath[n], NULL, applications[category]->clock[n], PND_EXEC_OPTION_NOX11 );
+        pnd_apps_exec ( pndrun, fullpath, id, exec_name, fullpath, NULL, clock, PND_EXEC_OPTION_NOX11 );
 
         exit( 0 );
     }
@@ -763,20 +768,11 @@ void gui_app_exec( int n )
     {
         printf( "Application do not ask X shutdown\n" );
 
-        pnd_apps_exec ( pndrun, applications[category]->fullpath[n], \
-            applications[category]->id[n], applications[category]->exec_name[n], \
-                applications[category]->fullpath[n], NULL, applications[category]->clock[n], PND_EXEC_OPTION_BLOCK );
-
-        int i;
-        for( i = 0; i < CATEGORY_COUNT - 2; i++ )
-        {
-            if ( applications[i] != NULL )
-                free( applications[i] );
-        }
+        pnd_apps_exec ( pndrun, fullpath, id, exec_name, fullpath, NULL, clock, PND_EXEC_OPTION_BLOCK );
 
         gui_init();
         gui_load();
-        gui_load_preview( category, n );
+        //gui_load_preview( category, n );
     }
 }
 

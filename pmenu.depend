@@ -300,7 +300,7 @@
 1258620753 /home/cpasjuste/dev/pandora/pmenu/fav_config.h
 	"libconfig.h"
 
-1267801270 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
+1267802500 source:/home/cpasjuste/dev/pandora/pmenu/get_apps.c
 	<string.h>
 	<ctype.h>
 	<unistd.h>
@@ -425,7 +425,7 @@
 1234445172 /home/cpasjuste/dev/pandora/pmenu/include/libconfig.h
 	<stdio.h>
 
-1267801210 source:/home/cpasjuste/dev/pandora/pmenu/main.c
+1267802341 source:/home/cpasjuste/dev/pandora/pmenu/main.c
 	<string.h>
 	<unistd.h>
 	<stdlib.h>

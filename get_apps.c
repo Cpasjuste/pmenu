@@ -140,8 +140,8 @@ int pnd_app_get_list( void )
     // Free applications
 	for( i = 0; i < CATEGORY_COUNT - 2; i++ )
 	{
-	    if ( applications[i] != NULL )
-            free ( applications[i] );
+	    //if ( applications[i] != NULL )
+        //    free ( applications[i] );
 
 		applications[i] = (PND_APP *) malloc(sizeof(PND_APP));
 		applications_count[i] = 0;
