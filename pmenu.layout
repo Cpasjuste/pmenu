@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
-	<File name="category_media.c" open="0" top="0" tabpos="2">
-		<Cursor position="1718" topLine="4" />
+	<File name="category_media.c" open="1" top="0" tabpos="8">
+		<Cursor position="1718" topLine="78" />
 	</File>
-	<File name="category_media.h" open="0" top="0" tabpos="8">
+	<File name="category_media.h" open="1" top="0" tabpos="9">
 		<Cursor position="77" topLine="0" />
 	</File>
 	<File name="category_settings.c" open="0" top="0" tabpos="7">
@@ -16,14 +16,14 @@
 	<File name="common.h" open="0" top="0" tabpos="7">
 		<Cursor position="454" topLine="2" />
 	</File>
-	<File name="config_favourite.c" open="0" top="0" tabpos="5">
-		<Cursor position="11839" topLine="329" />
+	<File name="config_favourite.c" open="1" top="0" tabpos="5">
+		<Cursor position="5190" topLine="20" />
 	</File>
-	<File name="config_favourite.h" open="0" top="0" tabpos="10">
-		<Cursor position="63" topLine="0" />
+	<File name="config_favourite.h" open="1" top="0" tabpos="6">
+		<Cursor position="220" topLine="0" />
 	</File>
-	<File name="config_pmenu.c" open="0" top="0" tabpos="10">
-		<Cursor position="3735" topLine="165" />
+	<File name="config_pmenu.c" open="1" top="0" tabpos="7">
+		<Cursor position="3731" topLine="161" />
 	</File>
 	<File name="config_pmenu.h" open="0" top="0" tabpos="9">
 		<Cursor position="430" topLine="0" />
@@ -34,14 +34,14 @@
 	<File name="config_skin.h" open="0" top="0" tabpos="6">
 		<Cursor position="2981" topLine="85" />
 	</File>
-	<File name="get_apps.c" open="1" top="0" tabpos="4">
-		<Cursor position="8838" topLine="215" />
+	<File name="get_apps.c" open="1" top="0" tabpos="3">
+		<Cursor position="606" topLine="26" />
 	</File>
-	<File name="get_apps.h" open="1" top="0" tabpos="2">
-		<Cursor position="937" topLine="12" />
+	<File name="get_apps.h" open="1" top="0" tabpos="4">
+		<Cursor position="277" topLine="15" />
 	</File>
 	<File name="main.c" open="1" top="1" tabpos="1">
-		<Cursor position="7250" topLine="273" />
+		<Cursor position="43377" topLine="1486" />
 	</File>
 	<File name="main.h" open="0" top="0" tabpos="4">
 		<Cursor position="561" topLine="0" />
@@ -58,8 +58,8 @@
 	<File name="utils_cpu.h" open="0" top="0" tabpos="0">
 		<Cursor position="1088" topLine="0" />
 	</File>
-	<File name="utils_mplayer.c" open="0" top="0" tabpos="4">
-		<Cursor position="796" topLine="48" />
+	<File name="utils_mplayer.c" open="1" top="0" tabpos="2">
+		<Cursor position="1931" topLine="74" />
 	</File>
 	<File name="utils_mplayer.h" open="0" top="0" tabpos="4">
 		<Cursor position="279" topLine="0" />

@@ -58,12 +58,14 @@ extern "C" {
 #define PND_EXEC_OPTION_BLOCK      1 /* wait till children complete; note, children might fork on their own.. */
 #define PND_EXEC_OPTION_NOUNION    2 /* request pnd_run not use a union, just do the mount/run */
 #define PND_EXEC_OPTION_NOX11      4 /* request pnd_run to kill x11 and restart it after */
-#define PND_EXEC_OPTION_FUTURE2    8
+#define PND_EXEC_OPTION_NORUN      8 /* don't try to run; just form the pnd_run.sh line and cache it */
+#define PND_EXEC_OPTION_FUTURE2   16
 
 unsigned char pnd_apps_exec ( char *pndrun, char *fullpath, char *unique_id,
 			      char *rel_exec, char *rel_startdir,
 			      char *args,
 			      unsigned int clockspeed, unsigned int options );
+char *pnd_apps_exec_runline ( void ); // returns the cached pnd_run.sh line from last PND_EXEC_OPTION_NORUN
 
 // should you wish to know where an app will get mounted, call this function to obtain a guess. The
 // logic is wrapped up in pnd_run.sh, but in theory should be easily determined.

@@ -123,6 +123,7 @@ pnd_conf_handle pnd_conf_fetch_by_path ( char *fullpath );
 char *pnd_conf_get_as_char ( pnd_conf_handle c, char *key );
 #define PND_CONF_BADNUM (-31337) /* really lame hack, I know */
 int pnd_conf_get_as_int ( pnd_conf_handle c, char *key );
+int pnd_conf_get_as_int_d ( pnd_conf_handle c, char *key, int def ); // same as _as_int, but returns default instead of BADNUM
 
 #ifdef __cplusplus
 } /* "C" */

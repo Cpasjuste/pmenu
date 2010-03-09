@@ -51,6 +51,7 @@ char *pnd_box_get_name ( pnd_box_handle box );
 void *pnd_box_get_head ( pnd_box_handle box );
 char *pnd_box_get_key ( void *node );
 void *pnd_box_get_next ( void *node );
+unsigned int pnd_box_get_size ( pnd_box_handle box );
 
 #ifdef __cplusplus
 } /* "C" */

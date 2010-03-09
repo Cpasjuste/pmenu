@@ -790,7 +790,7 @@ int gui_confirm_box( char *msg )
 	{
         GLES2D_HandleEvents( 90 );
 
-        if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed ( XK_o ) ) // OK
+        if ( GLES2D_PadPressed ( X ) || GLES2D_KeyboardPressed ( XK_o ) ) // OK
         {
                 return 1;
         }
@@ -1322,7 +1322,7 @@ void handle_dpad()
         }
     }
 
-    else if ( GLES2D_PadPressed ( A ) || GLES2D_KeyboardPressed( XK_l ) )
+    else if ( GLES2D_PadPressed ( X ) || GLES2D_KeyboardPressed( XK_l ) )
     {
         GLES2D_Pad[ A ] = 0;
 
@@ -1330,52 +1330,6 @@ void handle_dpad()
         {
             if ( list_num[category] )
                 gui_app_exec( list_curpos[ category ] );
-        }
-
-        if ( !pmenu->effect )
-        {
-            gui_draw();
-            GLES2D_SwapBuffers();
-        }
-    }
-
-    else if ( GLES2D_PadPressed ( B ) )
-    {
-        if ( now_depth > 0 )
-        {
-            int i;
-
-            for( i = 0; i < MAX_PATH; i++ )
-                if ( now_path[i] == 0 ) break;
-
-            i--;
-
-            while( i > 4 )
-            {
-                if ( now_path[i] == '/' )
-                {
-                    now_path[i] = 0;
-                    break;
-                }
-                i--;
-            }
-            now_depth--;
-            get_media_list( now_path );
-        }
-    }
-
-    else if ( GLES2D_PadPressed ( X ) || GLES2D_KeyboardPressed( XK_space ) )
-    {
-        if ( category == FAVORITES )
-        {
-                if ( list_num[category] )
-                {
-                    char tmpStr[512];
-                    sprintf(tmpStr, "Do you want to remove %s from your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
-
-                    if( gui_confirm_box( tmpStr ) )
-                        cfg_fav_del( applications[category]->id[list_curpos[ category ]] );
-                }
         }
         else if ( category == SETTINGS  )
         {
@@ -1398,9 +1352,9 @@ void handle_dpad()
             }
             else if ( setting_current == MENU_POWEROFF )
             {
-		int ret;
-		ret = system( "poweroff" );
-		}
+                int ret;
+                ret = system( "poweroff" );
+            }
         }
         else if ( category == MEDIA )
         {
@@ -1426,23 +1380,82 @@ void handle_dpad()
                 }
             }
         }
+
+        if ( !pmenu->effect )
+        {
+            gui_draw();
+            GLES2D_SwapBuffers();
+        }
+    }
+
+    else if ( GLES2D_PadPressed ( B ) )
+    {
+        if( category == MEDIA )
+        {
+            if ( now_depth > 0 )
+            {
+                int i;
+
+                for( i = 0; i < MAX_PATH; i++ )
+                    if ( now_path[i] == 0 ) break;
+
+                i--;
+
+                while( i > 4 )
+                {
+                    if ( now_path[i] == '/' )
+                    {
+                        now_path[i] = 0;
+                        break;
+                    }
+                    i--;
+                }
+                now_depth--;
+                get_media_list( now_path );
+            }
+        }
+    }
+
+    else if ( GLES2D_PadPressed ( Y ) || GLES2D_KeyboardPressed( XK_space ) )
+    {
+        if ( category == FAVORITES )
+        {
+                if ( list_num[category] )
+                {
+                    char tmpStr[512];
+                    sprintf(tmpStr, "Do you want to remove %s from your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
+
+                    if( gui_confirm_box( tmpStr ) )
+                    {
+                        cfg_fav_del( applications[category]->id[list_curpos[ category ]] );
+                        pnd_app_clean_list();
+                        pnd_app_get_list();
+                    }
+
+                }
+        }
         else
         {
-            if ( list_num[category] )
+            if ( ( category != MEDIA ) && ( category != SETTINGS ) )
             {
-                if ( applications_count[FAVORITES] < FAV_MAX )
+                if ( list_num[category] )
                 {
-                    char tmpString[256];
-                    sprintf(tmpString, "Do you want to add %s to your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
-
-                    if (  gui_confirm_box( tmpString ) )
+                    if ( applications_count[FAVORITES] < FAV_MAX )
                     {
-                        cfg_fav_add( applications[category]->id[list_curpos[ category ]] );
+                        char tmpString[256];
+                        sprintf(tmpString, "Do you want to add %s to your favourite applications ?", applications[category]->name[list_curpos[ category ]] );
+
+                        if (  gui_confirm_box( tmpString ) )
+                        {
+                            cfg_fav_add( applications[category]->id[list_curpos[ category ]] );
+                            pnd_app_clean_list();
+                            pnd_app_get_list();
+                        }
                     }
-                }
-                else
-                {
-                    gui_confirm_box("Favorites are full, please remove a favourite before adding one by going under the favourite screen.");
+                    else
+                    {
+                        gui_confirm_box("Favorites are full, please remove a favourite before adding one by going under the favourite screen.");
+                    }
                 }
             }
         }

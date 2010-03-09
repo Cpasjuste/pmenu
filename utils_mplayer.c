@@ -72,7 +72,6 @@ void video_play( char *filename )
         {
             video_pause();
         }
-
         if ( GLES2D_PadPressed ( X ) )
         {
             video_fullscreen();
@@ -90,7 +89,6 @@ void video_play( char *filename )
             video_quit();
             break;
         }
-
         gui_draw();
         GLES2D_SwapBuffers();
     }
