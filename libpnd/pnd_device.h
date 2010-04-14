@@ -22,6 +22,7 @@ extern "C" {
 #define PND_DEVICE_NUB1 "/dev/input/js1"
 #define PND_DEVICE_NUB2 "/dev/input/js2"
 #define PND_DEVICE_BATTERY_GAUGE_PERC "/sys/class/power_supply/bq27500-0/capacity"
+#define PND_DEVICE_CHARGE_CURRENT "/sys/class/power_supply/bq27500-0/current_now"
 
 #define PND_DEVICE_LED_CHARGER "/sys/class/leds/pandora::charger"
 #define PND_DEVICE_LED_POWER   "/sys/class/leds/pandora::power"
@@ -30,6 +31,14 @@ extern "C" {
 #define PND_DEVICE_LED_WIFI    "/sys/class/leds/pandora::wifi"
 #define PND_DEVICE_LED_BT      "/sys/class/leds/pandora::bluetooth"
 #define PND_DEVICE_LED_SUFFIX_BRIGHTNESS "/brightness"
+
+// device names
+#define PND_EVDEV_NUB1    "vsense66"
+#define PND_EVDEV_NUB2    "vsense67"
+#define PND_EVDEV_KEYPAD  "omap_twl4030keypad"
+#define PND_EVDEV_GPIO    "gpio-keys"
+#define PND_EVDEV_TS      "ADS784x Touchscreen"
+#define PND_EVDEV_POWER   "triton2-pwrbutton"
 
 /* utility
  */
@@ -47,6 +56,7 @@ unsigned int pnd_device_get_clock ( void );
  * On error, returns -1
  */
 int pnd_device_get_battery_gauge_perc ( void );
+unsigned char pnd_device_get_charge_current ( int *result ); // returns + - current; if charging, current is +ve.
 
 // LCD to set on/off
 
@@ -56,6 +66,7 @@ unsigned int pnd_device_get_backlight ( void );
 
 // set one or more LEDs on
 unsigned char pnd_device_set_led_power_brightness ( unsigned char v ); // 0-255
+unsigned char pnd_device_set_led_charger_brightness ( unsigned char v ); // 0-255
 
 // suspend/hibernate/etc
 

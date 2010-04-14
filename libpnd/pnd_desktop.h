@@ -15,6 +15,12 @@ extern "C" {
 #define PND_DOTDESKTOP_SOURCE "X-Pandora-Source=libpnd"
 unsigned char pnd_emit_dotdesktop ( char *targetpath, char *pndrun, pnd_disco_t *p );
 
+// emit_dotinfo() will spit out a .desktop 'info entry', similar to the way emit_dotdesktop does its thing
+// - rather than slide this into emit_dotdesktop(), we wish to allow apps to do this or not by calling this
+//   function, and also let them specify an alternate path to emit to.. without adding all these
+//   extra fields to emit_dotdesktop()'s function and breaking apps, or annoying callers down the road
+unsigned char pnd_emit_dotinfo ( char *targetpath, char *pndrun, pnd_disco_t *p );
+
 // emit_icon() will attempt to copy the icon from a PXML directory, or from a pnd file if appended,
 // to the given directory; returns 1 on sucess, otherwise is a fail.
 unsigned char pnd_emit_icon ( char *targetpath, pnd_disco_t *p );

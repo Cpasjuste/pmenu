@@ -16,7 +16,7 @@ LDFLAGS = -L$(PNDSDK)/usr/lib -lSDL -lSDL_image -lSDL_ttf -lfreetype -lGLES2D \
 		-lpnd -lconfig -lts-1.0 -lstdc++
 
 CFLAGS = -Wall -Werror -g -Ilibpnd -I$(PNDSDK)/usr/include
-CFLAGS += -O3 -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfloat-abi=softfp \
+CFLAGS += -O2 -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfloat-abi=softfp \
 		-mfpu=neon -ftree-vectorize -ffast-math -fomit-frame-pointer \
 		-fno-strict-aliasing -fsingle-precision-constant
 

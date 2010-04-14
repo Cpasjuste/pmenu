@@ -7,6 +7,7 @@ extern "C" {
 
 /* <PXML id="..."> ...*/
 #define PND_PXML_ATTRNAME_UID "id"
+#define PND_PXML_ATTRNAME_APPDATANAME "appdata"
 
 /* <application id="123">*/
 #define PND_PXML_APP "application"
@@ -26,7 +27,7 @@ extern "C" {
 #define PND_PXML_ATTRNAME_EXECCMD "command"
 #define PND_PXML_ATTRNAME_EXECARGS "arguments"
 #define PND_PXML_ATTRNAME_EXECWD "startdir"
-#define PND_PXML_ATTRNAME_EXECNOX11 "no_x11"
+#define PND_PXML_ATTRNAME_EXECNOX11 "x11"
 
 /* <icon src="..." /> */
 #define PND_PXML_ENAME_ICON "icon"
@@ -98,6 +99,13 @@ extern "C" {
 #define PND_PXML_NODENAME_MKDIR "mkdir"
 #define PND_PXML_ENAME_MKDIR "dir"
 #define PND_PXML_ATTRNAME_MKDIRPATH "path"
+
+/* <info name="AwesomeGame Setup" type="txt/html" src="index.html"/>
+ */
+#define PND_PXML_ENAME_INFO "info"
+#define PND_PXML_ATTRNAME_INFONAME "name"
+#define PND_PXML_ATTRNAME_INFOSRC "src"
+#define PND_PXML_ATTRNAME_INFOTYPE "type"
 
 #ifdef __cplusplus
 } // extern "C"

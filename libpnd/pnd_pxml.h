@@ -14,6 +14,9 @@ extern "C" {
 
 #define PXML_MAXAPPS 20 /* max number of <application>'s within a single PXML */
 
+// for DaveC, we will support same-path-as-.pnd file override, that is simple format and not XML
+#define PXML_SAMEPATH_OVERRIDE_FILEEXT ".ovr" /* ./foo/bar.pnd could have overrides in ./foo/bar.ovr */
+
 // use this handle to interact with PXML; this hides the mechanics of parsing a PXML file so that
 // it can be upgraded with impacting applications
 typedef void* pnd_pxml_handle;
@@ -46,6 +49,7 @@ char *pnd_pxml_get_app_name_it ( pnd_pxml_handle h );
 char *pnd_pxml_get_app_name_fr ( pnd_pxml_handle h );
 char *pnd_pxml_get_app_name ( pnd_pxml_handle h, char *iso_lang );
 char *pnd_pxml_get_unique_id ( pnd_pxml_handle h );
+char *pnd_pxml_get_appdata_dirname ( pnd_pxml_handle h );
 char *pnd_pxml_get_standalone ( pnd_pxml_handle h );
 char *pnd_pxml_get_icon ( pnd_pxml_handle h );
 char *pnd_pxml_get_description_en ( pnd_pxml_handle h );
@@ -87,12 +91,22 @@ char *pnd_pxml_get_clockspeed ( pnd_pxml_handle h );
 char *pnd_pxml_get_background ( pnd_pxml_handle h );
 char *pnd_pxml_get_startdir ( pnd_pxml_handle h );
 char *pnd_pxml_get_mkdir ( pnd_pxml_handle h );
+char *pnd_pxml_get_info_name ( pnd_pxml_handle h );
+char *pnd_pxml_get_info_type ( pnd_pxml_handle h );
+char *pnd_pxml_get_info_src ( pnd_pxml_handle h );
 
 // for 'set' functions, pass NULL value to delete existing value without setting new one
 void pnd_pxml_set_app_name ( pnd_pxml_handle h, char *v );
 
 /* utilities
  */
+typedef enum {
+  pnd_pxml_x11_error = 0,
+  pnd_pxml_x11_required,
+  pnd_pxml_x11_ignored,
+  pnd_pxml_x11_stop
+} pnd_pxml_x11_req_e;
+pnd_pxml_x11_req_e pnd_pxml_get_x11 ( char *pxmlvalue ); // returns error, required, ignored, stop hint
 unsigned char pnd_is_pxml_valid_app ( pnd_pxml_handle h ); // returns 1 when pxml seems like a valid application
 unsigned char pnd_pxml_is_affirmative ( char *v ); // return 1 for 'Y' or '!'
 
@@ -104,11 +118,12 @@ typedef struct
 
 typedef struct
 {
-        unsigned char subapp_number; // 0 for 'only app'; 1+ for <application> # .. first <application> is 1.
+        unsigned char subapp_number; // 0+ for <application> # .. first <application> is 0
 	pnd_localized_string_t *titles;
 	int titles_c;
 	int titles_alloc_c;
 	char *unique_id;
+        char *appdata_dirname;       // preferred dir name for appdata; if missing, use unique-id
 	char *standalone;
 	char *icon;
 	pnd_localized_string_t *descriptions;
@@ -150,6 +165,10 @@ typedef struct
 	char *package_name;
 	char *package_release_date;
         char *mkdir_sp; // a colon separated list of paths to be mkdir'd (silently fail) when pnd is autodiscovered. path is always relative to the root of the hosting device.
+
+        char *info_name;      // should be a struct..
+        char *info_filename;
+        char *info_type;
 
 }  pnd_pxml_t;
 

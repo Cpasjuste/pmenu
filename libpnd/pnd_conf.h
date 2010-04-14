@@ -125,6 +125,12 @@ char *pnd_conf_get_as_char ( pnd_conf_handle c, char *key );
 int pnd_conf_get_as_int ( pnd_conf_handle c, char *key );
 int pnd_conf_get_as_int_d ( pnd_conf_handle c, char *key, int def ); // same as _as_int, but returns default instead of BADNUM
 
+/* writes and saves
+ */
+int *pnd_conf_set_int ( pnd_conf_handle c, char *key, int v );
+char *pnd_conf_set_char ( pnd_conf_handle c, char *key, char *v );
+unsigned char pnd_conf_write ( pnd_conf_handle c, char *fullpath );
+
 #ifdef __cplusplus
 } /* "C" */
 #endif

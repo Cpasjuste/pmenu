@@ -16,6 +16,7 @@ extern "C" {
  * overridespath may be NULL if you do not wish to search for pxml overrides
  */
 pnd_box_handle pnd_disco_search ( char *searchpath, char *overridespath );
+pnd_box_handle pnd_disco_file ( char *path, char *filename ); // should you wish to 'discover' one .pnd-file
 
 /* pnd_disco_t describes a given entry found by the discovery code; ie: the containers key is the path to
  * the PXML file (since this is relatively unique), with the fields below detailing the executable path,
@@ -43,6 +44,8 @@ typedef enum {
 // fetch the full PXML and get all the details. But I think we got out of control here :)
 // NOTE: We really need to rework disco-t so it can include non-english titles/desc; perhaps more info as optional,
 //   or a name/value pairing system so it can have extra data in it, without a complex structure.
+#define PND_DISCO_FLAG_OVR 1   // An ovr file was found for this app (not per subapp, just per .pnd)
+#define PND_DISCO_GENERATED 2  // This disco is 'faux', made up and not reflecting a real 'pnd file'
 typedef struct {
   // base
   unsigned char object_type;   // see enum above
@@ -50,10 +53,12 @@ typedef struct {
   char *object_filename;       // filename within object_path of the app: the PXML.xml or awesomeapp.pnd file itself
   unsigned int pnd_icon_pos;   // offset to the byte after end of PXML in a pnd file (should be icon if present)
   unsigned char subapp_number; // # of app within PXML (ie: 0, 1, 2, 3, up to the number of apps within the PXML)
+  unsigned int object_flags;
   // strdup'd from PXML -- hey, who was the idiot who thought it was a reat idea not to just re-use the pxml-struct?
   char *title_en;
   char *desc_en;
   char *unique_id;
+  char *appdata_dirname;       // preferred dir name for appdata; if missing, use unique-id
   char *icon;
   char *exec;
   char *execargs;
@@ -69,6 +74,9 @@ typedef struct {
   char *preview_pic1;
   char *preview_pic2;
   char *mkdir_sp;
+  char *info_name;      // should be a struct..
+  char *info_filename;
+  char *info_type;
 } pnd_disco_t;
 
 void pnd_disco_destroy ( pnd_disco_t *p ); // a function name that simply could not be avoided

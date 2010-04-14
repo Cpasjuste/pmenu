@@ -39,10 +39,17 @@ void pnd_box_delete ( pnd_box_handle box );
  */
 void *pnd_box_allocinsert ( pnd_box_handle box, char *key, unsigned int size );
 
+/* use find_by_key() to find a value or iteration, and unlink it */
+void pnd_box_delete_node ( pnd_box_handle box, void *value );
+
 /* find_by_key() will attempt to locate a payload based on the specified key.
  * Returns the payload pointer or NULL if not found.
+ * CASE INSENSITIVE.
  */
 void *pnd_box_find_by_key ( pnd_box_handle box, char *key );
+
+/* merge two box lists */
+unsigned char pnd_box_append ( pnd_box_handle box, pnd_box_handle append );
 
 /* should the user want to walk around the container, a couple basic functions are
  * provided.

@@ -6,9 +6,14 @@
 extern "C" {
 #endif
 
+#include "pnd_container.h"
+#include "pnd_discovery.h"
+
 // default application searchpath (and key to look it up in config)
 #define PND_APPS_SEARCHPATH "/media/*/pandora/apps:/usr/pandora/apps"
 #define PND_APPS_KEY "autodiscovery.searchpath"
+
+#define PND_APPS_APPDATA_PREFIX "/pandora/appdata" /* /media/DEVNAME + PREFIX + unique-id */
 
 // default notify searchpath (and key to look it up in config)
 #define PND_APPS_NOTIFYPATH "/media:/media/*/pandora/apps:/usr/pandora/apps"
@@ -66,6 +71,14 @@ unsigned char pnd_apps_exec ( char *pndrun, char *fullpath, char *unique_id,
 			      char *args,
 			      unsigned int clockspeed, unsigned int options );
 char *pnd_apps_exec_runline ( void ); // returns the cached pnd_run.sh line from last PND_EXEC_OPTION_NORUN
+
+// this is a superior version of pnd_apps_exec(), but avoiding breaking the pnd_apps_exec() API to
+// extend it.
+// - same option booleans
+// - 'reserved' should be NULL unless you know what to put there (depends on options)
+// - 'app' should be a return from discovery, or a populated disco-t struct
+// - 'pndrun' is a reference to a pnd_run.sh script, to avoid seeking it out every time
+unsigned char pnd_apps_exec_disco ( char *pndrun, pnd_disco_t *app, unsigned int options, void *reserved );
 
 // should you wish to know where an app will get mounted, call this function to obtain a guess. The
 // logic is wrapped up in pnd_run.sh, but in theory should be easily determined.

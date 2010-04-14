@@ -14,6 +14,7 @@
 #include "utils_cpu.h"
 #include "pnd_apps.h"
 #include "pnd_notify.h"
+#include "pnd_dbusnotify.h"
 #include "common.h"
 #include "utils_mplayer.h"
 
@@ -21,6 +22,8 @@
 #include "category_media.h"
 
 pnd_notify_handle nh;
+pnd_dbusnotify_handle nh2;
+
 int nh_countdown = 60;
 
 static int gui_done = 0, do_quit = 0, preview_timer = 100;
@@ -77,7 +80,7 @@ void check_rediscover()
     nh_countdown--;
     if ( ! nh_countdown )
     {
-        if ( pnd_notify_rediscover_p ( nh ) )
+        if ( pnd_notify_rediscover_p ( nh ) || pnd_dbusnotify_rediscover_p ( nh2 ) )
         {
             printf ( "Must do a rediscover!\n" );
 
@@ -102,8 +105,9 @@ int gui_init()
 //    GLES2D_JoystickInit(0);
 #else
 //	putenv ("SDL_MOUSEDRV=TSLIB");
+	exec( "echo 2 > /proc/pandora/game_button_mode" );
 	putenv ("DISPLAY=:0");
-    GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
+	GLES2D_InitVideo( 800, 480, 1, 1, 1, VIDEO_X11 );
 #endif
 	return 0;
 }
@@ -246,8 +250,14 @@ void gui_load_preview( int cat, int n )
                 else
                 {
                     debug_infof( "pnd_pnd_mount( pndrun, %s, %s );\n", applications[cat]->fullpath[n], applications[cat]->id[n] );
-                    pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+
+                    //pnd_pnd_mount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+			fast_mount( applications[cat]->fullpath[n] );
+
                     debug_info( "Done : pnd_pnd_mount()\n" );
+
+			memset ( src, 0, 512 );
+			sprintf( src, "/tmp/%s", applications[cat]->preview_pic1_name[n] );
 
                     debug_infof( "Creating preview texture from %s\n", src );
 
@@ -257,7 +267,8 @@ void gui_load_preview( int cat, int n )
                     }
 
                     debug_info( "pnd_pnd_umount()\n" );
-                    pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+                    //pnd_pnd_unmount ( pndrun, applications[cat]->fullpath[n], applications[cat]->id[n] );
+			fast_umount( );
                     debug_info( "Done : pnd_pnd_umount()\n" );
                 }
             }
@@ -713,6 +724,11 @@ void gui_load()
         debug_error ( "PND INOTIFY init problem spotted\n" );
     }
 
+    if ( ! ( nh2 = pnd_dbusnotify_init() ) )
+    {
+        debug_error ( "PND DBUSINOTIFY init problem spotted\n" );
+    }
+
     initStatusCalls();
     cpuUsage();
     getCPULoad();
@@ -733,6 +749,7 @@ void gui_clean()
     pnd_app_clean_list();
 
     pnd_notify_shutdown ( nh );
+	pnd_dbusnotify_shutdown ( nh2 );
     doneStatusCalls();
 
     GLES2D_Quit();

@@ -191,5 +191,37 @@ int is_img( char *filename )
     return 0;
 }
 
+int exec( char *cmd )
+{
+	int ret;
+        ret = system( cmd );
+
+	return ret;
+}
+
+int fast_mount( char *pnd_path )
+{
+	int ret;
+	char cmd[1024];
+	memset( cmd, 0, 1024 );
+	sprintf( cmd, "losetup /dev/loop123 %s", pnd_path );
+	
+	ret = system( "mknod -m777 /dev/loop123 b 7 123" );
+	ret = system( cmd );
+	ret = system( "mount /dev/loop123 /tmp" );
+	
+	return ret;
+}
+
+int fast_umount( )
+{
+	int ret;
+	
+	ret = system( "umount /tmp" );
+	ret = system( "losetup -d /dev/loop123" );
+
+	return ret;
+}
+
 
 
